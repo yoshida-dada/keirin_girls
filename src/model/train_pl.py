@@ -11,9 +11,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-from scipy.optimize import minimize
 
 from src.model.training_data import RaceSample, standardize
+# scipy は学習(train_pl)でのみ使う。推論（PLModel.strengths）は numpy だけで動くよう
+# import は train_pl 関数内に遅延させる（Actionsの軽量な予測更新環境で scipy 不要にするため）。
 
 _EPS = 1e-12
 
@@ -52,6 +53,7 @@ def _neg_loglik(w: np.ndarray, Xs: list[np.ndarray], idxs: list[list[int]],
 
 def train_pl(samples: list[RaceSample], l2: float = 1.0) -> PLModel:
     """PL線形モデルを学習する。samples は training_data.load_samples の出力。"""
+    from scipy.optimize import minimize   # 学習時のみ必要（推論は numpy だけ）
     if not samples:
         raise ValueError("no training samples")
     mean, std = standardize(samples)
