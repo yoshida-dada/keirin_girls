@@ -1,0 +1,41 @@
+name: Refresh predictions (latest odds)
+
+# レース時間帯に定期実行し、発走が近いガールズレースの最新オッズでEVを更新して
+# dashboard/data.json を差し替える（③b）。DBは使わずコミット済みモデル＋オッズ取得のみ。
+# 更新があれば commit → Pages が自動デプロイ。
+on:
+  schedule:
+    # JST 10:00〜21:00（=UTC 01:00〜12:00）を10分間隔。cronはUTC・数分の遅延あり。
+    - cron: "*/10 1-12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-predictions
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install minimal deps
+        run: pip install requests beautifulsoup4 numpy scipy
+      - name: Refresh predictions (races within 15 min of post)
+        run: python scripts/refresh_predictions.py --only-near 15
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- dashboard/data.json; then
+            git add dashboard/data.json
+            git commit -m "chore: refresh predictions (latest odds)"
+            git push
+          else
+            echo "no change"
+          fi

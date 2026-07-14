@@ -21,7 +21,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config.settings import DATA_DIR
 from db.repository import DatasetRepo
 from src.collect.dataset import collect_race_dataset
-from src.collect.gamboo_schedule import fetch_girls_kaisai, fetch_girls_race_numbers
+from src.collect.gamboo_schedule import (
+    fetch_girls_kaisai, fetch_girls_race_numbers, kaisai_race_date,
+)
 from src.collect.snapshot import build_race_id
 
 
@@ -56,6 +58,9 @@ def run(d_from: date, d_to: date, db_path: Path, max_races: int | None,
         except Exception as e:
             print(f"{day} 開催一覧取得失敗: {e}")
             continue
+        # 開催一覧は初日〜最終日の全日程を含むため、実施日が当日と一致する開催のみに絞る
+        # （初日/2日目の混在を排除し、race_dateを実施日として正しく保存する）。
+        kaisai_list = [k for k in kaisai_list if kaisai_race_date(k.kaisai_day_code) == day]
         if not kaisai_list:
             continue
         # 当日の未収集タスク (kaisai, race_no) を集める。レース一覧ページの級班列から

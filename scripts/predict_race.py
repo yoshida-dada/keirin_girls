@@ -19,7 +19,8 @@ from src.collect.gamboo_racecard import parse_race_card, parse_recent_form, is_g
 from src.model.persist import load_model, strengths_from_model
 from src.model.plackett_luce import all_trifecta_probs
 from src.model.race_type import classify_race
-from src.ev.ev_engine import format_combo
+from src.ev.market import implied_trifecta_probs, blend_loglinear
+from src.ev.ev_engine import build_trifecta_ev_table, format_combo
 
 
 def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
@@ -54,13 +55,30 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     top_tri = [{"combo": format_combo(c), "prob": round(p, 4),
                 "odds": odds.get(c), "need_odds": round(1 / p, 1) if p > 0 else None}
                for c, p in sorted(probs.items(), key=lambda kv: -kv[1])[:8]]
+
+    # 最新オッズに基づくEV判定（発走10分前更新で使う）。エッジ未確立のため参考値。
+    ev = {"status": "no_odds", "threshold": 1.10, "n_buy": 0, "buys": [],
+          "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"}
+    if odds:
+        implied = implied_trifecta_probs(odds)
+        blended = blend_loglinear(probs, implied, alpha=0.8)
+        table = build_trifecta_ev_table(
+            blended, odds, ev_threshold=1.10,
+            guards={"shrink_to_market": 0.0, "min_prob": 0.005, "max_odds": 500.0})
+        buys = [{"combo": format_combo(r.combo), "prob": round(r.model_prob, 4),
+                 "odds": r.odds, "ev": round(r.ev_gross, 2)} for r in table["buy"][:8]]
+        ev.update(status="ok", n_buy=len(table["buy"]), buys=buys)
+
+    from datetime import datetime, timezone, timedelta
+    jst = timezone(timedelta(hours=9))
     return {
         "venue": venue, "race_no": race_no, "deadline": deadline,
         "is_girls": is_girls_race(entries), "field_size": len(entries),
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
-        "riders": riders, "top_trifecta": top_tri,
+        "riders": riders, "top_trifecta": top_tri, "ev": ev,
         "has_odds": bool(odds),
+        "updated_at": datetime.now(jst).strftime("%Y-%m-%d %H:%M"),
     }
 
 

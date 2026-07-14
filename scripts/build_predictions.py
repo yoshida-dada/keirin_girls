@@ -77,11 +77,14 @@ def build_predictions_section(target: date) -> dict:
                 print(f"  {venue} R{rno} 予測失敗: {e}")
                 continue
             races.append(d)
+    from datetime import datetime, timezone, timedelta
+    jst = timezone(timedelta(hours=9))
     return {
         "status": "ok" if races else "pending",
         "date": target.isoformat(),
         "model": "PL線形(拡張20特徴)",
-        "note": "着順予測の確率です。エッジ未確立のため買い目・EVは提示しません（実弾投入は非推奨）。",
+        "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
+        "last_updated": datetime.now(jst).strftime("%Y-%m-%d %H:%M JST"),
         "races": races,
     }
 

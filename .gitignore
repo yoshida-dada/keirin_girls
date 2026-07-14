@@ -9,10 +9,13 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# data (生データ・モデル・ログはコミットしない)
+# data (生データ・ログはコミットしない)
 data/raw/
 data/processed/
-data/models/
+data/models/*
+# ただし配信用の学習済みモデルだけはコミット（GitHub Actionsの予測更新で使う）
+!data/models/pl_model.pkl
+!data/models/pl_model_base.pkl
 data/*.log
 *.sqlite
 *.db
