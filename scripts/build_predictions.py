@@ -91,8 +91,16 @@ def build_predictions_section(target: date) -> dict:
 
 def build_model_sections(db_path: Path) -> dict:
     """収集済みデータと学習済みモデルから race_type_dist と calibration を実データ化する。"""
+    import numpy as np
     model = load_model()
     samples = load_samples(db_path, features=PL_FEATURES_FULL)
+    # Eloモデル(rel_elo付き)のときは各サンプルのXにレース内相対Eloを足す
+    if "rel_elo" in (model.feature_names or []):
+        from src.model.elo import compute_pre_race_elo, DEFAULT_ELO
+        pre = compute_pre_race_elo(db_path)
+        for s in samples:
+            elos = np.array([pre.get((s.race_id, c), DEFAULT_ELO) for c in s.car_numbers])
+            s.X = np.hstack([s.X, (elos - elos.mean()).reshape(-1, 1)])
     # レースタイプ分布（全サンプルをモデル分類）
     counts = {"軸堅": 0, "標準": 0, "混戦": 0}
     for s in samples:
