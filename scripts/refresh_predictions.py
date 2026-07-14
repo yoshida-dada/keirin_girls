@@ -57,17 +57,26 @@ def main() -> None:
                    if k.is_girls and kaisai_race_date(k.kaisai_day_code) == target]
     venues = _venue_map(res.text)
 
+    # 既存data.jsonの締切をキャッシュし、窓外レースは取得自体をスキップ（1分ループを軽くする）
+    dl_cache = {(r.get("venue"), r.get("race_no")): r.get("deadline")
+                for r in doc.get("predictions", {}).get("races", [])}
+
     races = []
     for k in kaisai_list:
         venue = venues.get(k.kaisai_code, k.venue_code)
         for rno in fetch_girls_race_numbers(k):
+            if args.only_near is not None:
+                dl = dl_cache.get((venue, rno))
+                if dl:                                   # 締切既知→窓外なら取得しない
+                    m = _minutes_to_deadline(dl, now)
+                    if m is None or m < -5 or m > args.only_near:
+                        continue
             try:
                 d = predict_race_dict(k.kaisai_code, k.kaisai_day_code, rno, venue=venue)
             except Exception as e:
                 print(f"  {venue} R{rno} 失敗: {e}")
                 continue
-            # --only-near: 締切が近いレースだけ最新化（それ以外は既存を保持）
-            if args.only_near is not None:
+            if args.only_near is not None:               # 取得後の締切で最終判定
                 mins = _minutes_to_deadline(d.get("deadline", ""), now)
                 if mins is None or mins < -5 or mins > args.only_near:
                     continue
