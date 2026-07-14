@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install minimal deps
-        run: pip install requests beautifulsoup4 numpy scipy
+        run: pip install requests beautifulsoup4 numpy pandas
       - name: Refresh predictions (races within 15 min of post)
         run: python scripts/refresh_predictions.py --only-near 15
       - name: Commit if changed
