@@ -27,7 +27,7 @@ import build_dashboard_data as bdd
 from bs4 import BeautifulSoup
 from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_schedule import (
-    build_kaisai_list_url, parse_kaisai_list, fetch_girls_race_numbers,
+    build_kaisai_list_url, parse_kaisai_list, fetch_girls_race_numbers, kaisai_race_date,
 )
 from src.model.persist import load_model
 from src.model.training_data import load_samples, PL_FEATURES_FULL
@@ -62,7 +62,10 @@ def build_predictions_section(target: date) -> dict:
     """指定日のガールズ各レースをモデル予測して返す（ネットワークアクセスあり）。"""
     set_default_interval(0.5)
     res = fetch(build_kaisai_list_url(target.year, target.month, target.day))
-    kaisai_list = [k for k in parse_kaisai_list(res.text) if k.is_girls]
+    # 開催一覧は初日〜最終日の全日程を含むため、実施日が target と一致する開催日のみに絞る
+    # （初日=昨日/2日目=今日 の混在を防ぐ。過去レースへの予測を出さない）。
+    kaisai_list = [k for k in parse_kaisai_list(res.text)
+                   if k.is_girls and kaisai_race_date(k.kaisai_day_code) == target]
     venues = _venue_map(res.text)
     races = []
     for k in kaisai_list:
