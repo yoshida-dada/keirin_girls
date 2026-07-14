@@ -4,9 +4,8 @@ name: Refresh predictions (latest odds)
 # dashboard/data.json を差し替える（③b）。DBは使わずコミット済みモデル＋オッズ取得のみ。
 # 更新があれば commit → Pages が自動デプロイ。
 on:
-  schedule:
-    # JST 10:00〜21:00（=UTC 01:00〜12:00）を10分間隔。cronはUTC・数分の遅延あり。
-    - cron: "*/10 1-12 * * *"
+  # 定期実行は無効化（オッズ更新はローカル常駐 scripts/live_scheduler.py が主担当。
+  # Actionsとローカルの二重pushによる競合を避けるため）。手動実行のみ残す。
   workflow_dispatch:
 
 permissions:
