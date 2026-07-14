@@ -138,6 +138,8 @@ def main() -> None:
     doc = bdd.build(db_path)                     # data_status + pending 一式
     doc["model_ready"] = True
     doc.update(build_model_sections(db_path))    # race_type_dist / calibration を実データ化
+    from verify_predictions import build_accuracy_section
+    doc["prediction_accuracy"] = build_accuracy_section(db_path)   # D13: 予測実績
     if args.predict:
         target = date.fromisoformat(args.date) if args.date else date.today()
         print(f"{target} のガールズ予測を生成中…")
