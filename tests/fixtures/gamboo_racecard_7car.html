@@ -1,0 +1,3230 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=1024">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="expires" content="604800">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/base.css?ckl=1779642021" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/raceinfo.css?ckl=1629045581" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/gamboo/css/pc/base-gamboo.css?ckl=1493607743" rel="stylesheet" type="text/css">
+<link rel="apple-touch-icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo-touch-icon.png">
+<link rel="icon" type="image/vnd.microsoft.icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo_favicon.ico">
+
+
+<script type="text/javascript">
+otk = '';
+
+svPrevDay  = "20260713";
+svToDay    = "20260714";
+svThisYear = "2026";
+svNowTime  = "0907";
+svNextDay  = "20260715";
+svPrevYobi = "月";
+svToYobi   = "火";
+svNextYobi = "水";
+
+marqueeTime = 30000; // 1000=1秒
+marqueeTimeDef = 5; // 分
+
+kdUrl   = "https://my.keirin.kdreams.jp/gamboo/sso/go_old_keirin/?ac=";
+baseUrl = "https://my.keirin.kdreams.jp/gamboo/";
+
+ajaxMasterStatus = {
+	"success"           : "kd-00000",
+	"failure"           : "kd-01000",
+	"loginErr"          : "ks-10001",
+	"kaisaiNotFound"    : "ks-10400",
+	"aggregating"       : "ks-10203",
+	"loyalNoEntry"      : "ks-10200",
+	"loyalAlreadyEntry" : "ks-10202",
+	"loyalNotAvailable" : "ks-10201"
+};
+
+ajaxMasterErrorStatus = {
+	close : 0, // default
+	reload : 1,
+	top : 2
+}
+
+device = 'pc';
+devicePc = 'pc';
+deviceSp = 'sp';
+deviceMb = 'mb';
+deviceTb = 'tb';
+deviceApp = 'app';
+
+dayMasterStatus = {
+	prevDay  : parseInt('1', 10),
+	toDay    : parseInt('2', 10),
+	nextDay  : parseInt('3', 10),
+	nextOpen : 4,
+};
+
+kakeshikiBunruiMasterData = {
+	"kd"      : parseInt('1', 10),
+	"basic"   : parseInt('2', 10),
+	"dokanto" : parseInt('3', 10),
+};
+
+kakeshikiMasterName = {
+	"k3"         : parseInt('1', 10),
+	"k5"         : parseInt('2', 10),
+	"bd"         : parseInt('3', 10),
+	"k7"         : parseInt('4', 10),
+	"sanrentan"  : parseInt('5', 10),
+	"nishatan"   : parseInt('6', 10),
+	"sanrenfuku" : parseInt('7', 10),
+	"nishafuku"  : parseInt('8', 10),
+	"niwakutan"  : parseInt('9', 10),
+	"niwakufuku" : parseInt('10', 10),
+	"wide"       : parseInt('11', 10),
+	"k3two"      : parseInt('12', 10),
+	"d4two"      : parseInt('13', 10),
+	"d7"         : parseInt('14', 10),
+};
+
+normalKakeshikiMaster = {
+	"sanrentan"  : parseInt('5',    10)
+	, "nishatan"   : parseInt('6',  10)
+	, "sanrenfuku" : parseInt('7', 10)
+	, "nishafuku"  : parseInt('8',  10)
+	, "niwakutan"  : parseInt('9',  10)
+	, "niwakufuku" : parseInt('10', 10)
+	, "wide"       : parseInt('11',     10)
+};
+
+kakeshikiMasterOrder = {
+	"0" : 0, // 通常賭式
+	"1" : parseInt('1', 10),
+	"2" : parseInt('2', 10),
+	"3" : parseInt('12', 10),
+	"4" : parseInt('4', 10),
+	"5" : parseInt('3', 10),
+	"6" : parseInt('14', 10),
+	"7" : parseInt('13', 10),
+};
+
+kaisaiDayMasterStatus = {
+	"1"  : "初日",
+	"2"  : "2日目",
+	"3"  : "3日目",
+	"4"  : "4日目",
+	"5"  : "5日目",
+	"6"  : "6日目",
+	"7"  : "7日目",
+	"8"  : "8日目",
+	"9"  : "9日目",
+	"99"  : "最終日",
+};
+
+kakeshikiMasterData = {
+	"0" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "通常車券",
+		kakeshikiType : 1,
+	},
+	"1" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3",
+		kakeshikiType : 2,
+	},
+	"2" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K5",
+		kakeshikiType : 2,
+	},
+	"3" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "BiGDREAM",
+		kakeshikiType : 3,
+	},
+	"4" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K7",
+		kakeshikiType : 3,
+	},
+	"5" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連単",
+		kakeshikiType : 1,
+	},
+	"6" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車単",
+		kakeshikiType : 1,
+	},
+	"7" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連複",
+		kakeshikiType : 1,
+	},
+	"8" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車複",
+		kakeshikiType : 1,
+	},
+	"9" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠単",
+		kakeshikiType : 1,
+	},
+	"10" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠複",
+		kakeshikiType : 1,
+	},
+	"11" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "ワイド",
+		kakeshikiType : 1,
+	},
+	"12" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3two",
+		kakeshikiType : 2,
+	},
+	"13" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto4two",
+		kakeshikiType : 3,
+	},
+	"14" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto7",
+		kakeshikiType : 3,
+	},
+};
+
+commFlg = {
+	"trueFlg"           : "1",
+	"falseFlg"          : "0",
+};
+
+ksBetBaitaiCdPC = "0";
+
+pcLiveUrl = "https://keirin.kdreams.jp/gamboo/live/";
+newPCLiveVideoUrl = 'https://keirin.kdreams.jp/gamboo/stadium/live/';
+
+// PVモード
+privateErrMsg      = "プライベートブラウズ機能がオンになっているか、シークレットモードをご利用中のため投票できません。";
+
+// 車券販売場所ID
+shakenSalePlaceId = '3';
+
+</script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.marquee.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/common.js?ckl=1756749849" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/tate.js?ckl=1494809433" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/marquee.js?ckl=1494809432" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/raceinfo.forecast.js?ckl=1722228006" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/scrollTop.js?ckl=1494809433" type="text/javascript"></script>
+<title>レース出走表・オッズ | 函館競輪 Ｆ１ ノースランドＣ＆報知新聞社杯 初日（2026年07月14日） 1レース | 競輪投票は【GambooBET】</title>
+
+</head>
+<body>
+<script type="text/javascript">
+$(function(){
+		$('.scroll a[href^=#]').click(function() {
+		var href= $(this).attr("href");
+		var target = $(href == "#" || href == "" ? 'html' : href);
+		var position = target.offset().top;
+		$('body,html').animate({scrollTop:position}, 500, 'swing');
+		return false;
+	});
+});
+</script>
+<div id="PAGE_HEADER">
+	<div class="container">
+		<p class="logo logo_gamboo"><a href="https://gamboo.jp/"><img src="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/logo_gamboo.png" width="226" height="30" alt="GambooBET"></a></p>
+	</div>
+</div>
+<!-- Main Start -->
+<div id="MAIN" class="cf">
+	<!-- InstanceBeginEditable name="Breadcrumb" -->
+	<ul class="breadcrumb">
+<li><strong><a href="https://keirin.kdreams.jp/gamboo/kaisai/">開催レース情報</a></strong></li>
+<li>出走表詳細</li>
+</ul>	<!-- InstanceEndEditable -->
+	<!-- Article Start -->
+	<div class="article">
+		<!-- InstanceBeginEditable name="Contents" -->
+		<!--  Section Start -->
+		<section class="section raceinfo_section">
+
+			<h1 class="section_title">出走表詳細 函館Ｆ１ レース情報</h1><!-- #BeginLibraryItem "/Library/pc_raceinfo_nav.lbi" -->
+						<div class="raceinfo_nav">
+				<dl class="schedule_nav">
+					<dt>レース開催スケジュール</dt>
+					<dd>
+						<ul class="cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/search/2026/07/">開催スケジュール</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/highgrade/search/2026/">GP･GI･GII開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/grade/search/2026/">GⅢ(記念競輪)開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/frace/search/2026/">特定レース開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/dokanto/search/2026/1/">Dokanto!発売</a></li>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+			<p class="return_raceinfo">
+				<a href="https://keirin.kdreams.jp/gamboo/kaisai/2026/07/14/"><span>2026年07月14日</span>の開催レース情報一覧へもどる</a>
+			</p>
+			<div class="kaisai_header cf">
+				<h2 class="title">
+					<span class="velodrome">函館競輪</span>
+					<span class="icon_grade gr2"></span>
+					<span class="icon_status s2"></span>
+					<span class="icon_girls"></span>					<span class="race">ノースランドＣ＆報知新聞社杯</span>
+				</h2>
+				<ul class="flt_r">
+					<li class="btn_live">
+						<a target="live"
+						   href="javascript:void(0);"
+						   onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=11', 'live', '710,460');"
+						>
+							<span>LIVE</span>映像
+						</a>
+					</li>
+					<li class="btn_bet">
+						<a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&it=1&raceNo=1&l-id=l-krc-cmpi-odds-common_menu_betbtn_8', 'console')">投票</a>
+					</li>
+				</ul>
+			</div>
+<!-- #EndLibraryItem --><!-- #BeginLibraryItem "/Library/pc_kaisai_global_nav.lbi" -->
+			<ul class="kaisai_global_nav">
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/1120260714/11202607140100/">レースプログラム</a></li>
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/1120260714/11202607140100/">出場予定選手一覧</a></li>
+				<li><span class="disabled">展望・記者の推しメン</span></li>
+			</ul>
+<!-- #EndLibraryItem --><!-- #BeginLibraryItem "/Library/pc_kaisai_race_contents.lbi" --><div class="kaisai_race_data_nav">
+				<dl class="date_nav cf">
+					<dt>開催日程選択</dt>
+					<dd>
+						<ul class="cf">
+							<li class="active" >
+
+								<a >
+									<span class="date">07月14日</span><span class="day">初日</span>
+									<span class="icon_today">本日</span>								</a>
+							</li>
+							<li >
+
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140200/1/3rentan/">
+									<span class="date">07月15日</span><span class="day">2日目</span>
+																	</a>
+							</li>
+							<li >
+
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140300/1/3rentan/">
+									<span class="date">07月16日</span><span class="day">最終日</span>
+																	</a>
+							</li>
+						</ul>
+					</dd>
+				</dl>
+				<dl class="data_info_nav cf">
+					<dt>表示情報選択</dt>
+					<dd>
+						<ul class="cf">
+							<li class="active" >
+								<a >出走表</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/1120260714/11202607140100/1/">結果・払戻金</a>
+							</li>
+
+							<li ><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/1120260714/11202607140100/">ドカント経過・結果</a></li>
+
+						</ul>
+					</dd>
+				</dl>
+				<dl class="race_nav cf">
+					<dt>レース選択</dt>
+					<dd>
+						<ul class="cf">
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/1120260714/11202607140100/">
+									一覧
+								</a>
+							</li>
+							<li  class="active" >
+								<a >
+									1R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3rentan/">
+									2R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3rentan/">
+									3R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3rentan/">
+									4R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3rentan/">
+									5R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3rentan/">
+									6R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3rentan/">
+									7R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3rentan/">
+									8R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3rentan/">
+									9R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3rentan/">
+									10R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3rentan/">
+									11R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3rentan/">
+									12R
+								</a>
+							</li>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+			<div class="race_header cf" id="RACECARD">
+				<h3 class="raceinfo_title"><span>1R 出走表詳細（07月14日 初日）</span></h3>
+			</div>
+
+
+			<div class="racecard_area_container">
+				<dl class="tipster_note cf">
+					<dt>予想担当記者</dt>
+					<dd>アオケイ 長谷川 剛由</dd>
+					<dt>情報提供</dt>
+					<dd>北競</dd>
+				</dl>
+				<div class="race_title_header cf">
+					<h2 class="title">関東強力</h2>
+					<p class="status">
+					<span>Ａ級予選</span>
+					</p>
+					<dl class="time">
+						<dt>発走予定</dt>
+						<dd>15:50</dd>
+						<dt>投票締切</dt>
+						<dd>15:45</dd>
+					</dl>
+				</div>
+				<dl class="condition cf">
+					<dt>勝ち上がり条件</dt>
+					<dd>1着〜3着と4着2名は準決勝、その他は一般へ</dd>
+				</dl>
+
+				<div class="racecard_area_top_header">
+					<p class="approach_guide">【誘導員】小田桐 義継 Ａ３</p>
+					<ul class="racecard_area_top_header_sub_nav cf">
+												<li><a href="#detail">オッズ</a></li>
+																		<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/1/#detail">展開予想･狙い目</a></li>
+																		<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/1120260714/11202607140100/1/#detail">結果･払戻金</a></li>
+											</ul>
+				</div>
+
+				<div class="racecard_area">
+					<div class="racecard_area_header cf">
+						<ul class="racecard_area_nav cf">
+							<li id="jsRacerCardDetail" class="active"><a href="javascript:void(0);">出走表<br>詳細</a></li>
+							<li id="jsRacerCardComment" class=""><a href="javascript:void(0);">選手コメント<br>前回出走レース成績</a></li>
+							<li id="jsRacerCardBasho" class=""><a href="javascript:void(0);">今場所・前場所・前々場所<br>出走レース成績</a></li>
+							<li id="jsRacerCardAoYear" class=""><a href="javascript:void(0);">年間勝利度数</a></li>
+							<li id="jsRacerCardAoLength" class=""><a href="javascript:void(0);">同走路年間<br>勝利度数</a></li>
+							<li id="jsRacerCardAoBankYear" class=""><a href="javascript:void(0);">当所5年</a></li>
+						</ul>
+					</div>
+
+					<div class="racecard_area_inner cf jsRacerCardDetail">
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="2" >予<br>想</th>
+								<th rowspan="2" >好<br>気<br>合</th>
+								<th rowspan="2" class="bdr_r ">総<br>評</th>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">級<br>班</th>
+								<th rowspan="2" class="bdr_r">脚<br>質</th>
+								<th rowspan="2">ギヤ<br>倍数</th>
+								<th colspan="16">直近4ヶ月の成績</th>
+							</tr>
+							<tr>
+								<th class="bdr_r">競走得点</th>
+								<th>S</th>
+																								<th class="bdr_r">B</th>
+								<th>逃</th>
+								<th>捲</th>
+								<th>差</th>
+								<th class="bdr_r">マ</th>
+								<th>1<br>着</th>
+								<th>2<br>着</th>
+								<th>3<br>着</th>
+								<th class="bdr_r">着<br>外</th>
+								<th>勝<br>率</th>
+								<th>2連<br>対率</th>
+								<th>3連<br>対率</th>
+							</tr>
+							<tr class="n1 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>5</span></td>
+								<td class="bracket missing " >1</td>
+								<td class="num"><span>1</span></td>
+								<td class="rider bdr_r">
+									竹内 真一<br><span class="home">福　岡/45/89</span>
+																	</td>
+								<td>A2</td>
+								<td class="bdr_r">追</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								79.88								</td>
+								<td>
+								3								</td>
+																								<td class="bdr_r">
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								1								</td>
+								<td>
+								0								</td>
+								<td>
+								5								</td>
+								<td class="bdr_r">
+								21								</td>
+								<td>
+								3.7								</td>
+								<td>
+								3.7								</td>
+								<td class="bdr_r">
+								22.2								</td>
+							</tr>
+
+
+							<tr class="n2 ">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+								<td class="bracket missing " >2</td>
+								<td class="num"><span>2</span></td>
+								<td class="rider bdr_r">
+									山口 智弘<br><span class="home">愛　知/36/99</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">追</td>
+								<td>3.93</td>
+								<td class="bdr_r">
+								89.66								</td>
+								<td>
+								4								</td>
+																								<td class="bdr_r">
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								<span class="best">9</span>
+								</td>
+								<td class="bdr_r">
+								1								</td>
+								<td>
+								7								</td>
+								<td>
+								3								</td>
+								<td>
+								4								</td>
+								<td class="bdr_r">
+								10								</td>
+								<td>
+								29.1								</td>
+								<td>
+								41.6								</td>
+								<td class="bdr_r">
+								58.3								</td>
+							</tr>
+
+
+							<tr class="n3 ">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+								<td class="bracket missing " >3</td>
+								<td class="num"><span>3</span></td>
+								<td class="rider bdr_r">
+									浦川 尊明<br><span class="home">茨　城/50/80</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">追</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								<span class="best">91.00</span>
+								</td>
+								<td>
+								2								</td>
+																								<td class="bdr_r">
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								8								</td>
+								<td class="bdr_r">
+								<span class="best">3</span>
+								</td>
+								<td>
+								5								</td>
+								<td>
+								<span class="best">6</span>
+								</td>
+								<td>
+								<span class="best">6</span>
+								</td>
+								<td class="bdr_r">
+								9								</td>
+								<td>
+								19.2								</td>
+								<td>
+								42.3								</td>
+								<td class="bdr_r">
+								65.3								</td>
+							</tr>
+
+
+							<tr class="n4 ">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+								<td class="bracket missing " >4</td>
+								<td class="num"><span>4</span></td>
+								<td class="rider bdr_r">
+									魚屋 周成<br><span class="home">大　分/35/99</span>
+																	</td>
+								<td>A2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.93</td>
+								<td class="bdr_r">
+								84.15								</td>
+								<td>
+								1								</td>
+																								<td class="bdr_r">
+								4								</td>
+								<td>
+								1								</td>
+								<td>
+								0								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								1								</td>
+								<td>
+								1								</td>
+								<td>
+								2								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								9								</td>
+								<td>
+								7.6								</td>
+								<td>
+								23.0								</td>
+								<td class="bdr_r">
+								30.7								</td>
+							</tr>
+
+
+							<tr class="n5 ">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+								<td class="bracket missing " >5</td>
+								<td class="num"><span>5</span></td>
+								<td class="rider bdr_r">
+									長谷川 飛向<br><span class="home">東　京/29/121</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								90.33								</td>
+								<td>
+								7								</td>
+																								<td class="bdr_r">
+								<span class="best">17</span>
+								</td>
+								<td>
+								5								</td>
+								<td>
+								<span class="best">8</span>
+								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								8								</td>
+								<td>
+								<span class="best">6</span>
+								</td>
+								<td>
+								3								</td>
+								<td class="bdr_r">
+								7								</td>
+								<td>
+								<span class="best">33.3</span>
+								</td>
+								<td>
+								<span class="best">58.3</span>
+								</td>
+								<td class="bdr_r">
+								70.8								</td>
+							</tr>
+
+
+							<tr class="n6 ">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>5</span></td>
+								<td class="bracket missing "  rowspan="2" >6</td>
+								<td class="num"><span>6</span></td>
+								<td class="rider bdr_r">
+									加藤 駿<br><span class="home">愛　知/28/127</span>
+																	</td>
+								<td>A2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								78.19								</td>
+								<td>
+								8								</td>
+																								<td class="bdr_r">
+								16								</td>
+								<td>
+								<span class="best">10</span>
+								</td>
+								<td>
+								4								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								<span class="best">9</span>
+								</td>
+								<td>
+								<span class="best">6</span>
+								</td>
+								<td>
+								<span class="best">6</span>
+								</td>
+								<td class="bdr_r">
+								6								</td>
+								<td>
+								<span class="best">33.3</span>
+								</td>
+								<td>
+								55.5								</td>
+								<td class="bdr_r">
+								<span class="best">77.7</span>
+								</td>
+							</tr>
+
+
+							<tr class="n7 ">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+								<td class="num"><span>7</span></td>
+								<td class="rider bdr_r">
+									星野 辰也<br><span class="home">栃　木/40/95</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">追</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								89.59								</td>
+								<td>
+								<span class="best">10</span>
+								</td>
+																								<td class="bdr_r">
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								0								</td>
+								<td>
+								8								</td>
+								<td class="bdr_r">
+								2								</td>
+								<td>
+								5								</td>
+								<td>
+								5								</td>
+								<td>
+								4								</td>
+								<td class="bdr_r">
+								13								</td>
+								<td>
+								18.5								</td>
+								<td>
+								37.0								</td>
+								<td class="bdr_r">
+								51.8								</td>
+							</tr>
+
+
+						</table>
+					</div>
+
+
+					<div class="racecard_area_inner cf jsRacerCardComment" style="display:none">
+						<table class="racecard_table">
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th class="bdr_r ">総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th>級<br>班</th>
+								<th class="bdr_r">脚<br>質</th>
+								<th>ギヤ<br>倍数</th>
+								<th class="bdr_r">競走得点</th>
+								<th class="bdr_r">選手コメント</th>
+								<th>短評</th>
+							</tr>
+										<tr class="n1 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>5</span></td>
+																					<td class="bracket missing " >1</td>
+															<td class="num"><span>1</span></td>
+								<td class="rider bdr_r">
+									竹内 真一<br><span class="home">福　岡/45/89</span>
+																	</td>
+								<td>A2</td>
+								<td class="bdr_r">追</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											79.88											</td>
+								<td class="comment bdr_r">魚屋君。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n2 ">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+																					<td class="bracket missing " >2</td>
+															<td class="num"><span>2</span></td>
+								<td class="rider bdr_r">
+									山口 智弘<br><span class="home">愛　知/36/99</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">追</td>
+											<td>3.93</td>
+											<td class="bdr_r">
+											89.66											</td>
+								<td class="comment bdr_r">加藤君。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n3 ">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+																					<td class="bracket missing " >3</td>
+															<td class="num"><span>3</span></td>
+								<td class="rider bdr_r">
+									浦川 尊明<br><span class="home">茨　城/50/80</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">追</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											<span class="best">91.00</span>
+											</td>
+								<td class="comment bdr_r">長谷川君。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n4 ">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+																					<td class="bracket missing " >4</td>
+															<td class="num"><span>4</span></td>
+								<td class="rider bdr_r">
+									魚屋 周成<br><span class="home">大　分/35/99</span>
+																	</td>
+								<td>A2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.93</td>
+											<td class="bdr_r">
+											84.15											</td>
+								<td class="comment bdr_r">自力。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n5 ">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+																					<td class="bracket missing " >5</td>
+															<td class="num"><span>5</span></td>
+								<td class="rider bdr_r">
+									長谷川 飛向<br><span class="home">東　京/29/121</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											90.33											</td>
+								<td class="comment bdr_r">自力。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n6 ">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>5</span></td>
+																					<td class="bracket missing "  rowspan="2" >6</td>
+															<td class="num"><span>6</span></td>
+								<td class="rider bdr_r">
+									加藤 駿<br><span class="home">愛　知/28/127</span>
+																	</td>
+								<td>A2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											78.19											</td>
+								<td class="comment bdr_r">自力。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n7 ">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>2</span></td>
+																						<td class="num"><span>7</span></td>
+								<td class="rider bdr_r">
+									星野 辰也<br><span class="home">栃　木/40/95</span>
+																	</td>
+								<td>A1</td>
+								<td class="bdr_r">追</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											89.59											</td>
+								<td class="comment bdr_r">関東３番手。</td>
+								<td>------</td>
+							</tr>
+									</table>
+
+					</div>
+
+					<div class="racecard_area_inner cf jsRacerCardBasho" style="display:none">
+						<table class="racecard_table past_racecard_table">
+							<tr>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">競走得点</th>
+								<th>今場所成績</th>
+								<th>前場所成績</th>
+								<th>前々場所成績</th>
+							</tr>
+							<tr>
+								<th>日付/種目/着順/上り</th>
+								<th>開催場<br>日付/種目/着順/上り</th>
+								<th>開催場<br>日付/種目/着順/上り</th>
+							</tr>
+										<tr class="n1 ">
+							<td class="bracket missing " >1</td>
+								<td class="num"><span>1</span></td>
+								<td class="rider bdr_r">
+									竹内 真一<br><span class="home">福　岡/45/89</span>
+																	</td>
+								<td>
+												79.88											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">弥彦 Ｆ２</p>
+									<ul>
+													<li><span>7/7</span><span>Ａ級特予選</span><span>4着</span><span>12.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=21&kaisaiDate=20260707&gradeCd=1&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/8</span><span>Ａ級特一般</span><span>5着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=21&kaisaiDate=20260708&gradeCd=1&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/9</span><span>Ａ級特一般</span><span>5着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=21&kaisaiDate=20260709&gradeCd=1&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">武雄 Ｆ２</p>
+									<ul>
+													<li><span>6/21</span><span>Ａ級予選</span><span>3着</span><span>12.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=84&kaisaiDate=20260621&gradeCd=1&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/22</span><span>Ａ級選抜</span><span>5着</span><span>12.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=84&kaisaiDate=20260622&gradeCd=1&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/23</span><span>Ａ級一般</span><span>3着</span><span>12.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=84&kaisaiDate=20260623&gradeCd=1&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n2 ">
+							<td class="bracket missing " >2</td>
+								<td class="num"><span>2</span></td>
+								<td class="rider bdr_r">
+									山口 智弘<br><span class="home">愛　知/36/99</span>
+																	</td>
+								<td>
+												89.66											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">玉野 Ｆ２</p>
+									<ul>
+													<li><span>6/28</span><span>Ａ級特予選</span><span>3着</span><span>11.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=61&kaisaiDate=20260628&gradeCd=1&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/29</span><span>Ａ級準決勝</span><span>6着</span><span>11.6</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=61&kaisaiDate=20260629&gradeCd=1&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/30</span><span>Ａ級特選</span><span>1着</span><span>12.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=61&kaisaiDate=20260630&gradeCd=1&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">京王閣 Ｆ１</p>
+									<ul>
+													<li><span>6/17</span><span>Ａ級初日特選</span><span>4着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&kaisaiDate=20260617&gradeCd=2&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/18</span><span>Ａ級準決勝</span><span>4着</span><span>11.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&kaisaiDate=20260618&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/19</span><span>Ａ級特選</span><span>7着</span><span>13.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&kaisaiDate=20260619&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n3 ">
+							<td class="bracket missing " >3</td>
+								<td class="num"><span>3</span></td>
+								<td class="rider bdr_r">
+									浦川 尊明<br><span class="home">茨　城/50/80</span>
+																	</td>
+								<td>
+												<span class="best">91.00</span>
+											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">取手 Ｆ２</p>
+									<ul>
+													<li><span>7/6</span><span>Ａ級初日特選</span><span>3着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=23&kaisaiDate=20260706&gradeCd=1&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/7</span><span>Ａ級準決勝</span><span>2着</span><span>11.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=23&kaisaiDate=20260707&gradeCd=1&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/8</span><span>Ａ級決勝</span><span>2着</span><span>12.6</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=23&kaisaiDate=20260708&gradeCd=1&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">平塚 Ｆ１</p>
+									<ul>
+													<li><span>6/19</span><span>Ａ級初日特選</span><span>7着</span><span>11.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=35&kaisaiDate=20260619&gradeCd=2&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/20</span><span>Ａ級準決勝</span><span>1着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=35&kaisaiDate=20260620&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/21</span><span>Ａ級決勝</span><span>1着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=35&kaisaiDate=20260621&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n4 ">
+							<td class="bracket missing " >4</td>
+								<td class="num"><span>4</span></td>
+								<td class="rider bdr_r">
+									魚屋 周成<br><span class="home">大　分/35/99</span>
+																	</td>
+								<td>
+												84.15											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">広島 Ｆ２</p>
+									<ul>
+													<li><span>6/26</span><span>Ａ級予選</span><span>4着</span><span>11.6</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20260626&gradeCd=1&raceNo=2', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/27</span><span>Ａ級選抜</span><span>7着</span><span>12.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20260627&gradeCd=1&raceNo=4', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/28</span><span>Ａ級一般</span><span>1着</span><span>12.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20260628&gradeCd=1&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">別府 Ｆ１</p>
+									<ul>
+													<li><span>6/17</span><span>Ａ級一般</span><span>4着</span><span>12.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=86&kaisaiDate=20260617&gradeCd=2&raceNo=2', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n5 ">
+							<td class="bracket missing " >5</td>
+								<td class="num"><span>5</span></td>
+								<td class="rider bdr_r">
+									長谷川 飛向<br><span class="home">東　京/29/121</span>
+																	</td>
+								<td>
+												90.33											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">松戸 Ｆ１</p>
+									<ul>
+													<li><span>6/25</span><span>Ａ級予選</span><span>1着</span><span>9.6</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20260625&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/26</span><span>Ａ級準決勝</span><span>4着</span><span>9.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20260626&gradeCd=2&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/27</span><span>Ａ級特選</span><span>1着</span><span>9.6</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20260627&gradeCd=2&raceNo=4', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">別府 Ｆ１</p>
+									<ul>
+													<li><span>6/15</span><span>Ａ級予選</span><span>1着</span><span>11.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=86&kaisaiDate=20260615&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/16</span><span>Ａ級準決勝</span><span>1着</span><span>11.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=86&kaisaiDate=20260616&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/17</span><span>Ａ級決勝</span><span>3着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=86&kaisaiDate=20260617&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n6 ">
+							<td class="bracket missing "  rowspan="2" >6</td>
+								<td class="num"><span>6</span></td>
+								<td class="rider bdr_r">
+									加藤 駿<br><span class="home">愛　知/28/127</span>
+																	</td>
+								<td>
+												78.19											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">豊橋 Ｆ１</p>
+									<ul>
+													<li><span>7/5</span><span>Ａ級予選</span><span>2着</span><span>12.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=45&kaisaiDate=20260705&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/6</span><span>Ａ級準決勝</span><span>5着</span><span>12.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=45&kaisaiDate=20260706&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/7</span><span>Ａ級特選</span><span>1着</span><span>11.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=45&kaisaiDate=20260707&gradeCd=2&raceNo=4', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">青森 Ｆ２</p>
+									<ul>
+													<li><span>6/25</span><span>チャレンジ予選</span><span>1着</span><span>12.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=12&kaisaiDate=20260625&gradeCd=1&raceNo=4', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/26</span><span>チャレンジ準決勝</span><span>3着</span><span>12.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=12&kaisaiDate=20260626&gradeCd=1&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/27</span><span>チャレンジ決勝</span><span>6着</span><span>12.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=12&kaisaiDate=20260627&gradeCd=1&raceNo=7', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n7 ">
+								<td class="num"><span>7</span></td>
+								<td class="rider bdr_r">
+									星野 辰也<br><span class="home">栃　木/40/95</span>
+																	</td>
+								<td>
+												89.59											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">平塚 Ｆ１</p>
+									<ul>
+													<li><span>6/30</span><span>Ａ級初日特選</span><span>3着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=35&kaisaiDate=20260630&gradeCd=2&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/1</span><span>Ａ級準決勝</span><span>1着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=35&kaisaiDate=20260701&gradeCd=2&raceNo=4', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>7/2</span><span>Ａ級決勝</span><span>3着</span><span>11.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=35&kaisaiDate=20260702&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">小田原 Ｆ１</p>
+									<ul>
+													<li><span>6/22</span><span>Ａ級予選</span><span>4着</span><span>9.6</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=36&kaisaiDate=20260622&gradeCd=2&raceNo=1', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/23</span><span>Ａ級準決勝</span><span>4着</span><span>9.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=36&kaisaiDate=20260623&gradeCd=2&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>6/24</span><span>Ａ級特選</span><span>4着</span><span>10.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=36&kaisaiDate=20260624&gradeCd=2&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+									</table>
+					</div>
+						<!-- 年間勝利度数・グレード別勝利度数時 Start -->
+
+					<div class="racecard_area_inner cf jsRacerCardAoYear" style="display:none">
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="3" >予<br>想</th>
+								<th rowspan="3" >好<br>気<br>合</th>
+								<th rowspan="3" class="bdr_r ">総<br>評</th>
+								<th rowspan="3">枠<br>番</th>
+								<th rowspan="3">車<br>番</th>
+								<th rowspan="3" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="3">級<br>班</th>
+								<th rowspan="3" class="bdr_r">脚<br>質</th>
+								<th rowspan="3">ギヤ<br>倍数</th>
+								<th class="bdr_r" rowspan="3">競走得点</th>
+								<th colspan="16">
+									年間勝利度数
+								</th>
+							</tr>
+							<tr>
+								<th class="bdr_r" colspan="4">決勝</th>
+								<th class="bdr_r" colspan="4">特選</th>
+								<th class="bdr_r" colspan="4">準決</th>
+								<th class="bdr_r" colspan="4">予選</th>
+							</tr>
+							<tr>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+							</tr>
+							<tr class="n1 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>5</span>
+							</td>
+							<td class="bracket missing " >1</td>
+							<td class="num"><span>1</span></td>
+							<td class="rider bdr_r">
+								竹内 真一<br>
+								<span class="home">福　岡/45/89									</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								79.88							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								1							</td>
+							<td class="bdr_r">
+								9							</td>
+
+
+							<td>
+								2							</td>
+							<td>
+								6							</td>
+							<td>
+								<span class="best">12</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">66</span>
+							</td>
+							</tr>
+							<tr class="n2 ">
+							<td class="tip">
+								<span class="icon icon_t3">×</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >2</td>
+							<td class="num"><span>2</span></td>
+							<td class="rider bdr_r">
+								山口 智弘<br>
+								<span class="home">愛　知/36/99									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								89.66							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								<span class="best">8</span>
+							</td>
+
+
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td>
+								0							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								7							</td>
+
+
+							<td>
+								<span class="best">8</span>
+							</td>
+							<td>
+								5							</td>
+							<td>
+								<span class="best">6</span>
+							</td>
+							<td class="bdr_r">
+								25							</td>
+
+
+							<td>
+								7							</td>
+							<td>
+								4							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								5							</td>
+							</tr>
+							<tr class="n3 ">
+							<td class="tip">
+								<span class="icon icon_t2">○</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >3</td>
+							<td class="num"><span>3</span></td>
+							<td class="rider bdr_r">
+								浦川 尊明<br>
+								<span class="home">茨　城/50/80									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								<span class="best">91.00</span>
+							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								2							</td>
+
+
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td>
+								<span class="best">4</span>
+							</td>
+							<td class="bdr_r">
+								4							</td>
+
+
+							<td>
+								3							</td>
+							<td>
+								4							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								4							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								1							</td>
+							<td>
+								1							</td>
+							<td class="bdr_r">
+								2							</td>
+							</tr>
+							<tr class="n4 ">
+							<td class="tip">
+								<span class="icon icon_t4">△</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing " >4</td>
+							<td class="num"><span>4</span></td>
+							<td class="rider bdr_r">
+								魚屋 周成<br>
+								<span class="home">大　分/35/99									</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								84.15							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								2							</td>
+							<td>
+								3							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								22							</td>
+
+
+							<td>
+								8							</td>
+							<td>
+								<span class="best">12</span>
+							</td>
+							<td>
+								6							</td>
+							<td class="bdr_r">
+								22							</td>
+							</tr>
+							<tr class="n5 ">
+							<td class="tip">
+								<span class="icon icon_t1">◎</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >5</td>
+							<td class="num"><span>5</span></td>
+							<td class="rider bdr_r">
+								長谷川 飛向<br>
+								<span class="home">東　京/29/121									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								90.33							</td>
+							<td>
+								0							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td>
+								1							</td>
+							<td class="bdr_r">
+								3							</td>
+
+
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								1							</td>
+
+
+							<td>
+								4							</td>
+							<td>
+								4							</td>
+							<td>
+								3							</td>
+							<td class="bdr_r">
+								11							</td>
+
+
+							<td>
+								7							</td>
+							<td>
+								5							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								4							</td>
+							</tr>
+							<tr class="n6 ">
+							<td class="tip">
+								<span class="icon icon_t6">▲</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>5</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >6</td>
+							<td class="num"><span>6</span></td>
+							<td class="rider bdr_r">
+								加藤 駿<br>
+								<span class="home">愛　知/28/127									</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								78.19							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								1							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+							</tr>
+							<tr class="n7 ">
+							<td class="tip">
+								<span class="icon icon_t5">注</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="num"><span>7</span></td>
+							<td class="rider bdr_r">
+								星野 辰也<br>
+								<span class="home">栃　木/40/95									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								89.59							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td>
+								0							</td>
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td class="bdr_r">
+								6							</td>
+
+
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td>
+								1							</td>
+							<td class="bdr_r">
+								<span class="best">11</span>
+							</td>
+
+
+							<td>
+								<span class="best">8</span>
+							</td>
+							<td>
+								<span class="best">6</span>
+							</td>
+							<td>
+								<span class="best">6</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">28</span>
+							</td>
+
+
+							<td>
+								<span class="best">9</span>
+							</td>
+							<td>
+								4							</td>
+							<td>
+								3							</td>
+							<td class="bdr_r">
+								4							</td>
+							</tr>
+						</table>
+					</div>
+						<!-- 年間勝利度数・グレード別勝利度数時 End -->
+
+					<!-- 同走路年間勝利度数時 Start -->
+					<div class="racecard_area_inner cf jsRacerCardAoLength" style="display:none">
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="2" >予<br>想</th>
+								<th rowspan="2" >好<br>気<br>合</th>
+								<th rowspan="2" class="bdr_r ">総<br>評</th>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">級<br>班</th>
+								<th rowspan="2" class="bdr_r">脚<br>質</th>
+								<th rowspan="2">ギヤ<br>倍数</th>
+								<th class="bdr_r" rowspan="2">競走得点</th>
+								<th colspan="4">同走路年間勝利度数【400】</th>
+							</tr>
+							<tr>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+							</tr>
+							<tr class="n1 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>5</span>
+							</td>
+							<td class="bracket missing " >1</td>
+							<td class="num"><span>1</span></td>
+							<td class="rider bdr_r">
+								竹内 真一<br>
+								<span class="home">福　岡/45/89										</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								79.88							</td>
+							<td>
+								1							</td>
+							<td>
+								5							</td>
+							<td>
+								<span class="best">10</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">56</span>
+							</td>
+							</tr>
+							<tr class="n2 ">
+							<td class="tip">
+								<span class="icon icon_t3">×</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >2</td>
+							<td class="num"><span>2</span></td>
+							<td class="rider bdr_r">
+								山口 智弘<br>
+								<span class="home">愛　知/36/99										</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								89.66							</td>
+							<td>
+								12							</td>
+							<td>
+								8							</td>
+							<td>
+								9							</td>
+							<td class="bdr_r">
+								33							</td>
+							</tr>
+							<tr class="n3 ">
+							<td class="tip">
+								<span class="icon icon_t2">○</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >3</td>
+							<td class="num"><span>3</span></td>
+							<td class="rider bdr_r">
+								浦川 尊明<br>
+								<span class="home">茨　城/50/80										</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								<span class="best">91.00</span>
+							</td>
+							<td>
+								4							</td>
+							<td>
+								6							</td>
+							<td>
+								7							</td>
+							<td class="bdr_r">
+								9							</td>
+							</tr>
+							<tr class="n4 ">
+							<td class="tip">
+								<span class="icon icon_t4">△</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing " >4</td>
+							<td class="num"><span>4</span></td>
+							<td class="rider bdr_r">
+								魚屋 周成<br>
+								<span class="home">大　分/35/99										</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								84.15							</td>
+							<td>
+								8							</td>
+							<td>
+								<span class="best">13</span>
+							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								33							</td>
+							</tr>
+							<tr class="n5 ">
+							<td class="tip">
+								<span class="icon icon_t1">◎</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >5</td>
+							<td class="num"><span>5</span></td>
+							<td class="rider bdr_r">
+								長谷川 飛向<br>
+								<span class="home">東　京/29/121										</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								90.33							</td>
+							<td>
+								5							</td>
+							<td>
+								5							</td>
+							<td>
+								3							</td>
+							<td class="bdr_r">
+								8							</td>
+							</tr>
+							<tr class="n6 ">
+							<td class="tip">
+								<span class="icon icon_t6">▲</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>5</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >6</td>
+							<td class="num"><span>6</span></td>
+							<td class="rider bdr_r">
+								加藤 駿<br>
+								<span class="home">愛　知/28/127										</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								78.19							</td>
+							<td>
+								1							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								1							</td>
+							</tr>
+							<tr class="n7 ">
+							<td class="tip">
+								<span class="icon icon_t5">注</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="num"><span>7</span></td>
+							<td class="rider bdr_r">
+								星野 辰也<br>
+								<span class="home">栃　木/40/95										</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								89.59							</td>
+							<td>
+								<span class="best">15</span>
+							</td>
+							<td>
+								5							</td>
+							<td>
+								9							</td>
+							<td class="bdr_r">
+								33							</td>
+							</tr>
+						</table>
+						<!-- 同走路年間勝利度数時 End -->
+					</div>
+					<div class="racecard_area_inner cf jsRacerCardAoBankYear" style="display:none">
+						<!-- 当所5年時 Start -->
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="2" >予<br>想</th>
+								<th rowspan="2" >好<br>気<br>合</th>
+								<th rowspan="2" class="bdr_r ">総<br>評</th>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">級<br>班</th>
+								<th rowspan="2" class="bdr_r">脚<br>質</th>
+								<th rowspan="2">ギヤ<br>倍数</th>
+								<th class="bdr_r" rowspan="2">競走得点</th>
+								<th colspan="4">当所5年</th>
+							</tr>
+							<tr>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+							</tr>
+							<tr class="n1 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>5</span>
+							</td>
+							<td class="bracket missing " >1</td>
+							<td class="num"><span>1</span></td>
+							<td class="rider bdr_r">
+								竹内 真一<br>
+								<span class="home">福　岡/45/89									</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								79.88							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								2							</td>
+							</tr>
+							<tr class="n2 ">
+							<td class="tip">
+								<span class="icon icon_t3">×</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >2</td>
+							<td class="num"><span>2</span></td>
+							<td class="rider bdr_r">
+								山口 智弘<br>
+								<span class="home">愛　知/36/99									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								89.66							</td>
+							<td>
+								1							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								4							</td>
+							</tr>
+							<tr class="n3 ">
+							<td class="tip">
+								<span class="icon icon_t2">○</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >3</td>
+							<td class="num"><span>3</span></td>
+							<td class="rider bdr_r">
+								浦川 尊明<br>
+								<span class="home">茨　城/50/80									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								<span class="best">91.00</span>
+							</td>
+							<td>
+								2							</td>
+							<td>
+								<span class="best">5</span>
+							</td>
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td class="bdr_r">
+								14							</td>
+							</tr>
+							<tr class="n4 ">
+							<td class="tip">
+								<span class="icon icon_t4">△</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing " >4</td>
+							<td class="num"><span>4</span></td>
+							<td class="rider bdr_r">
+								魚屋 周成<br>
+								<span class="home">大　分/35/99									</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								84.15							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+							</tr>
+							<tr class="n5 ">
+							<td class="tip">
+								<span class="icon icon_t1">◎</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="bracket missing " >5</td>
+							<td class="num"><span>5</span></td>
+							<td class="rider bdr_r">
+								長谷川 飛向<br>
+								<span class="home">東　京/29/121									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								90.33							</td>
+							<td>
+								<span class="best">6</span>
+							</td>
+							<td>
+								<span class="best">5</span>
+							</td>
+							<td>
+								1							</td>
+							<td class="bdr_r">
+								3							</td>
+							</tr>
+							<tr class="n6 ">
+							<td class="tip">
+								<span class="icon icon_t6">▲</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>5</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >6</td>
+							<td class="num"><span>6</span></td>
+							<td class="rider bdr_r">
+								加藤 駿<br>
+								<span class="home">愛　知/28/127									</span>
+							</td>
+							<td>A2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								78.19							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+							</tr>
+							<tr class="n7 ">
+							<td class="tip">
+								<span class="icon icon_t5">注</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>2</span>
+							</td>
+							<td class="num"><span>7</span></td>
+							<td class="rider bdr_r">
+								星野 辰也<br>
+								<span class="home">栃　木/40/95									</span>
+							</td>
+							<td>A1</td>
+							<td class="bdr_r">追</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								89.59							</td>
+							<td>
+								2							</td>
+							<td>
+								2							</td>
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">15</span>
+							</td>
+							</tr>
+						</table>
+						<!-- 時 End -->
+					</div>
+				</div>
+
+
+				<dl class="line_position cf">
+					<dt>並び予想</dt>
+					<dd>
+					<div class="line_position_inner">
+					<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p005">5</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+											</div>
+					</dd>
+				</dl>
+
+
+				<p class="racecard_area_note">※各項目トップの数値は赤字で表示されます。</p>
+				<div class="racereview cf">
+					<h4 class="title">レース評</h4>
+					<p class="text">長谷川－浦川－星野で並ぶ関東勢が強力布陣。ライン独占がイチ推しだが、加藤の引き出しある山口に注意。</p>
+				</div>
+
+			</div><!-- #EndLibraryItem -->
+			<div class="detail_info_header cf" id="detail">
+				<ul class="detail_info_nav cf">
+					<li  class="active" ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/1/3rentan/#detail">オッズ</a></li>
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/1/#detail">展開予想・狙い目</a></li>
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/1120260714/11202607140100/1/#detail">結果・払戻金</a></li>
+				</ul>
+				<ul class="sub_nav cf scroll">
+					<li class="return_racecard"><a href="#RACECARD">出走表へもどる</a></li>
+				</ul>
+			</div>
+	
+			<div class="detail_info_container odds_info_container">
+				<ul class="odds_nav cf">
+					<li class="active"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/1/3rentan/#detail">3連単</a></li>
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/1/2shatan/#detail">2車単</a></li>
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/1/3renhuku/#detail">3連複</a></li>
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/1/2shahuku/#detail">2車複</a></li>
+					<li><span class="disabled">2枠単</span></li>
+					<li><span class="disabled">2枠複</span></li>
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/1/wide/#detail">ワイド</a></li>
+				</ul>
+				<div class="odds_header cf">
+					<h4 class="title">3連単</h4>
+										<div class="status">
+						<p class="number">発売票数：219</p>
+						<p class="time">2026/07/14 09:06現在</p>
+						<p class="btn_reload"><a  onclick="location.reload();" href="#detail">オッズ更新</a></p>
+					</div>
+				</div>
+				<!-- 3連単 Start -->
+				<div class="odds_table_wrapper">
+					<ul class="odds_table_nav cf">
+						<li class="active"><a href="javascript:void(0);">オッズ</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/1/3rentan/#detail">人気順・高配当順</a></li>
+					</ul>
+					<dl class="order_nav cf">
+						<dt>1着の選択</dt>
+						<dd>
+							<ul>
+								<li class="1 active"><a class="1" href="javascript:void(0)">1</a></li>
+								<li class="2 "><a class="2" href="javascript:void(0)">2</a></li>
+								<li class="3 "><a class="3" href="javascript:void(0)">3</a></li>
+								<li class="4 "><a class="4" href="javascript:void(0)">4</a></li>
+								<li class="5 "><a class="5" href="javascript:void(0)">5</a></li>
+								<li class="6 "><a class="6" href="javascript:void(0)">6</a></li>
+								<li class="7 "><a class="7" href="javascript:void(0)">7</a></li>
+							</ul>
+						</dd>
+					</dl>
+					<table class="odds_table bt5 1 ">
+						<tbody><tr>
+								<th  class="n1" colspan="9"><span class="number">1</span><span class="name">竹内 真一</span>【福　岡 89期】</th>
+								<th style="display:none"  class="n2" colspan="9"><span class="number">2</span><span class="name">山口 智弘</span>【愛　知 99期】</th>
+								<th style="display:none"  class="n3" colspan="9"><span class="number">3</span><span class="name">浦川 尊明</span>【茨　城 80期】</th>
+								<th style="display:none"  class="n4" colspan="9"><span class="number">4</span><span class="name">魚屋 周成</span>【大　分 99期】</th>
+								<th style="display:none"  class="n5" colspan="9"><span class="number">5</span><span class="name">長谷川 飛向</span>【東　京 121期】</th>
+								<th style="display:none"  class="n6" colspan="9"><span class="number">6</span><span class="name">加藤 駿</span>【愛　知 127期】</th>
+								<th style="display:none"  class="n7" colspan="9"><span class="number">7</span><span class="name">星野 辰也</span>【栃　木 95期】</th>
+						</tr>
+						<tr>
+							<th rowspan="2"> </th>
+							<th class="n2">2</th>
+							<th class="n3">3</th>
+							<th class="n4">4</th>
+							<th class="n5">5</th>
+							<th class="n6">6</th>
+							<th class="n7">7</th>
+							<th rowspan="2"> </th>
+						</tr>
+						<tr>
+							<td class="rider n2">山口 智弘<br>愛　知 99期</td>
+							<td class="rider n3">浦川 尊明<br>茨　城 80期</td>
+							<td class="rider n4">魚屋 周成<br>大　分 99期</td>
+							<td class="rider n5">長谷川 飛向<br>東　京 121期</td>
+							<td class="rider n6">加藤 駿<br>愛　知 127期</td>
+							<td class="rider n7">星野 辰也<br>栃　木 95期</td>
+						</tr>
+						<tr>
+							<th class="n2">2</th>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n2">2</th>
+						</tr>
+						<tr>
+							<th class="n3">3</th>
+							<td >
+							82.1							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n3">3</th>
+						</tr>
+						<tr>
+							<th class="n4">4</th>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n4">4</th>
+						</tr>
+						<tr>
+							<th class="n5">5</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<th class="n5">5</th>
+						</tr>
+						<tr>
+							<th class="n6">6</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<th class="n6">6</th>
+						</tr>
+						<tr>
+							<th class="n7">7</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<th class="n7">7</th>
+						</tr>
+
+					</tbody></table>
+					<table class="odds_table bt5 2 none">
+						<tbody><tr>
+								<th style="display:none"  class="n1" colspan="9"><span class="number">1</span><span class="name">竹内 真一</span>【福　岡 89期】</th>
+								<th  class="n2" colspan="9"><span class="number">2</span><span class="name">山口 智弘</span>【愛　知 99期】</th>
+								<th style="display:none"  class="n3" colspan="9"><span class="number">3</span><span class="name">浦川 尊明</span>【茨　城 80期】</th>
+								<th style="display:none"  class="n4" colspan="9"><span class="number">4</span><span class="name">魚屋 周成</span>【大　分 99期】</th>
+								<th style="display:none"  class="n5" colspan="9"><span class="number">5</span><span class="name">長谷川 飛向</span>【東　京 121期】</th>
+								<th style="display:none"  class="n6" colspan="9"><span class="number">6</span><span class="name">加藤 駿</span>【愛　知 127期】</th>
+								<th style="display:none"  class="n7" colspan="9"><span class="number">7</span><span class="name">星野 辰也</span>【栃　木 95期】</th>
+						</tr>
+						<tr>
+							<th rowspan="2"> </th>
+							<th class="n1">1</th>
+							<th class="n3">3</th>
+							<th class="n4">4</th>
+							<th class="n5">5</th>
+							<th class="n6">6</th>
+							<th class="n7">7</th>
+							<th rowspan="2"> </th>
+						</tr>
+						<tr>
+							<td class="rider n1">竹内 真一<br>福　岡 89期</td>
+							<td class="rider n3">浦川 尊明<br>茨　城 80期</td>
+							<td class="rider n4">魚屋 周成<br>大　分 99期</td>
+							<td class="rider n5">長谷川 飛向<br>東　京 121期</td>
+							<td class="rider n6">加藤 駿<br>愛　知 127期</td>
+							<td class="rider n7">星野 辰也<br>栃　木 95期</td>
+						</tr>
+						<tr>
+							<th class="n1">1</th>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							32.8							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n1">1</th>
+						</tr>
+						<tr>
+							<th class="n3">3</th>
+							<td >
+							82.1							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							82.1							</td>
+							<td >
+							32.8							</td>
+							<td >
+							9999.9							</td>
+							<th class="n3">3</th>
+						</tr>
+						<tr>
+							<th class="n4">4</th>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n4">4</th>
+						</tr>
+						<tr>
+							<th class="n5">5</th>
+							<td >
+							9999.9							</td>
+							<td >
+							41.0							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							32.8							</td>
+							<td >
+							164.2							</td>
+							<th class="n5">5</th>
+						</tr>
+						<tr>
+							<th class="n6">6</th>
+							<td >
+							9999.9							</td>
+							<td >
+							41.0							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<th class="n6">6</th>
+						</tr>
+						<tr>
+							<th class="n7">7</th>
+							<td >
+							9999.9							</td>
+							<td >
+							54.7							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							54.7							</td>
+							<td class="empty" >
+							</td>
+							<th class="n7">7</th>
+						</tr>
+
+					</tbody></table>
+					<table class="odds_table bt5 3 none">
+						<tbody><tr>
+								<th style="display:none"  class="n1" colspan="9"><span class="number">1</span><span class="name">竹内 真一</span>【福　岡 89期】</th>
+								<th style="display:none"  class="n2" colspan="9"><span class="number">2</span><span class="name">山口 智弘</span>【愛　知 99期】</th>
+								<th  class="n3" colspan="9"><span class="number">3</span><span class="name">浦川 尊明</span>【茨　城 80期】</th>
+								<th style="display:none"  class="n4" colspan="9"><span class="number">4</span><span class="name">魚屋 周成</span>【大　分 99期】</th>
+								<th style="display:none"  class="n5" colspan="9"><span class="number">5</span><span class="name">長谷川 飛向</span>【東　京 121期】</th>
+								<th style="display:none"  class="n6" colspan="9"><span class="number">6</span><span class="name">加藤 駿</span>【愛　知 127期】</th>
+								<th style="display:none"  class="n7" colspan="9"><span class="number">7</span><span class="name">星野 辰也</span>【栃　木 95期】</th>
+						</tr>
+						<tr>
+							<th rowspan="2"> </th>
+							<th class="n1">1</th>
+							<th class="n2">2</th>
+							<th class="n4">4</th>
+							<th class="n5">5</th>
+							<th class="n6">6</th>
+							<th class="n7">7</th>
+							<th rowspan="2"> </th>
+						</tr>
+						<tr>
+							<td class="rider n1">竹内 真一<br>福　岡 89期</td>
+							<td class="rider n2">山口 智弘<br>愛　知 99期</td>
+							<td class="rider n4">魚屋 周成<br>大　分 99期</td>
+							<td class="rider n5">長谷川 飛向<br>東　京 121期</td>
+							<td class="rider n6">加藤 駿<br>愛　知 127期</td>
+							<td class="rider n7">星野 辰也<br>栃　木 95期</td>
+						</tr>
+						<tr>
+							<th class="n1">1</th>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<th class="n1">1</th>
+						</tr>
+						<tr>
+							<th class="n2">2</th>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							14.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n2">2</th>
+						</tr>
+						<tr>
+							<th class="n4">4</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n4">4</th>
+						</tr>
+						<tr>
+							<th class="n5">5</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							14.9							</td>
+							<th class="n5">5</th>
+						</tr>
+						<tr>
+							<th class="n6">6</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<th class="n6">6</th>
+						</tr>
+						<tr>
+							<th class="n7">7</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							8.2							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<th class="n7">7</th>
+						</tr>
+
+					</tbody></table>
+					<table class="odds_table bt5 4 none">
+						<tbody><tr>
+								<th style="display:none"  class="n1" colspan="9"><span class="number">1</span><span class="name">竹内 真一</span>【福　岡 89期】</th>
+								<th style="display:none"  class="n2" colspan="9"><span class="number">2</span><span class="name">山口 智弘</span>【愛　知 99期】</th>
+								<th style="display:none"  class="n3" colspan="9"><span class="number">3</span><span class="name">浦川 尊明</span>【茨　城 80期】</th>
+								<th  class="n4" colspan="9"><span class="number">4</span><span class="name">魚屋 周成</span>【大　分 99期】</th>
+								<th style="display:none"  class="n5" colspan="9"><span class="number">5</span><span class="name">長谷川 飛向</span>【東　京 121期】</th>
+								<th style="display:none"  class="n6" colspan="9"><span class="number">6</span><span class="name">加藤 駿</span>【愛　知 127期】</th>
+								<th style="display:none"  class="n7" colspan="9"><span class="number">7</span><span class="name">星野 辰也</span>【栃　木 95期】</th>
+						</tr>
+						<tr>
+							<th rowspan="2"> </th>
+							<th class="n1">1</th>
+							<th class="n2">2</th>
+							<th class="n3">3</th>
+							<th class="n5">5</th>
+							<th class="n6">6</th>
+							<th class="n7">7</th>
+							<th rowspan="2"> </th>
+						</tr>
+						<tr>
+							<td class="rider n1">竹内 真一<br>福　岡 89期</td>
+							<td class="rider n2">山口 智弘<br>愛　知 99期</td>
+							<td class="rider n3">浦川 尊明<br>茨　城 80期</td>
+							<td class="rider n5">長谷川 飛向<br>東　京 121期</td>
+							<td class="rider n6">加藤 駿<br>愛　知 127期</td>
+							<td class="rider n7">星野 辰也<br>栃　木 95期</td>
+						</tr>
+						<tr>
+							<th class="n1">1</th>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n1">1</th>
+						</tr>
+						<tr>
+							<th class="n2">2</th>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							164.2							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n2">2</th>
+						</tr>
+						<tr>
+							<th class="n3">3</th>
+							<td >
+							164.2							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n3">3</th>
+						</tr>
+						<tr>
+							<th class="n5">5</th>
+							<td >
+							5.2							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n5">5</th>
+						</tr>
+						<tr>
+							<th class="n6">6</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<th class="n6">6</th>
+						</tr>
+						<tr>
+							<th class="n7">7</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<th class="n7">7</th>
+						</tr>
+
+					</tbody></table>
+					<table class="odds_table bt5 5 none">
+						<tbody><tr>
+								<th style="display:none"  class="n1" colspan="9"><span class="number">1</span><span class="name">竹内 真一</span>【福　岡 89期】</th>
+								<th style="display:none"  class="n2" colspan="9"><span class="number">2</span><span class="name">山口 智弘</span>【愛　知 99期】</th>
+								<th style="display:none"  class="n3" colspan="9"><span class="number">3</span><span class="name">浦川 尊明</span>【茨　城 80期】</th>
+								<th style="display:none"  class="n4" colspan="9"><span class="number">4</span><span class="name">魚屋 周成</span>【大　分 99期】</th>
+								<th  class="n5" colspan="9"><span class="number">5</span><span class="name">長谷川 飛向</span>【東　京 121期】</th>
+								<th style="display:none"  class="n6" colspan="9"><span class="number">6</span><span class="name">加藤 駿</span>【愛　知 127期】</th>
+								<th style="display:none"  class="n7" colspan="9"><span class="number">7</span><span class="name">星野 辰也</span>【栃　木 95期】</th>
+						</tr>
+						<tr>
+							<th rowspan="2"> </th>
+							<th class="n1">1</th>
+							<th class="n2">2</th>
+							<th class="n3">3</th>
+							<th class="n4">4</th>
+							<th class="n6">6</th>
+							<th class="n7">7</th>
+							<th rowspan="2"> </th>
+						</tr>
+						<tr>
+							<td class="rider n1">竹内 真一<br>福　岡 89期</td>
+							<td class="rider n2">山口 智弘<br>愛　知 99期</td>
+							<td class="rider n3">浦川 尊明<br>茨　城 80期</td>
+							<td class="rider n4">魚屋 周成<br>大　分 99期</td>
+							<td class="rider n6">加藤 駿<br>愛　知 127期</td>
+							<td class="rider n7">星野 辰也<br>栃　木 95期</td>
+						</tr>
+						<tr>
+							<th class="n1">1</th>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n1">1</th>
+						</tr>
+						<tr>
+							<th class="n2">2</th>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							54.7							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							54.7							</td>
+							<td >
+							9999.9							</td>
+							<th class="n2">2</th>
+						</tr>
+						<tr>
+							<th class="n3">3</th>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							54.7							</td>
+							<td >
+							16.4							</td>
+							<th class="n3">3</th>
+						</tr>
+						<tr>
+							<th class="n4">4</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							164.2							</td>
+							<td >
+							164.2							</td>
+							<th class="n4">4</th>
+						</tr>
+						<tr>
+							<th class="n6">6</th>
+							<td >
+							9999.9							</td>
+							<td >
+							54.7							</td>
+							<td >
+							20.5							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<th class="n6">6</th>
+						</tr>
+						<tr>
+							<th class="n7">7</th>
+							<td >
+							82.1							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9.6							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							54.7							</td>
+							<td class="empty" >
+							</td>
+							<th class="n7">7</th>
+						</tr>
+
+					</tbody></table>
+					<table class="odds_table bt5 6 none">
+						<tbody><tr>
+								<th style="display:none"  class="n1" colspan="9"><span class="number">1</span><span class="name">竹内 真一</span>【福　岡 89期】</th>
+								<th style="display:none"  class="n2" colspan="9"><span class="number">2</span><span class="name">山口 智弘</span>【愛　知 99期】</th>
+								<th style="display:none"  class="n3" colspan="9"><span class="number">3</span><span class="name">浦川 尊明</span>【茨　城 80期】</th>
+								<th style="display:none"  class="n4" colspan="9"><span class="number">4</span><span class="name">魚屋 周成</span>【大　分 99期】</th>
+								<th style="display:none"  class="n5" colspan="9"><span class="number">5</span><span class="name">長谷川 飛向</span>【東　京 121期】</th>
+								<th  class="n6" colspan="9"><span class="number">6</span><span class="name">加藤 駿</span>【愛　知 127期】</th>
+								<th style="display:none"  class="n7" colspan="9"><span class="number">7</span><span class="name">星野 辰也</span>【栃　木 95期】</th>
+						</tr>
+						<tr>
+							<th rowspan="2"> </th>
+							<th class="n1">1</th>
+							<th class="n2">2</th>
+							<th class="n3">3</th>
+							<th class="n4">4</th>
+							<th class="n5">5</th>
+							<th class="n7">7</th>
+							<th rowspan="2"> </th>
+						</tr>
+						<tr>
+							<td class="rider n1">竹内 真一<br>福　岡 89期</td>
+							<td class="rider n2">山口 智弘<br>愛　知 99期</td>
+							<td class="rider n3">浦川 尊明<br>茨　城 80期</td>
+							<td class="rider n4">魚屋 周成<br>大　分 99期</td>
+							<td class="rider n5">長谷川 飛向<br>東　京 121期</td>
+							<td class="rider n7">星野 辰也<br>栃　木 95期</td>
+						</tr>
+						<tr>
+							<th class="n1">1</th>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n1">1</th>
+						</tr>
+						<tr>
+							<th class="n2">2</th>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							82.1							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<th class="n2">2</th>
+						</tr>
+						<tr>
+							<th class="n3">3</th>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							164.2							</td>
+							<td >
+							82.1							</td>
+							<td >
+							9999.9							</td>
+							<th class="n3">3</th>
+						</tr>
+						<tr>
+							<th class="n4">4</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<th class="n4">4</th>
+						</tr>
+						<tr>
+							<th class="n5">5</th>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							82.1							</td>
+							<th class="n5">5</th>
+						</tr>
+						<tr>
+							<th class="n7">7</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<th class="n7">7</th>
+						</tr>
+
+					</tbody></table>
+					<table class="odds_table bt5 7 none">
+						<tbody><tr>
+								<th style="display:none"  class="n1" colspan="9"><span class="number">1</span><span class="name">竹内 真一</span>【福　岡 89期】</th>
+								<th style="display:none"  class="n2" colspan="9"><span class="number">2</span><span class="name">山口 智弘</span>【愛　知 99期】</th>
+								<th style="display:none"  class="n3" colspan="9"><span class="number">3</span><span class="name">浦川 尊明</span>【茨　城 80期】</th>
+								<th style="display:none"  class="n4" colspan="9"><span class="number">4</span><span class="name">魚屋 周成</span>【大　分 99期】</th>
+								<th style="display:none"  class="n5" colspan="9"><span class="number">5</span><span class="name">長谷川 飛向</span>【東　京 121期】</th>
+								<th style="display:none"  class="n6" colspan="9"><span class="number">6</span><span class="name">加藤 駿</span>【愛　知 127期】</th>
+								<th  class="n7" colspan="9"><span class="number">7</span><span class="name">星野 辰也</span>【栃　木 95期】</th>
+						</tr>
+						<tr>
+							<th rowspan="2"> </th>
+							<th class="n1">1</th>
+							<th class="n2">2</th>
+							<th class="n3">3</th>
+							<th class="n4">4</th>
+							<th class="n5">5</th>
+							<th class="n6">6</th>
+							<th rowspan="2"> </th>
+						</tr>
+						<tr>
+							<td class="rider n1">竹内 真一<br>福　岡 89期</td>
+							<td class="rider n2">山口 智弘<br>愛　知 99期</td>
+							<td class="rider n3">浦川 尊明<br>茨　城 80期</td>
+							<td class="rider n4">魚屋 周成<br>大　分 99期</td>
+							<td class="rider n5">長谷川 飛向<br>東　京 121期</td>
+							<td class="rider n6">加藤 駿<br>愛　知 127期</td>
+						</tr>
+						<tr>
+							<th class="n1">1</th>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n1">1</th>
+						</tr>
+						<tr>
+							<th class="n2">2</th>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							82.1							</td>
+							<td >
+							9999.9							</td>
+							<th class="n2">2</th>
+						</tr>
+						<tr>
+							<th class="n3">3</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							14.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n3">3</th>
+						</tr>
+						<tr>
+							<th class="n4">4</th>
+							<td >
+							164.2							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<th class="n4">4</th>
+						</tr>
+						<tr>
+							<th class="n5">5</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							16.4							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<td >
+							9999.9							</td>
+							<th class="n5">5</th>
+						</tr>
+						<tr>
+							<th class="n6">6</th>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td >
+							9999.9							</td>
+							<td class="empty" >
+							</td>
+							<th class="n6">6</th>
+						</tr>
+
+					</tbody></table>
+				<!-- 3連単 End -->
+				</div>
+
+
+				<p class="odds_caution"><a href="javascript:void(0);">オッズ情報に関するご注意</a></p>
+<!-- ↓↓↓オッズ注意モーダル↓↓↓ -->
+				<div class="bg"></div>
+				<div class="modal_win" id="ODDS_CAUTION">
+					<div class="modal_win_header cf">
+						<h3 class="title">オッズ情報に関するご注意</h3>
+						<p class="btn"><a href="#">とじる</a></p>
+					</div>
+					<div class="modal_win_inner">
+						<p class="message">GambooBETサイト内で表示されている通常車券のオッズ情報は、時間帯により算出基準（計算対象としている票数）が異なりますのでご注意ください。</p>
+						<dl class="message">
+							<dt>開催前日から開催当日 AM 9:30まで<br>モーニング開催は開催前日から開催当日 AM 8:00まで</dt>
+							<dd>Kドリームスグループで発売された票数を集計したオッズ情報です。<br>
+							<span class="note">※上記時間帯の通常車券オッズ情報は、全ての賭式に対して払戻率75％で計算しています。あくまで参考値となります。</span></dd>
+							<dt>開催当日 AM 9:30以降<br>モーニング開催は開催当日 AM 8:00以降</dt>
+							<dd>競輪場および場外車券売場（電話投票、インターネット投票含む）で発売された全ての票数を集計したオッズ情報です。<br>
+							<span class="note">※上記時間帯の通常車券オッズ情報は、各賭式ごとの払戻率に応じて計算した値です。</span></dd>
+						</dl>
+						<ul class="odds_note">
+							<li>※ドカントくじ（重勝式）のオッズ情報は、Kドリームスグループで発売された票数を集計したオッズ情報です。</li>
+							<li>※ドカントくじのオッズ情報にはキャリーオーバー額は加算されていません。</li>
+							<li>※Kドリームスグループ・・・Kドリームスの投票システムを使用しているKドリームス、GambooBET、エンジョイネットで構成されたグループです。</li>
+						</ul>
+						<div class="modal_win_footer">
+							<p><a href="#">とじる</a></p>
+						</div>
+					</div>
+				</div>
+<!-- ↑↑↑オッズ注意モーダル↑↑↑ -->
+
+			</div>
+
+<script type="text/javascript">
+// オッズ注意事項の表示非表示
+$(function(){
+	// センタリング
+	$("#ODDS_CAUTION").jsterCenteringSyncer();
+});
+
+$(".odds_caution a").click(function(){
+	$("#ODDS_CAUTION").show();
+	$(".bg").show();
+	return false;
+});
+$("#ODDS_CAUTION a").click(function(){
+	$("#ODDS_CAUTION").hide();
+	$(".bg").hide();
+	return false;
+});
+</script>
+<script>
+$(function(){
+	$(".order_nav li a").click(function () {
+
+        $(".order_nav li").removeClass("active");
+        shaban = $(this).attr("class");
+        $("table.odds_table").addClass("none");
+        $('table.' + shaban).removeClass("none");
+        $(".order_nav li." + shaban).addClass("active");
+    });
+});
+</script>
+		</section>
+		<!--  Section End -->
+		<!-- InstanceEndEditable -->
+	</div>
+	<!-- Article End -->
+	<!-- Aside Start -->
+	<!-- Aside End -->
+</div>
+<!-- InstanceEndEditable -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.jster.centeringSyncer.js?ckl=1494809430" type="text/javascript"></script>
+<script>
+$(function(){
+	$(".racecard_area_nav li").click(function(){
+		$obj = $(this).attr("id");
+		$(this).parent('ul').find('li').removeClass('active');
+		$(this).addClass('active');
+		$('.racecard_area_inner').hide();
+		$('.' + $obj).show();
+	});
+});
+
+//縦書き対応
+$(function(){
+	$(".tate").textVertical(); // 縦書き
+	$(".tate_name").nameVertical(); // 縦書きの名前
+});
+</script>
+<!-- Footer Start -->
+<div id="PAGE_FOOTER">
+	<p class="copyright">Copyright© 2012-2026 GambooBET All Rights Reserved.</p>
+</div>
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+
+</body>
+</html><!-- Fixed Footer Start -->
+<div id="FIXED_FOOTER">
+	<div class="marquee marquee_thin">
+		<ul id="MARQUEE"></ul>
+	</div>
+</div>
+<p id="PAGETOP" style="position:fixed; bottom: 40px; right: 20px;"><a href="#">ページの先頭へ戻る</a></p>
+
+<!-- Script Start -->
+<script type="text/javascript" src="https://kdreams.r10s.jp/keirin/js/lib/digesturl.js?ckl=1756749849"></script>
+<!-- Script End -->
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+</body>
+</html>
