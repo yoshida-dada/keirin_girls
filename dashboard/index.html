@@ -183,6 +183,34 @@ table.hm td.l{padding:8px 10px;font-weight:800}
 .pred-ev-none{font-size:.74rem;font-weight:700;color:var(--muted)}
 .pred-ev .tblwrap{margin-top:8px}
 .pred-ev-note{font-size:.64rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.5}
+/* predictions: 三連単オッズテーブル（1着固定マトリクス） */
+.om{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
+.om>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:.74rem;font-weight:800;color:var(--ink);user-select:none}
+.om>summary::-webkit-details-marker{display:none}
+.om>summary .om-lab{font-size:.66rem;font-weight:700;color:var(--muted)}
+.om>summary .chev{margin-left:auto;color:var(--muted);font-size:.8rem;transition:transform .15s}
+.om[open]>summary .chev{transform:rotate(90deg)}
+.om>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.om-body{padding:0 11px 11px}
+.om-sel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+.om-sellab{font-size:.64rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.om-tab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px;cursor:pointer;line-height:0;font-family:inherit}
+.om-tab[aria-selected="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.om-tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+table.om-t{border-collapse:separate;border-spacing:2px;font-size:.72rem;min-width:340px;margin:0 auto}
+table.om-t th{font-size:.64rem;color:var(--muted);font-weight:800;padding:2px;text-align:center;white-space:nowrap}
+table.om-t th.om-corner{font-size:.56rem;color:var(--muted);font-weight:700}
+.om-cell{min-width:52px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;border-radius:7px;background:var(--surface);border:1px solid var(--border2)}
+.om-cell .o{font-weight:800;font-variant-numeric:tabular-nums;font-size:.8rem}
+.om-cell .p{font-size:.56rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.om-cell .e{font-size:.54rem;font-weight:800;color:var(--good);font-variant-numeric:tabular-nums}
+.om-cell.na,.om-cell.dead{color:var(--muted);font-weight:700;background:var(--surface2)}
+.om-cell.dead{background:repeating-linear-gradient(45deg,transparent,transparent 5px,var(--border2) 5px,var(--border2) 6px)}
+.om-cell.hi{background:var(--good-soft);border-color:var(--good)}
+.om-cell.hi .o{color:var(--good)}
+.om-none{font-size:.72rem;font-weight:700;color:var(--muted);padding:2px 0 4px}
+.om-legend{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:.64rem;color:var(--muted);margin-top:9px}
+.om-legend .om-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;background:var(--good-soft);border:1px solid var(--good)}
 
 .foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
 .foot b{color:var(--ink)}
@@ -226,6 +254,11 @@ table.hm td.l{padding:8px 10px;font-weight:800}
   <div class="secthead"><span class="sect" id="calTitle">キャリブレーション（予測 vs 実現）</span></div>
   <div class="sub" id="calSub"></div>
   <div id="calBody"></div>
+
+  <!-- (d2) 予測実績 -->
+  <div class="secthead"><span class="sect" id="accTitle">予測実績（検証期間）</span></div>
+  <div class="sub" id="accSub"></div>
+  <div id="accBody"></div>
 
   <!-- (e) 全体累積ROI推移 -->
   <div class="secthead"><span class="sect" id="pnlTitle">全体 累積ROI 推移</span></div>
@@ -344,6 +377,66 @@ function boot(DB){
         +note+`</div>`;
     }
 
+    // 三連単オッズテーブル（1着固定マトリクス。確率×市場オッズの比較・買い目推奨ではない）
+    let omUid = 0;
+    const omReg = {};
+    function omCars(uid){
+      const g=omReg[uid]||{}; const s=new Set();
+      (g.combos||[]).forEach(x=>{ s.add(x[0]); s.add(x[1]); s.add(x[2]); });
+      let cars=[...s].filter(v=>v!=null).sort((a,b)=>a-b);
+      if(!cars.length && g.field_size){ for(let i=1;i<=g.field_size;i++) cars.push(i); }
+      return cars;
+    }
+    function renderOmGrid(uid, A){
+      const g=omReg[uid]||{}; const combos=g.combos||[];
+      const cars=omCars(uid).filter(c=>c!==A);
+      const map={};
+      combos.forEach(x=>{ if(x[0]===A) map[x[1]+"-"+x[2]]=x; });
+      const head=`<th class="om-corner">2着＼3着</th>`+cars.map(c=>`<th>${carChip(c)}</th>`).join("");
+      const body=cars.map(row=>{
+        const tds=cars.map(col=>{
+          if(row===col) return `<td><div class="om-cell dead">—</div></td>`;
+          const x=map[row+"-"+col];
+          const odds=x?x[3]:null, prob=x?x[4]:null, ev=x?x[5]:null;
+          if(odds==null) return `<td><div class="om-cell na">—</div></td>`;
+          const hi = ev!=null && ev>1;
+          return `<td><div class="om-cell${hi?' hi':''}">`
+            +`<span class="o">${(+odds).toFixed(1)}</span>`
+            +`<span class="p">${prob!=null?(prob*100).toFixed(1)+"%":""}</span>`
+            +(hi?`<span class="e">EV${ev.toFixed(2)}</span>`:"")
+            +`</div></td>`;
+        }).join("");
+        return `<tr><th class="om-rh">${carChip(row)}</th>${tds}</tr>`;
+      }).join("");
+      return `<table class="om-t"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+    function omBlock(r){
+      const uid=omUid++;
+      const combos=r.combos||[];
+      omReg[uid]={combos, field_size:r.field_size||0};
+      const firstCars=omCars(uid).filter(c=>combos.some(x=>x[0]===c));
+      if(!combos.length || !firstCars.length){
+        return `<div class="pred-tfhead">三連単 オッズテーブル</div><div class="om-none">オッズテーブルは未生成</div>`;
+      }
+      const topCar = (r.riders&&r.riders[0])?r.riders[0].car:null;
+      const initCar = firstCars.includes(topCar)?topCar:firstCars[0];
+      const tabs=firstCars.map(c=>`<button class="om-tab" type="button" role="tab" data-om="${uid}" data-car="${c}"`
+        +` aria-selected="${c===initCar?"true":"false"}" tabindex="${c===initCar?0:-1}"`
+        +` aria-label="1着 ${c}番を固定">${carChip(c)}</button>`).join("");
+      return `<details class="om"><summary aria-label="三連単オッズテーブルの開閉">`
+        +`<span class="om-ttl">🔢 三連単オッズテーブル</span>`
+        +`<span class="om-lab" id="om-lab-${uid}">1着 ${initCar} 固定</span>`
+        +`<span class="chev">▸</span></summary>`
+        +`<div class="om-body">`
+        +`<div class="om-sel" role="tablist" aria-label="1着車の固定"><span class="om-sellab">1着固定</span>${tabs}</div>`
+        +`<div class="tblwrap"><div id="om-grid-${uid}">${renderOmGrid(uid,initCar)}</div></div>`
+        +`<div class="om-legend"><span><span class="om-sw"></span>期待値1超（モデル確率＞市場オッズ）</span>`
+        +`<span>—＝未発売／不成立</span></div>`
+        +`<div class="pred-ev-note">セル＝三連単オッズ（上）＋モデル確率（下）。色付き＝モデル確率に対しオッズが高いセル（EV&gt;1）。`
+        +`確率と市場オッズの比較であり、エッジ確立・買い目推奨ではありません。</div>`
+        +`</div></details>`;
+    }
+
     function raceBlock(r){
       const top1 = (r.riders&&r.riders.length)?(r.riders[0].win_prob||0):0;
       const riders = (r.riders||[]).map(rd=>riderRow(rd, top1)).join("");
@@ -370,7 +463,7 @@ function boot(DB){
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
         +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
-        +riders + tfBlock + evBlock(r.ev)
+        +riders + tfBlock + evBlock(r.ev) + omBlock(r)
         +`</div>`;
     }
 
@@ -394,6 +487,22 @@ function boot(DB){
     }).join("");
     html += `<div class="pred-vtabs" role="tablist" aria-label="会場切替">${tabs}</div>${panels}`;
     host.innerHTML = html;
+
+    // 三連単オッズテーブル: 1着固定セレクタの切替
+    host.querySelectorAll(".om-tab").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const uid=btn.dataset.om, car=+btn.dataset.car;
+        host.querySelectorAll(`.om-tab[data-om="${uid}"]`).forEach(b=>{
+          const on=(+b.dataset.car===car);
+          b.setAttribute("aria-selected", on?"true":"false");
+          b.tabIndex = on?0:-1;
+        });
+        const grid=host.querySelector("#om-grid-"+uid);
+        if(grid) grid.innerHTML=renderOmGrid(uid,car);
+        const lab=host.querySelector("#om-lab-"+uid);
+        if(lab) lab.textContent="1着 "+car+" 固定";
+      });
+    });
 
     // 会場タブの切替（クリック＋キーボード操作）
     const tabEls = [...host.querySelectorAll(".pred-vtab")];
@@ -578,6 +687,25 @@ function boot(DB){
       : "";
     host.innerHTML = `<div class="kpirow">${brier}${nkpi}</div>${svg}`
       +`<div class="note">点＝予測1着確率帯（大きさ＝サンプル数）。対角線に近いほど正確。線より下＝過信（予測ほど当たっていない）、上＝過小評価。検証期間の各車1着確率で集計。</div>`;
+  })();
+
+  // ---------- (d2) prediction accuracy ----------
+  (function(){
+    const A = DB.prediction_accuracy||{};
+    document.getElementById("accTitle").innerHTML = "予測実績（検証期間）"+badge(A.status);
+    document.getElementById("accSub").textContent = A.note||"";
+    const host=document.getElementById("accBody");
+    if(!isShown(A.status)){ host.innerHTML = emptyBox("予測実績は未算出です。検証期間でモデル予測を実結果と照合した的中率がここに表示されます。"); return; }
+    const kpi=(l,v,n)=>`<div class="kpi"><div class="kl">${l}</div><div class="kv">${v}</div><div class="kn">${n}</div></div>`;
+    const tri=(A.trifecta||[]).map(t=>`<tr><td class="l">モデル上位${t.topn}に的中</td><td>${(t.rate*100).toFixed(1)}%</td></tr>`).join("");
+    host.innerHTML =
+      `<div class="kpirow">`
+      +kpi("1着的中率", (A.top1_rate*100).toFixed(1)+"%", "本命が1着")
+      +kpi("3着内的中率", (A.top3_rate*100).toFixed(1)+"%", "実1着がモデル上位3車")
+      +kpi("Brier", (A.brier!=null?A.brier.toFixed(4):"—"), "低いほど良い")
+      +`</div>`
+      +`<div class="tblwrap" style="margin-top:8px"><table class="t"><thead><tr><th class="l">三連単の的中（モデル確率順の上位に実着順が入った割合）</th><th>的中率</th></tr></thead><tbody>${tri}</tbody></table></div>`
+      +`<div class="note">${esc(A.period||"")}・${(A.n_races||0).toLocaleString()}レース（学習に使っていない直近区間）でモデル予測を実結果と照合した実績。買い目推奨ではありません。</div>`;
   })();
 
   // ---------- (e) cumulative ROI ----------
