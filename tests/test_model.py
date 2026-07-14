@@ -41,9 +41,12 @@ def test_temperature_controls_spread():
 
 
 def test_race_type_thresholds():
-    # 一強 → 軸堅
-    solid = {1: 0.7, 2: 0.1, 3: 0.06, 4: 0.05, 5: 0.04, 6: 0.03, 7: 0.02}
+    # 一強（強い本命）→ 軸堅（entropy_norm < 0.50）
+    solid = {1: 0.85, 2: 0.05, 3: 0.03, 4: 0.03, 5: 0.02, 6: 0.01, 7: 0.01}
     assert classify_race(solid).label == JIKU
+    # 中間の分散 → 標準（0.50〜0.75）
+    mid = {1: 0.50, 2: 0.25, 3: 0.12, 4: 0.06, 5: 0.03, 6: 0.02, 7: 0.02}
+    assert classify_race(mid).label == STANDARD
     # 完全横一線 → 混戦
     even = {c: 1 / 7 for c in range(1, 8)}
     assert classify_race(even).label == CHAOS
