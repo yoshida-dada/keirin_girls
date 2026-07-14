@@ -1,0 +1,3279 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=1024">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="expires" content="604800">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/base.css?ckl=1779642021" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/raceinfo.css?ckl=1629045581" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/gamboo/css/pc/base-gamboo.css?ckl=1493607743" rel="stylesheet" type="text/css">
+<link rel="apple-touch-icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo-touch-icon.png">
+<link rel="icon" type="image/vnd.microsoft.icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo_favicon.ico">
+
+
+<script type="text/javascript">
+otk = '';
+
+svPrevDay  = "20260713";
+svToDay    = "20260714";
+svThisYear = "2026";
+svNowTime  = "0859";
+svNextDay  = "20260715";
+svPrevYobi = "月";
+svToYobi   = "火";
+svNextYobi = "水";
+
+marqueeTime = 30000; // 1000=1秒
+marqueeTimeDef = 5; // 分
+
+kdUrl   = "https://my.keirin.kdreams.jp/gamboo/sso/go_old_keirin/?ac=";
+baseUrl = "https://my.keirin.kdreams.jp/gamboo/";
+
+ajaxMasterStatus = {
+	"success"           : "kd-00000",
+	"failure"           : "kd-01000",
+	"loginErr"          : "ks-10001",
+	"kaisaiNotFound"    : "ks-10400",
+	"aggregating"       : "ks-10203",
+	"loyalNoEntry"      : "ks-10200",
+	"loyalAlreadyEntry" : "ks-10202",
+	"loyalNotAvailable" : "ks-10201"
+};
+
+ajaxMasterErrorStatus = {
+	close : 0, // default
+	reload : 1,
+	top : 2
+}
+
+device = 'pc';
+devicePc = 'pc';
+deviceSp = 'sp';
+deviceMb = 'mb';
+deviceTb = 'tb';
+deviceApp = 'app';
+
+dayMasterStatus = {
+	prevDay  : parseInt('1', 10),
+	toDay    : parseInt('2', 10),
+	nextDay  : parseInt('3', 10),
+	nextOpen : 4,
+};
+
+kakeshikiBunruiMasterData = {
+	"kd"      : parseInt('1', 10),
+	"basic"   : parseInt('2', 10),
+	"dokanto" : parseInt('3', 10),
+};
+
+kakeshikiMasterName = {
+	"k3"         : parseInt('1', 10),
+	"k5"         : parseInt('2', 10),
+	"bd"         : parseInt('3', 10),
+	"k7"         : parseInt('4', 10),
+	"sanrentan"  : parseInt('5', 10),
+	"nishatan"   : parseInt('6', 10),
+	"sanrenfuku" : parseInt('7', 10),
+	"nishafuku"  : parseInt('8', 10),
+	"niwakutan"  : parseInt('9', 10),
+	"niwakufuku" : parseInt('10', 10),
+	"wide"       : parseInt('11', 10),
+	"k3two"      : parseInt('12', 10),
+	"d4two"      : parseInt('13', 10),
+	"d7"         : parseInt('14', 10),
+};
+
+normalKakeshikiMaster = {
+	"sanrentan"  : parseInt('5',    10)
+	, "nishatan"   : parseInt('6',  10)
+	, "sanrenfuku" : parseInt('7', 10)
+	, "nishafuku"  : parseInt('8',  10)
+	, "niwakutan"  : parseInt('9',  10)
+	, "niwakufuku" : parseInt('10', 10)
+	, "wide"       : parseInt('11',     10)
+};
+
+kakeshikiMasterOrder = {
+	"0" : 0, // 通常賭式
+	"1" : parseInt('1', 10),
+	"2" : parseInt('2', 10),
+	"3" : parseInt('12', 10),
+	"4" : parseInt('4', 10),
+	"5" : parseInt('3', 10),
+	"6" : parseInt('14', 10),
+	"7" : parseInt('13', 10),
+};
+
+kaisaiDayMasterStatus = {
+	"1"  : "初日",
+	"2"  : "2日目",
+	"3"  : "3日目",
+	"4"  : "4日目",
+	"5"  : "5日目",
+	"6"  : "6日目",
+	"7"  : "7日目",
+	"8"  : "8日目",
+	"9"  : "9日目",
+	"99"  : "最終日",
+};
+
+kakeshikiMasterData = {
+	"0" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "通常車券",
+		kakeshikiType : 1,
+	},
+	"1" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3",
+		kakeshikiType : 2,
+	},
+	"2" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K5",
+		kakeshikiType : 2,
+	},
+	"3" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "BiGDREAM",
+		kakeshikiType : 3,
+	},
+	"4" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K7",
+		kakeshikiType : 3,
+	},
+	"5" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連単",
+		kakeshikiType : 1,
+	},
+	"6" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車単",
+		kakeshikiType : 1,
+	},
+	"7" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連複",
+		kakeshikiType : 1,
+	},
+	"8" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車複",
+		kakeshikiType : 1,
+	},
+	"9" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠単",
+		kakeshikiType : 1,
+	},
+	"10" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠複",
+		kakeshikiType : 1,
+	},
+	"11" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "ワイド",
+		kakeshikiType : 1,
+	},
+	"12" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3two",
+		kakeshikiType : 2,
+	},
+	"13" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto4two",
+		kakeshikiType : 3,
+	},
+	"14" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto7",
+		kakeshikiType : 3,
+	},
+};
+
+commFlg = {
+	"trueFlg"           : "1",
+	"falseFlg"          : "0",
+};
+
+ksBetBaitaiCdPC = "0";
+
+pcLiveUrl = "https://keirin.kdreams.jp/gamboo/live/";
+newPCLiveVideoUrl = 'https://keirin.kdreams.jp/gamboo/stadium/live/';
+
+// PVモード
+privateErrMsg      = "プライベートブラウズ機能がオンになっているか、シークレットモードをご利用中のため投票できません。";
+
+// 車券販売場所ID
+shakenSalePlaceId = '3';
+
+</script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.marquee.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/common.js?ckl=1756749849" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/tate.js?ckl=1494809433" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/marquee.js?ckl=1494809432" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/raceinfo.forecast.js?ckl=1722228006" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/scrollTop.js?ckl=1494809433" type="text/javascript"></script>
+<title>レース出走表一覧 | 函館競輪 Ｆ１ ノースランドＣ＆報知新聞社杯 初日（2026年07月14日） | 競輪投票は【GambooBET】</title>
+
+</head>
+<body>
+<script type="text/javascript">
+$(function(){
+		$('.scroll a[href^=#]').click(function() {
+		var href= $(this).attr("href");
+		var target = $(href == "#" || href == "" ? 'html' : href);
+		var position = target.offset().top;
+		$('body,html').animate({scrollTop:position}, 500, 'swing');
+		return false;
+	});
+});
+</script>
+<div id="PAGE_HEADER">
+	<div class="container">
+		<p class="logo logo_gamboo"><a href="https://gamboo.jp/"><img src="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/logo_gamboo.png" width="226" height="30" alt="GambooBET"></a></p>
+	</div>
+</div>
+<!-- Main Start -->
+<div id="MAIN" class="cf">
+	<!-- InstanceBeginEditable name="Breadcrumb" -->
+	<ul class="breadcrumb">
+<li><strong><a href="https://keirin.kdreams.jp/gamboo/kaisai/">開催レース情報</a></strong></li>
+<li>出走表一覧</li>
+</ul>	<!-- InstanceEndEditable -->
+	<!-- Article Start -->
+	<div class="article">
+		<!-- InstanceBeginEditable name="Contents" -->
+		<!--  Section Start -->
+				<section class="section raceinfo_section">
+			<h1 class="section_title">出走表一覧 函館競輪Ｆ１ レース情報</h1><!-- #BeginLibraryItem "/Library/pc_raceinfo_nav.lbi" --><div class="raceinfo_nav">
+						<div class="raceinfo_nav">
+				<dl class="schedule_nav">
+					<dt>レース開催スケジュール</dt>
+					<dd>
+						<ul class="cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/search/2026/07/">開催スケジュール</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/highgrade/search/2026/">GP･GI･GII開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/grade/search/2026/">GⅢ(記念競輪)開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/frace/search/2026/">特定レース開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/dokanto/search/2026/1/">Dokanto!発売</a></li>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+			<p class="return_raceinfo">
+				<a href="https://keirin.kdreams.jp/gamboo/kaisai/2026/07/14/"><span>2026年07月14日</span>の開催レース情報一覧へもどる</a>
+			</p>
+			<div class="kaisai_header cf">
+				<h2 class="title">
+					<span class="velodrome">函館競輪</span>
+					<span class="icon_grade gr2"></span>
+					<span class="icon_status s2"></span>
+					<span class="icon_girls"></span>					<span class="race">ノースランドＣ＆報知新聞社杯</span>
+				</h2>
+				<ul class="flt_r">
+					<li class="btn_live">
+						<a target="live"
+						   href="javascript:void(0);"
+						   onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=11', 'live', '710,460');"
+						>
+							<span>LIVE</span>映像
+						</a>
+					</li>
+					<li class="btn_bet">
+						<a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&it=1&l-id=l-krl-cmpi-common_menu_betbtn_8', 'console')">投票</a>
+					</li>
+				</ul>
+			</div>
+<!-- #EndLibraryItem --><!-- #BeginLibraryItem "/Library/pc_kaisai_global_nav.lbi" -->
+			<ul class="kaisai_global_nav">
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/1120260714/11202607140100/">レースプログラム</a></li>
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/1120260714/11202607140100/">出場予定選手一覧</a></li>
+				<li><span class="disabled">展望・記者の推しメン</span></li>
+			</ul>
+<!-- #EndLibraryItem --><!-- #BeginLibraryItem "/Library/pc_kaisai_race_contents.lbi" --><div class="kaisai_race_data_nav">
+				<dl class="date_nav cf">
+					<dt>開催日程選択</dt>
+					<dd>
+						<ul class="cf">
+							<li class="active" >
+
+								<a >
+									<span class="date">07月14日</span><span class="day">初日</span>
+									<span class="icon_today">本日</span>								</a>
+							</li>
+							<li >
+
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/1120260714/11202607140200/">
+									<span class="date">07月15日</span><span class="day">2日目</span>
+																	</a>
+							</li>
+							<li >
+
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/1120260714/11202607140300/">
+									<span class="date">07月16日</span><span class="day">最終日</span>
+																	</a>
+							</li>
+						</ul>
+					</dd>
+				</dl>
+				<dl class="data_info_nav cf">
+					<dt>表示情報選択</dt>
+					<dd>
+						<ul class="cf">
+							<li class="active" >
+								<a >出走表</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/1120260714/11202607140100/">結果・払戻金</a>
+							</li>
+
+							<li ><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/1120260714/11202607140100/">ドカント経過・結果</a></li>
+
+						</ul>
+					</dd>
+				</dl>
+				<dl class="race_nav cf">
+					<dt>レース選択</dt>
+					<dd>
+						<ul class="cf">
+							<li  class="active" >
+								<a >
+									一覧
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/3rentan/">
+									1R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3rentan/">
+									2R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3rentan/">
+									3R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3rentan/">
+									4R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3rentan/">
+									5R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3rentan/">
+									6R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3rentan/">
+									7R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3rentan/">
+									8R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3rentan/">
+									9R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3rentan/">
+									10R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3rentan/">
+									11R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3rentan/">
+									12R
+								</a>
+							</li>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+			<h3 class="raceinfo_title"><span>7月14日（初日）の出走表一覧</span></h3>
+			<div class="raceinfo_title_note">
+				<dl class="tipster_note cf">
+					<dt>予想担当記者：</dt>
+					<dd>アオケイ 長谷川 剛由</dd>
+					<dt>情報提供：</dt>
+					<dd>北競</dd>
+				</dl>
+			</div>
+			<ul class="racecard_list cf">
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/3rentan/"><span class="num">1R</span> <span class="name">Ａ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">関東強力</p><dl><dt>発走</dt><dd>15:50</dd><dt>締切</dt><dd>15:45</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/01/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=1&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">竹内 真一</td>
+								<td>福岡</td>
+								<td>45</td>
+								<td>89</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">山口 智弘</td>
+								<td>愛知</td>
+								<td>36</td>
+								<td>99</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">浦川 尊明</td>
+								<td>茨城</td>
+								<td>50</td>
+								<td>80</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">魚屋 周成</td>
+								<td>大分</td>
+								<td>35</td>
+								<td>99</td>
+								<td>A2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">長谷川 飛向</td>
+								<td>東京</td>
+								<td>29</td>
+								<td>121</td>
+								<td>A1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">加藤 駿</td>
+								<td>愛知</td>
+								<td>28</td>
+								<td>127</td>
+								<td>A2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">星野 辰也</td>
+								<td>栃木</td>
+								<td>40</td>
+								<td>95</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">小田桐 義継</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A3</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p005">5</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab1" class="odds_nav cf">
+						<li class="active tab1"><a href="#">オッズ</a></li>
+						<li class="tab1"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds1" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop1" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/01/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/01/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/01/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/01/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/01/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3rentan/"><span class="num">2R</span> <span class="name">Ａ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">結束北勢</p><dl><dt>発走</dt><dd>16:12</dd><dt>締切</dt><dd>16:07</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/02/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=2&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">荻原 寿嗣</td>
+								<td>北海道</td>
+								<td>32</td>
+								<td>119</td>
+								<td>A1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">一ノ瀬 貴将</td>
+								<td>大阪</td>
+								<td>40</td>
+								<td>98</td>
+								<td>A2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">野上 竜太</td>
+								<td>岡山</td>
+								<td>30</td>
+								<td>115</td>
+								<td>A2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">篠塚 光一</td>
+								<td>兵庫</td>
+								<td>46</td>
+								<td>90</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">中里 福太郎</td>
+								<td>北海道</td>
+								<td>30</td>
+								<td>113</td>
+								<td>A2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>7</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">田口 守</td>
+								<td>山口</td>
+								<td>38</td>
+								<td>94</td>
+								<td>A2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">上遠野 拓馬</td>
+								<td>宮城</td>
+								<td>32</td>
+								<td>119</td>
+								<td>A1</td>
+								<td>逃</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">菊地 圭尚</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">S2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p001">1</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p107">追上</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p107">追上</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab2" class="odds_nav cf">
+						<li class="active tab2"><a href="#">オッズ</a></li>
+						<li class="tab2"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds2" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop2" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/02/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/02/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/02/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/02/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/02/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3rentan/"><span class="num">3R</span> <span class="name">Ａ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">自力格上</p><dl><dt>発走</dt><dd>16:36</dd><dt>締切</dt><dd>16:31</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/03/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=3&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">板崎 佑矢</td>
+								<td>愛媛</td>
+								<td>38</td>
+								<td>101</td>
+								<td>A2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">水澤 秀哉</td>
+								<td>千葉</td>
+								<td>22</td>
+								<td>127</td>
+								<td>A2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">小佐野 文秀</td>
+								<td>山梨</td>
+								<td>50</td>
+								<td>83</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">伊藤 温希</td>
+								<td>岐阜</td>
+								<td>26</td>
+								<td>121</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">矢部 駿人</td>
+								<td>岡山</td>
+								<td>27</td>
+								<td>121</td>
+								<td>A1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>6</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">松根 真</td>
+								<td>東京</td>
+								<td>45</td>
+								<td>90</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">田中 孝彦</td>
+								<td>静岡</td>
+								<td>39</td>
+								<td>91</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">森田 康嗣</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p002">2</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab3" class="odds_nav cf">
+						<li class="active tab3"><a href="#">オッズ</a></li>
+						<li class="tab3"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds3" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop3" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/03/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/03/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/03/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/03/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/03/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3rentan/"><span class="num">4R</span> <span class="name">Ａ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">注目新鋭</p><dl><dt>発走</dt><dd>17:00</dd><dt>締切</dt><dd>16:55</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/04/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=4&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">大竹 哲也</td>
+								<td>静岡</td>
+								<td>46</td>
+								<td>93</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">門脇 翼</td>
+								<td>秋田</td>
+								<td>33</td>
+								<td>111</td>
+								<td>A2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">藤田 楓</td>
+								<td>岡山</td>
+								<td>23</td>
+								<td>127</td>
+								<td>A2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">山下 祐輔</td>
+								<td>千葉</td>
+								<td>24</td>
+								<td>125</td>
+								<td>A1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">安東 英博</td>
+								<td>大分</td>
+								<td>45</td>
+								<td>87</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>6</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">齋藤 昌弘</td>
+								<td>群馬</td>
+								<td>44</td>
+								<td>90</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">櫻井 宏智</td>
+								<td>広島</td>
+								<td>56</td>
+								<td>72</td>
+								<td>A2</td>
+								<td>追</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">小田桐 義継</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A3</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p004">4</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab4" class="odds_nav cf">
+						<li class="active tab4"><a href="#">オッズ</a></li>
+						<li class="tab4"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds4" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop4" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/04/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/04/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/04/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/04/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/04/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3rentan/"><span class="num">5R</span> <span class="name">Ａ級初日特選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">力が違う</p><dl><dt>発走</dt><dd>17:24</dd><dt>締切</dt><dd>17:19</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/05/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=5&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">常次 勇人</td>
+								<td>大阪</td>
+								<td>24</td>
+								<td>121</td>
+								<td>A1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>1</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">一丸 尚伍</td>
+								<td>大分</td>
+								<td>34</td>
+								<td>121</td>
+								<td>A1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">中村 弘之輔</td>
+								<td>北海道</td>
+								<td>34</td>
+								<td>109</td>
+								<td>A1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">藤原 誠</td>
+								<td>岐阜</td>
+								<td>54</td>
+								<td>69</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">桑原 亮</td>
+								<td>福岡</td>
+								<td>41</td>
+								<td>91</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">鈴木 庸之</td>
+								<td>新潟</td>
+								<td>40</td>
+								<td>92</td>
+								<td>A1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">保科 千春</td>
+								<td>宮城</td>
+								<td>34</td>
+								<td>100</td>
+								<td>A1</td>
+								<td>追</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">大森 光明</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p001">1</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p206">自在</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab5" class="odds_nav cf">
+						<li class="active tab5"><a href="#">オッズ</a></li>
+						<li class="tab5"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds5" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop5" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/05/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/05/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/05/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/05/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/05/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3rentan/"><span class="num">6R</span> <span class="name">ガールズ予選１</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">注目株だ</p><dl><dt>発走</dt><dd>17:48</dd><dt>締切</dt><dd>17:43</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/06/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=6&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>1</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">川上 いちご</td>
+								<td>千葉</td>
+								<td>27</td>
+								<td>130</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">齊藤 由紀</td>
+								<td>愛知</td>
+								<td>40</td>
+								<td>110</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">神戸 暖稀羽</td>
+								<td>北海道</td>
+								<td>22</td>
+								<td>124</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">宮地 寧々</td>
+								<td>岐阜</td>
+								<td>30</td>
+								<td>110</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">高木 萌那</td>
+								<td>福岡</td>
+								<td>22</td>
+								<td>126</td>
+								<td>L1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">黒河内 由実</td>
+								<td>長野</td>
+								<td>31</td>
+								<td>110</td>
+								<td>L1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">松本 ちひろ</td>
+								<td>山口</td>
+								<td>31</td>
+								<td>120</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">杉浦 康一</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p004">4</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p107">追上</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p209">カマシ</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p107">追上</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab6" class="odds_nav cf">
+						<li class="active tab6"><a href="#">オッズ</a></li>
+						<li class="tab6"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds6" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop6" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/06/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/06/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/06/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/06/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/06/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3rentan/"><span class="num">7R</span> <span class="name">ガールズ予選１</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">断トツ◎</p><dl><dt>発走</dt><dd>18:12</dd><dt>締切</dt><dd>18:07</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/07/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=7&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">片岡 美奈</td>
+								<td>栃木</td>
+								<td>27</td>
+								<td>126</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">吉田 恵利</td>
+								<td>北海道</td>
+								<td>22</td>
+								<td>130</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">國村 美留莉</td>
+								<td>山口</td>
+								<td>26</td>
+								<td>118</td>
+								<td>L1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>2</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">五味田 奈穂</td>
+								<td>千葉</td>
+								<td>28</td>
+								<td>124</td>
+								<td>L1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">石田 春海</td>
+								<td>大阪</td>
+								<td>27</td>
+								<td>128</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">野口 諭実可</td>
+								<td>大分</td>
+								<td>33</td>
+								<td>102</td>
+								<td>L1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>1</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">太田 りゆ</td>
+								<td>埼玉</td>
+								<td>31</td>
+								<td>112</td>
+								<td>L1</td>
+								<td>逃</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">小田桐 義継</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A3</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p004">4</span><span class="p201">先行</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p107">追上</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p209">カマシ</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p107">追上</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p202">押え先</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab7" class="odds_nav cf">
+						<li class="active tab7"><a href="#">オッズ</a></li>
+						<li class="tab7"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds7" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop7" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/07/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/07/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/07/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/07/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/07/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3rentan/"><span class="num">8R</span> <span class="name">Ｓ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">僅差３分</p><dl><dt>発走</dt><dd>18:36</dd><dt>締切</dt><dd>18:31</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/08/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=8&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">神田 龍</td>
+								<td>三重</td>
+								<td>36</td>
+								<td>105</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">三浦 翔大</td>
+								<td>宮城</td>
+								<td>36</td>
+								<td>98</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">新田 康仁</td>
+								<td>静岡</td>
+								<td>52</td>
+								<td>74</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">伊藤 裕貴</td>
+								<td>三重</td>
+								<td>34</td>
+								<td>100</td>
+								<td>S2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">山田 駿斗</td>
+								<td>千葉</td>
+								<td>22</td>
+								<td>123</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>6</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">水谷 良和</td>
+								<td>愛知</td>
+								<td>55</td>
+								<td>70</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">立花 昌也</td>
+								<td>青森</td>
+								<td>27</td>
+								<td>123</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">大森 光明</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p001">1</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab8" class="odds_nav cf">
+						<li class="active tab8"><a href="#">オッズ</a></li>
+						<li class="tab8"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds8" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop8" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/08/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/08/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/08/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/08/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/08/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3rentan/"><span class="num">9R</span> <span class="name">Ｓ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">師弟連係</p><dl><dt>発走</dt><dd>19:00</dd><dt>締切</dt><dd>18:55</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/09/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=9&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">飯野 祐太</td>
+								<td>福島</td>
+								<td>41</td>
+								<td>90</td>
+								<td>S2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">栗山 俊介</td>
+								<td>奈良</td>
+								<td>38</td>
+								<td>103</td>
+								<td>S2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">柴田 洋輔</td>
+								<td>東京</td>
+								<td>40</td>
+								<td>92</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">伊藤 慶太郎</td>
+								<td>埼玉</td>
+								<td>32</td>
+								<td>107</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>6</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">西岡 利起</td>
+								<td>奈良</td>
+								<td>25</td>
+								<td>125</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>7</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">高木 竜司</td>
+								<td>熊本</td>
+								<td>50</td>
+								<td>82</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">板垣 昴</td>
+								<td>北海道</td>
+								<td>34</td>
+								<td>115</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">森田 康嗣</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p007">7</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab9" class="odds_nav cf">
+						<li class="active tab9"><a href="#">オッズ</a></li>
+						<li class="tab9"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds9" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop9" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/09/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/09/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/09/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/09/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/09/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3rentan/"><span class="num">10R</span> <span class="name">Ｓ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">別線僅差</p><dl><dt>発走</dt><dd>19:25</dd><dt>締切</dt><dd>19:20</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/10/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=10&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">角 宗哉</td>
+								<td>山口</td>
+								<td>26</td>
+								<td>125</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">安彦 統賀</td>
+								<td>埼玉</td>
+								<td>27</td>
+								<td>121</td>
+								<td>S2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>6</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">長松 空吾</td>
+								<td>大分</td>
+								<td>26</td>
+								<td>123</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">今野 有樹</td>
+								<td>愛媛</td>
+								<td>29</td>
+								<td>115</td>
+								<td>S2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>6</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">森山 智徳</td>
+								<td>熊本</td>
+								<td>42</td>
+								<td>98</td>
+								<td>S2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>6</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">荒川 仁</td>
+								<td>千葉</td>
+								<td>28</td>
+								<td>121</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">笠松 将太</td>
+								<td>埼玉</td>
+								<td>34</td>
+								<td>100</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">菊地 圭尚</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">S2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p002">2</span><span class="p206">自在</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab10" class="odds_nav cf">
+						<li class="active tab10"><a href="#">オッズ</a></li>
+						<li class="tab10"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds10" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop10" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/10/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/10/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/10/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/10/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/10/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3rentan/"><span class="num">11R</span> <span class="name">Ｓ級予選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">機動力◎</p><dl><dt>発走</dt><dd>19:51</dd><dt>締切</dt><dd>19:46</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/11/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=11&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">幸田 望夢</td>
+								<td>栃木</td>
+								<td>26</td>
+								<td>115</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">小松原 正登</td>
+								<td>福井</td>
+								<td>28</td>
+								<td>117</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">黒瀬 浩太郎</td>
+								<td>広島</td>
+								<td>26</td>
+								<td>123</td>
+								<td>S2</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">高原 仁志</td>
+								<td>徳島</td>
+								<td>45</td>
+								<td>85</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>5</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">片折 亮太</td>
+								<td>埼玉</td>
+								<td>38</td>
+								<td>92</td>
+								<td>S2</td>
+								<td>両</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>7</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">徳丸 泰教</td>
+								<td>兵庫</td>
+								<td>40</td>
+								<td>95</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">大屋 健司</td>
+								<td>広島</td>
+								<td>44</td>
+								<td>87</td>
+								<td>S2</td>
+								<td>追</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">大森 光明</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p003">3</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab11" class="odds_nav cf">
+						<li class="active tab11"><a href="#">オッズ</a></li>
+						<li class="tab11"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds11" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop11" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/11/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/11/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/11/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/11/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/11/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+											<li>
+					<p class="race"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3rentan/"><span class="num">12R</span> <span class="name">Ｓ級初日特選</span></a></p>
+					<div class="header cf">
+						<div class="flt_l">
+							<div class="status cf"><p class="title">次位難解</p><dl><dt>発走</dt><dd>20:17</dd><dt>締切</dt><dd>20:12</dd></dl></div>
+							<ul class="nav cf">
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3rentan/">出走表詳細</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/1120260714/11202607140100/12/3rentan/">展開予想・狙い目</a></li>
+							</ul>
+						</div>
+						<ul class="flt_r">
+																										<li class="btn_digest"><span class="disabled"><span>ﾀﾞｲｼﾞｪｽﾄ</span><br>映像</span></li>
+																															<li class="btn_bet"><a href="https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&raceNo=12&it=1&l-id=l-krl-cmpi-race_list_betbtn_8" target="console" >投票</a></li>
+															</ul>
+					</div>
+									<div class="racecard_table">
+						<table>
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th >総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th>選手名</th>
+								<th>府県</th>
+								<th>年<br>齢</th>
+								<th>期<br>別</th>
+								<th>級<br>班</th>
+								<th>脚<br>質</th>
+							</tr>
+															<tr class="n1">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">1</td>
+													<td class="num"><span>1</span></td>
+								<td class="rider">後藤 大輝</td>
+								<td>福岡</td>
+								<td>25</td>
+								<td>121</td>
+								<td>S1</td>
+								<td>逃</td>
+							</tr>
+											<tr class="n2">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">2</td>
+													<td class="num"><span>2</span></td>
+								<td class="rider">川津 悠揮</td>
+								<td>北海道</td>
+								<td>38</td>
+								<td>96</td>
+								<td>S1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n3">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>4</span></td>
+													<td class="bracket">3</td>
+													<td class="num"><span>3</span></td>
+								<td class="rider">藤井 昭吾</td>
+								<td>滋賀</td>
+								<td>40</td>
+								<td>99</td>
+								<td>S1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n4">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">4</td>
+													<td class="num"><span>4</span></td>
+								<td class="rider">小川 真太郎</td>
+								<td>徳島</td>
+								<td>34</td>
+								<td>107</td>
+								<td>S1</td>
+								<td>両</td>
+							</tr>
+											<tr class="n5">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+													<td class="bracket">5</td>
+													<td class="num"><span>5</span></td>
+								<td class="rider">河野 通孝</td>
+								<td>茨城</td>
+								<td>43</td>
+								<td>88</td>
+								<td>S1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n6">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+																			<td class="bracket" rowspan="2">6</td>
+																										<td class="num"><span>6</span></td>
+								<td class="rider">小岩 大介</td>
+								<td>大分</td>
+								<td>42</td>
+								<td>90</td>
+								<td>S1</td>
+								<td>追</td>
+							</tr>
+											<tr class="n7">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation"><span>3</span></td>
+																																					<td class="num"><span>7</span></td>
+								<td class="rider">川口 公太朗</td>
+								<td>岐阜</td>
+								<td>36</td>
+								<td>98</td>
+								<td>S1</td>
+								<td>追</td>
+							</tr>
+																													<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td rowspan="2" class="bracket last missing"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+												<tr class="missing">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation"></td>
+														<td class="num"></td>
+								<td class="rider"></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+																<tr>
+								<th class="approach_guide" colspan="5">誘導員</th>
+								<td class="approach_guide">杉浦 康一</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td class="rank">A2</td>
+								<td></td>
+							</tr>
+						</table>
+					</div>
+					<dl class="line_position cf">
+						<dt>並び予想</dt>
+						<dd>
+							<div class="line_position_inner">
+												<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p004">4</span><span class="p206">自在</span></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p001">1</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p107">追上</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p206">自在</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																</div>
+						</dd>
+					</dl>
+					<ul id="tab12" class="odds_nav cf">
+						<li class="active tab12"><a href="#">オッズ</a></li>
+						<li class="tab12"><a href="#">人気順・高配当順</a></li>
+					</ul>
+									<ul id="odds12" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/wide/#detail">ワイド</a></li>
+					</ul>
+					<ul id="pop12" class="ticket_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/12/3rentan/#detail">3連単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/12/2shatan/#detail">2車単</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/12/3renhuku/#detail">3連複</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/12/2shahuku/#detail">2車複</a></li>
+						<li><span class="disabled">2枠単</span></li>
+						<li><span class="disabled">2枠複</span></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/oddspop/1120260714/11202607140100/12/wide/#detail">ワイド</a></li>
+					</ul>
+				</li>
+						</ul>
+		</section>
+		<!--  Section End -->
+		<!-- InstanceEndEditable -->
+	</div>
+	<!-- Article End -->
+	<!-- Aside Start -->
+	<!-- Aside End -->
+</div>
+<!-- Main End -->
+<script type="text/javascript">
+//ページトップへボタン
+$(function() {
+	// 人気順（オッズ）非表示
+	$('#pop1').css('display','none');
+	$('#pop2').css('display','none');
+	$('#pop3').css('display','none');
+	$('#pop4').css('display','none');
+	$('#pop5').css('display','none');
+	$('#pop6').css('display','none');
+	$('#pop7').css('display','none');
+	$('#pop8').css('display','none');
+	$('#pop9').css('display','none');
+	$('#pop10').css('display','none');
+	$('#pop11').css('display','none');
+	$('#pop12').css('display','none');
+	// 1R
+	$('#tab1 li').click(function() {
+		var index = $('#tab1 li').index(this);
+		$('#tab1 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds1').css('display','none');
+		$('#pop1').css('display','none');
+		if (index == 0) {
+			$('#odds1').css('display','block');
+		} else if (index == 1) {
+			$('#pop1').css('display','block');
+		}
+		return false;
+	});
+	// 2R
+	$('#tab2 li').click(function() {
+		var index = $('#tab2 li').index(this);
+		$('#tab2 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds2').css('display','none');
+		$('#pop2').css('display','none');
+		if (index == 0) {
+			$('#odds2').css('display','block');
+		} else if (index == 1) {
+			$('#pop2').css('display','block');
+		}
+		return false;
+	});
+	// 3R
+	$('#tab3 li').click(function() {
+		var index = $('#tab3 li').index(this);
+		$('#tab3 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds3').css('display','none');
+		$('#pop3').css('display','none');
+		if (index == 0) {
+			$('#odds3').css('display','block');
+		} else if (index == 1) {
+			$('#pop3').css('display','block');
+		}
+		return false;
+	});
+	// 4R
+	$('#tab4 li').click(function() {
+		var index = $('#tab4 li').index(this);
+		$('#tab4 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds4').css('display','none');
+		$('#pop4').css('display','none');
+		if (index == 0) {
+			$('#odds4').css('display','block');
+		} else if (index == 1) {
+			$('#pop4').css('display','block');
+		}
+		return false;
+	});
+	// 5R
+	$('#tab5 li').click(function() {
+		var index = $('#tab5 li').index(this);
+		$('#tab5 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds5').css('display','none');
+		$('#pop5').css('display','none');
+		if (index == 0) {
+			$('#odds5').css('display','block');
+		} else if (index == 1) {
+			$('#pop5').css('display','block');
+		}
+		return false;
+	});
+	// 6R
+	$('#tab6 li').click(function() {
+		var index = $('#tab6 li').index(this);
+		$('#tab6 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds6').css('display','none');
+		$('#pop6').css('display','none');
+		if (index == 0) {
+			$('#odds6').css('display','block');
+		} else if (index == 1) {
+			$('#pop6').css('display','block');
+		}
+		return false;
+	});
+	// 7R
+	$('#tab7 li').click(function() {
+		var index = $('#tab7 li').index(this);
+		$('#tab7 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds7').css('display','none');
+		$('#pop7').css('display','none');
+		if (index == 0) {
+			$('#odds7').css('display','block');
+		} else if (index == 1) {
+			$('#pop7').css('display','block');
+		}
+		return false;
+	});
+	// 8R
+	$('#tab8 li').click(function() {
+		var index = $('#tab8 li').index(this);
+		$('#tab8 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds8').css('display','none');
+		$('#pop8').css('display','none');
+		if (index == 0) {
+			$('#odds8').css('display','block');
+		} else if (index == 1) {
+			$('#pop8').css('display','block');
+		}
+		return false;
+	});
+	// 9R
+	$('#tab9 li').click(function() {
+		var index = $('#tab9 li').index(this);
+		$('#tab9 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds9').css('display','none');
+		$('#pop9').css('display','none');
+		if (index == 0) {
+			$('#odds9').css('display','block');
+		} else if (index == 1) {
+			$('#pop9').css('display','block');
+		}
+		return false;
+	});
+	// 10R
+	$('#tab10 li').click(function() {
+		var index = $('#tab10 li').index(this);
+		$('#tab10 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds10').css('display','none');
+		$('#pop10').css('display','none');
+		if (index == 0) {
+			$('#odds10').css('display','block');
+		} else if (index == 1) {
+			$('#pop10').css('display','block');
+		}
+		return false;
+	});
+	// 11R
+	$('#tab11 li').click(function() {
+		var index = $('#tab11 li').index(this);
+		$('#tab11 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds11').css('display','none');
+		$('#pop11').css('display','none');
+		if (index == 0) {
+			$('#odds11').css('display','block');
+		} else if (index == 1) {
+			$('#pop11').css('display','block');
+		}
+		return false;
+	});
+	// 12R
+	$('#tab12 li').click(function() {
+		var index = $('#tab12 li').index(this);
+		$('#tab12 li').removeClass('active');
+		$(this).addClass('active');
+		$('#odds12').css('display','none');
+		$('#pop12').css('display','none');
+		if (index == 0) {
+			$('#odds12').css('display','block');
+		} else if (index == 1) {
+			$('#pop12').css('display','block');
+		}
+		return false;
+	});
+
+});
+</script>
+<!-- Footer Start -->
+<div id="PAGE_FOOTER">
+	<p class="copyright">Copyright© 2012-2026 GambooBET All Rights Reserved.</p>
+</div>
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+
+</body>
+</html><!-- Fixed Footer Start -->
+<div id="FIXED_FOOTER">
+	<div class="marquee marquee_thin">
+		<ul id="MARQUEE"></ul>
+	</div>
+</div>
+<p id="PAGETOP" style="position:fixed; bottom: 40px; right: 20px;"><a href="#">ページの先頭へ戻る</a></p>
+
+<!-- Script Start -->
+<script type="text/javascript" src="https://kdreams.r10s.jp/keirin/js/lib/digesturl.js?ckl=1756749849"></script>
+<!-- Script End -->
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+</body>
+</html>

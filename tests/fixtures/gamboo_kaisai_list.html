@@ -1,0 +1,2085 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=1024">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="expires" content="604800">
+<meta name="description" content="競輪の2026年07月14日開催レース情報。 Kドリームスは競輪の出走・結果・予想情報を全て無料で提供。また、全競輪場の車券の購入、キャッシュバック等お得なサービスも充実！">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/base.css?ckl=1779642021" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/raceinfo.css?ckl=1629045581" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/gamboo/css/pc/base-gamboo.css?ckl=1493607743" rel="stylesheet" type="text/css">
+<link rel="apple-touch-icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo-touch-icon.png">
+<link rel="icon" type="image/vnd.microsoft.icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo_favicon.ico">
+
+
+<script type="text/javascript">
+otk = '';
+
+svPrevDay  = "20260713";
+svToDay    = "20260714";
+svThisYear = "2026";
+svNowTime  = "0857";
+svNextDay  = "20260715";
+svPrevYobi = "月";
+svToYobi   = "火";
+svNextYobi = "水";
+
+marqueeTime = 30000; // 1000=1秒
+marqueeTimeDef = 5; // 分
+
+kdUrl   = "https://my.keirin.kdreams.jp/gamboo/sso/go_old_keirin/?ac=";
+baseUrl = "https://my.keirin.kdreams.jp/gamboo/";
+
+ajaxMasterStatus = {
+	"success"           : "kd-00000",
+	"failure"           : "kd-01000",
+	"loginErr"          : "ks-10001",
+	"kaisaiNotFound"    : "ks-10400",
+	"aggregating"       : "ks-10203",
+	"loyalNoEntry"      : "ks-10200",
+	"loyalAlreadyEntry" : "ks-10202",
+	"loyalNotAvailable" : "ks-10201"
+};
+
+ajaxMasterErrorStatus = {
+	close : 0, // default
+	reload : 1,
+	top : 2
+}
+
+device = 'pc';
+devicePc = 'pc';
+deviceSp = 'sp';
+deviceMb = 'mb';
+deviceTb = 'tb';
+deviceApp = 'app';
+
+dayMasterStatus = {
+	prevDay  : parseInt('1', 10),
+	toDay    : parseInt('2', 10),
+	nextDay  : parseInt('3', 10),
+	nextOpen : 4,
+};
+
+kakeshikiBunruiMasterData = {
+	"kd"      : parseInt('1', 10),
+	"basic"   : parseInt('2', 10),
+	"dokanto" : parseInt('3', 10),
+};
+
+kakeshikiMasterName = {
+	"k3"         : parseInt('1', 10),
+	"k5"         : parseInt('2', 10),
+	"bd"         : parseInt('3', 10),
+	"k7"         : parseInt('4', 10),
+	"sanrentan"  : parseInt('5', 10),
+	"nishatan"   : parseInt('6', 10),
+	"sanrenfuku" : parseInt('7', 10),
+	"nishafuku"  : parseInt('8', 10),
+	"niwakutan"  : parseInt('9', 10),
+	"niwakufuku" : parseInt('10', 10),
+	"wide"       : parseInt('11', 10),
+	"k3two"      : parseInt('12', 10),
+	"d4two"      : parseInt('13', 10),
+	"d7"         : parseInt('14', 10),
+};
+
+normalKakeshikiMaster = {
+	"sanrentan"  : parseInt('5',    10)
+	, "nishatan"   : parseInt('6',  10)
+	, "sanrenfuku" : parseInt('7', 10)
+	, "nishafuku"  : parseInt('8',  10)
+	, "niwakutan"  : parseInt('9',  10)
+	, "niwakufuku" : parseInt('10', 10)
+	, "wide"       : parseInt('11',     10)
+};
+
+kakeshikiMasterOrder = {
+	"0" : 0, // 通常賭式
+	"1" : parseInt('1', 10),
+	"2" : parseInt('2', 10),
+	"3" : parseInt('12', 10),
+	"4" : parseInt('4', 10),
+	"5" : parseInt('3', 10),
+	"6" : parseInt('14', 10),
+	"7" : parseInt('13', 10),
+};
+
+kaisaiDayMasterStatus = {
+	"1"  : "初日",
+	"2"  : "2日目",
+	"3"  : "3日目",
+	"4"  : "4日目",
+	"5"  : "5日目",
+	"6"  : "6日目",
+	"7"  : "7日目",
+	"8"  : "8日目",
+	"9"  : "9日目",
+	"99"  : "最終日",
+};
+
+kakeshikiMasterData = {
+	"0" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "通常車券",
+		kakeshikiType : 1,
+	},
+	"1" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3",
+		kakeshikiType : 2,
+	},
+	"2" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K5",
+		kakeshikiType : 2,
+	},
+	"3" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "BiGDREAM",
+		kakeshikiType : 3,
+	},
+	"4" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K7",
+		kakeshikiType : 3,
+	},
+	"5" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連単",
+		kakeshikiType : 1,
+	},
+	"6" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車単",
+		kakeshikiType : 1,
+	},
+	"7" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連複",
+		kakeshikiType : 1,
+	},
+	"8" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車複",
+		kakeshikiType : 1,
+	},
+	"9" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠単",
+		kakeshikiType : 1,
+	},
+	"10" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠複",
+		kakeshikiType : 1,
+	},
+	"11" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "ワイド",
+		kakeshikiType : 1,
+	},
+	"12" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3two",
+		kakeshikiType : 2,
+	},
+	"13" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto4two",
+		kakeshikiType : 3,
+	},
+	"14" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto7",
+		kakeshikiType : 3,
+	},
+};
+
+commFlg = {
+	"trueFlg"           : "1",
+	"falseFlg"          : "0",
+};
+
+ksBetBaitaiCdPC = "0";
+
+pcLiveUrl = "https://keirin.kdreams.jp/gamboo/live/";
+newPCLiveVideoUrl = 'https://keirin.kdreams.jp/gamboo/stadium/live/';
+
+// PVモード
+privateErrMsg      = "プライベートブラウズ機能がオンになっているか、シークレットモードをご利用中のため投票できません。";
+
+// 車券販売場所ID
+shakenSalePlaceId = '3';
+
+</script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.marquee.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/common.js?ckl=1756749849" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/tate.js?ckl=1494809433" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/marquee.js?ckl=1494809432" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/raceinfo.forecast.js?ckl=1722228006" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/scrollTop.js?ckl=1494809433" type="text/javascript"></script>
+<title>競輪 開催レース情報（2026年07月14日） | 競輪投票は【GambooBET】</title>
+
+</head>
+<body>
+<script type="text/javascript">
+$(function(){
+		$('.scroll a[href^=#]').click(function() {
+		var href= $(this).attr("href");
+		var target = $(href == "#" || href == "" ? 'html' : href);
+		var position = target.offset().top;
+		$('body,html').animate({scrollTop:position}, 500, 'swing');
+		return false;
+	});
+});
+</script>
+<div id="PAGE_HEADER">
+	<div class="container">
+		<p class="logo logo_gamboo"><a href="https://gamboo.jp/"><img src="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/logo_gamboo.png" width="226" height="30" alt="GambooBET"></a></p>
+	</div>
+</div>
+
+<!-- Contents Wrapper Start -->
+<div id="MAIN" class="cf">
+	<!-- InstanceBeginEditable name="Breadcrumb" -->
+	<ul class="breadcrumb">
+<li><strong>開催レース情報</strong></li>
+</ul>	<!-- InstanceEndEditable -->
+	<!-- Article Start -->
+	<div class="article">
+		<!-- InstanceBeginEditable name="Contents" -->
+		<!--  Section Start -->
+		<section class="section raceinfo_section">
+			<h1 class="section_title">レース情報</h1>
+			<div class="raceinfo_nav">
+				<dl class="schedule_nav">
+					<dt>レース開催スケジュール</dt>
+					<dd>
+						<ul class="cf">
+							<li><a href="https://keirin.kdreams.jp/gamboo/schedule/search/2026/07/">開催スケジュール</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/schedule/highgrade/search/2026/">GP･GI･GII開催</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/schedule/grade/search/2026/">GⅢ(記念競輪)開催</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/schedule/frace/search/2026/">特定レース開催</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/schedule/dokanto/search/2026/1/">Dokanto!発売</a></li>
+						</ul>
+					</dd>
+				</dl>
+				<p class="btn_refund"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/harai-list/2026/07/14/"><span class="date">2026年7月14日</span><span>の払戻金一覧</span></a></p>
+			</div>
+			<!-- #BeginLibraryItem "/Library/pc_date_header.lbi" --><div class="date_header cf">
+			<div class="previous"><p class="btn_date"><a href="https://keirin.kdreams.jp/gamboo/kaisai/?yy=2026&mm=07&dd=13">2026年7月13日</a></p></div>
+			<div class="current">
+				<form name="seatchDate" method="GET" action="https://keirin.kdreams.jp/gamboo/kaisai/">
+					<select name="yy">
+						<option value="2008">2008</option>
+						<option value="2009">2009</option>
+						<option value="2010">2010</option>
+						<option value="2011">2011</option>
+						<option value="2012">2012</option>
+						<option value="2013">2013</option>
+						<option value="2014">2014</option>
+						<option value="2015">2015</option>
+						<option value="2016">2016</option>
+						<option value="2017">2017</option>
+						<option value="2018">2018</option>
+						<option value="2019">2019</option>
+						<option value="2020">2020</option>
+						<option value="2021">2021</option>
+						<option value="2022">2022</option>
+						<option value="2023">2023</option>
+						<option value="2024">2024</option>
+						<option value="2025">2025</option>
+						<option value="2026" selected>2026</option>
+						<option value="2027">2027</option>
+					</select>
+					<span>年</span>
+					<select name="mm">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+						<option value="6">6</option>
+						<option value="7" selected>7</option>
+						<option value="8">8</option>
+						<option value="9">9</option>
+						<option value="10">10</option>
+						<option value="11">11</option>
+						<option value="12">12</option>
+					</select>
+					<span>月</span>
+					<select name="dd">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+						<option value="6">6</option>
+						<option value="7">7</option>
+						<option value="8">8</option>
+						<option value="9">9</option>
+						<option value="10">10</option>
+						<option value="11">11</option>
+						<option value="12">12</option>
+						<option value="13">13</option>
+						<option value="14" selected>14</option>
+						<option value="15">15</option>
+						<option value="16">16</option>
+						<option value="17">17</option>
+						<option value="18">18</option>
+						<option value="19">19</option>
+						<option value="20">20</option>
+						<option value="21">21</option>
+						<option value="22">22</option>
+						<option value="23">23</option>
+						<option value="24">24</option>
+						<option value="25">25</option>
+						<option value="26">26</option>
+						<option value="27">27</option>
+						<option value="28">28</option>
+						<option value="29">29</option>
+						<option value="30">30</option>
+						<option value="31">31</option>
+					</select>
+					<span>日</span>
+					<span class="btn"><input type="submit" value="表示"></span>
+				</form>
+			</div>
+			<div class="next"><p class="btn_date"><a href="https://keirin.kdreams.jp/gamboo/kaisai/?yy=2026&mm=07&dd=15">2026年7月15日</a></p></div>
+			</div><!-- #EndLibraryItem --><h2 class="raceinfo_title"><span>2026年7月14日<span>の開催レース一覧</span></span></h2>
+			<ul class="stadium_nav cf scroll">
+					<li><a href="#k24">宇都宮<br>Ｆ１</a></li>
+					<li><a href="#k85">佐世保<br>Ｆ１</a></li>
+					<li><a href="#k61">玉野<br>Ｆ１</a></li>
+					<li><a href="#k11">函館<br>Ｆ１</a></li>
+					<li><a href="#k87">熊本<br>Ｆ２</a></li>
+					<li><a href="#k56">岸和田<br>Ｆ２</a></li>
+					<li><a href="#k27">京王閣<br>Ｆ２</a></li>
+					<li><a href="#k62">広島<br>Ｆ２</a></li>
+				</ul>
+			<ul class="kaisai_list">
+				<li id="k24" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">宇都宮競輪</span>
+							<span class="icon_grade gr2"></span>
+									<span class="day">2日目</span>
+							<span class="race">サンケイスポーツ杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=24', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=24202607130200&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/2420260713/24202607130200/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/2420260713/24202607130200/">出場予定選手一覧</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/2420260713/24202607130200/">展望・記者の推しメン</a></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day2420260713" class="">
+								<span class="day"><a href="javascript:void(0);">初日</a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/2420260713/24202607130100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/2420260713/24202607130100/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/2420260713/24202607130100/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day2420260714" class="active">
+								<span class="day"><a href="javascript:void(0);">2日目<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/2420260713/24202607130200/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/2420260713/24202607130200/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/2420260713/24202607130200/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day2420260715" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+																<li>ドカント経過・結果</li>
+													</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="none" id="tbl_day2420260713">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+								<th>12R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="4">Ａ級予選</td>
+								<td class="name  bg_a" colspan="1">Ａ級初日特選</td>
+								<td class="name  bg_s" colspan="6">Ｓ級予選</td>
+								<td class="name  bg_s" colspan="1">Ｓ級初特選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/01/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=1', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/02/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=2', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/03/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=3', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/04/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=4', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/05/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=5', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/06/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=6', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/07/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=7', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/08/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=8', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/09/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=9', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/10/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=10', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/11/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=11', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2420260713/24202607130100/12/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130100/12/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=24&gradeCd=2&kaisaiDate=20260713&raceNo=12', '', '745,455') ;">映像</a></p>
+								</td>
+							</tr>
+						</table>
+						<table class="" id="tbl_day2420260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+								<th>12R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="2">Ａ級一般</td>
+								<td class="name  bg_a" colspan="3">Ａ級準決勝</td>
+								<td class="name  bg_s" colspan="2">Ｓ級一般</td>
+								<td class="name  bg_s" colspan="2">Ｓ級選抜</td>
+								<td class="name  bg_s" colspan="3">Ｓ級準決勝</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/01/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/02/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/08/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/09/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/10/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/11/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/12/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2420260713/24202607130200/12/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day2420260715">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+				<li id="k85" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">佐世保競輪</span>
+							<span class="icon_grade gr2"></span>
+								<span class="icon_status s2"></span>
+									<span class="icon_girls"></span>
+								<span class="day">2日目</span>
+							<span class="race">仲間と繋がるＴＩＰＳＴＡＲ杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=85', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=85202607130200&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/8520260713/85202607130200/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/8520260713/85202607130200/">出場予定選手一覧</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/8520260713/85202607130200/">展望・記者の推しメン</a></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day8520260713" class="">
+								<span class="day"><a href="javascript:void(0);">初日</a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/8520260713/85202607130100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/8520260713/85202607130100/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/8520260713/85202607130100/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day8520260714" class="active">
+								<span class="day"><a href="javascript:void(0);">2日目<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/8520260713/85202607130200/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/8520260713/85202607130200/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/8520260713/85202607130200/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day8520260715" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+																<li>ドカント経過・結果</li>
+													</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="none" id="tbl_day8520260713">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+								<th>12R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="4">Ａ級予選</td>
+								<td class="name  bg_a" colspan="1">Ａ級初日特選</td>
+								<td class="name  bg_l" colspan="2">ガールズ予選１</td>
+								<td class="name  bg_s" colspan="4">Ｓ級予選</td>
+								<td class="name  bg_s" colspan="1">Ｓ級初日特選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/01/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=1', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/02/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=2', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/03/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=3', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/04/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=4', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/05/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=5', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/06/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=6', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/07/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=7', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/08/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=8', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/09/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=9', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/10/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=10', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/11/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=11', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520260713/85202607130100/12/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130100/12/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&gradeCd=2&kaisaiDate=20260713&raceNo=12', '', '745,455') ;">映像</a></p>
+								</td>
+							</tr>
+						</table>
+						<table class="" id="tbl_day8520260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+								<th>12R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="2">Ａ級一般</td>
+								<td class="name  bg_a" colspan="3">Ａ級準決勝</td>
+								<td class="name  bg_l" colspan="2">ガールズ予選２</td>
+								<td class="name  bg_s" colspan="2">Ｓ級一般</td>
+								<td class="name  bg_s" colspan="3">Ｓ級準決勝</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/01/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/02/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/08/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/09/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/10/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/11/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/12/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8520260713/85202607130200/12/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day8520260715">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+				<li id="k61" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">玉野競輪</span>
+							<span class="icon_grade gr2"></span>
+									<span class="day">初日</span>
+							<span class="race">ＣＴＣ杯＆スピチャン杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=61', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=61202607140100&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/6120260714/61202607140100/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/6120260714/61202607140100/">出場予定選手一覧</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/6120260714/61202607140100/">展望・記者の推しメン</a></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day6120260714" class="active">
+								<span class="day"><a href="javascript:void(0);">初日<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/6120260714/61202607140100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/6120260714/61202607140100/">結果・払戻金一覧</a></li>
+												</ul>
+							</li>
+								<li name="day6120260715" class="">
+								<span class="day"><a href="javascript:void(0);">2日目</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+												</ul>
+							</li>
+								<li name="day6120260716" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+												</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="" id="tbl_day6120260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+								<th>12R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="4">Ａ級予選</td>
+								<td class="name  bg_a" colspan="1">Ａ級初日特選</td>
+								<td class="name  bg_s" colspan="6">Ｓ級予選</td>
+								<td class="name  bg_s" colspan="1">Ｓ級初特選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/01/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/02/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/08/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/09/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/10/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/11/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/12/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6120260714/61202607140100/12/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day6120260715">レース情報を取得できませんでした。</p>
+						<p class="error_message none" id="tbl_day6120260716">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+				<li id="k11" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">函館競輪</span>
+							<span class="icon_grade gr2"></span>
+								<span class="icon_status s2"></span>
+									<span class="icon_girls"></span>
+								<span class="day">初日</span>
+							<span class="race">ノースランドＣ＆報知新聞社杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=11', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=11202607140100&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/1120260714/11202607140100/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/1120260714/11202607140100/">出場予定選手一覧</a></li>
+								<li><span class="disabled">展望・記者の推しメン</span></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day1120260714" class="active">
+								<span class="day"><a href="javascript:void(0);">初日<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/1120260714/11202607140100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/1120260714/11202607140100/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/1120260714/11202607140100/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day1120260715" class="">
+								<span class="day"><a href="javascript:void(0);">2日目</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+																<li>ドカント経過・結果</li>
+													</ul>
+							</li>
+								<li name="day1120260716" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+																<li>ドカント経過・結果</li>
+													</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="" id="tbl_day1120260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+								<th>12R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="4">Ａ級予選</td>
+								<td class="name  bg_a" colspan="1">Ａ級初日特選</td>
+								<td class="name  bg_l" colspan="2">ガールズ予選１</td>
+								<td class="name  bg_s" colspan="4">Ｓ級予選</td>
+								<td class="name  bg_s" colspan="1">Ｓ級初日特選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/1120260714/11202607140100/12/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day1120260715">レース情報を取得できませんでした。</p>
+						<p class="error_message none" id="tbl_day1120260716">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+				<li id="k87" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">熊本競輪</span>
+							<span class="icon_grade gr1"></span>
+								<span class="icon_status morning"></span>
+									<span class="day">2日目</span>
+							<span class="race">ＣＴＣなら３分前まで買える杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=87', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=87202607130200&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/8720260713/87202607130200/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/8720260713/87202607130200/">出場予定選手一覧</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/8720260713/87202607130200/">展望・記者の推しメン</a></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day8720260713" class="">
+								<span class="day"><a href="javascript:void(0);">初日</a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/8720260713/87202607130100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/8720260713/87202607130100/">結果・払戻金一覧</a></li>
+												</ul>
+							</li>
+								<li name="day8720260714" class="active">
+								<span class="day"><a href="javascript:void(0);">2日目<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/8720260713/87202607130200/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/8720260713/87202607130200/">結果・払戻金一覧</a></li>
+												</ul>
+							</li>
+								<li name="day8720260715" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+												</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="none" id="tbl_day8720260713">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="7">チャレンジ予選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130100/01/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260713&raceNo=1', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130100/02/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260713&raceNo=2', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130100/03/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260713&raceNo=3', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130100/04/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260713&raceNo=4', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130100/05/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260713&raceNo=5', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130100/06/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260713&raceNo=6', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130100/07/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260713&raceNo=7', '', '745,455') ;">映像</a></p>
+								</td>
+							</tr>
+						</table>
+						<table class="" id="tbl_day8720260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="2">チャレンジ一般</td>
+								<td class="name  bg_a" colspan="2">チャレンジ選抜</td>
+								<td class="name  bg_a" colspan="3">チャレンジ準決勝</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130200/01/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=87&gradeCd=1&kaisaiDate=20260714&raceNo=1', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8720260713/87202607130200/02/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/8720260713/87202607130200/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day8720260715">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+				<li id="k56" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">岸和田競輪</span>
+							<span class="icon_grade gr1"></span>
+									<span class="icon_girls"></span>
+								<span class="day">2日目</span>
+							<span class="race">けいりんラブ・ラブリン杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=56', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=56202607130200&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/5620260713/56202607130200/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/5620260713/56202607130200/">出場予定選手一覧</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/5620260713/56202607130200/">展望・記者の推しメン</a></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day5620260713" class="">
+								<span class="day"><a href="javascript:void(0);">初日</a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/5620260713/56202607130100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/5620260713/56202607130100/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/5620260713/56202607130100/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day5620260714" class="active">
+								<span class="day"><a href="javascript:void(0);">2日目<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/5620260713/56202607130200/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/5620260713/56202607130200/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/5620260713/56202607130200/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day5620260715" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+																<li>ドカント経過・結果</li>
+													</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="none" id="tbl_day5620260713">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="4">チャレンジ予選</td>
+								<td class="name  bg_l" colspan="2">ガールズ予選１</td>
+								<td class="name  bg_a" colspan="4">Ａ級特予選</td>
+								<td class="name  bg_a" colspan="1">Ａ級初日特選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/01/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=1', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/02/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=2', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/03/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=3', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/04/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=4', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/05/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=5', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/06/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=6', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/07/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=7', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/08/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=8', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/09/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=9', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/10/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=10', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/5620260713/56202607130100/11/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130100/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&gradeCd=1&kaisaiDate=20260713&raceNo=11', '', '745,455') ;">映像</a></p>
+								</td>
+							</tr>
+						</table>
+						<table class="" id="tbl_day5620260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+								<th>10R</th>
+								<th>11R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="2">チャレンジ一般</td>
+								<td class="name  bg_a" colspan="2">チャレンジ準決勝</td>
+								<td class="name  bg_l" colspan="2">ガールズ予選２</td>
+								<td class="name  bg_a" colspan="2">Ａ級特一般</td>
+								<td class="name  bg_a" colspan="3">Ａ級準決勝</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/01/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/02/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/08/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/09/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/10/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/10/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/11/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/5620260713/56202607130200/11/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day5620260715">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+				<li id="k27" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">京王閣競輪</span>
+							<span class="icon_grade gr1"></span>
+								<span class="icon_status s3"></span>
+									<span class="day">2日目</span>
+							<span class="race">パチ・スロアプリ７７７リアル杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=27', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=27202607130200&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/2720260713/27202607130200/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/2720260713/27202607130200/">出場予定選手一覧</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/2720260713/27202607130200/">展望・記者の推しメン</a></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day2720260713" class="">
+								<span class="day"><a href="javascript:void(0);">初日</a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/2720260713/27202607130100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/2720260713/27202607130100/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/2720260713/27202607130100/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day2720260714" class="active">
+								<span class="day"><a href="javascript:void(0);">2日目<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/2720260713/27202607130200/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/2720260713/27202607130200/">結果・払戻金一覧</a></li>
+																<li><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/2720260713/27202607130200/">ドカント経過・結果</a></li>
+													</ul>
+							</li>
+								<li name="day2720260715" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+																<li>ドカント経過・結果</li>
+													</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="none" id="tbl_day2720260713">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="4">チャレンジ予選</td>
+								<td class="name  bg_a" colspan="4">Ａ級特予選</td>
+								<td class="name  bg_a" colspan="1">Ａ級初日特選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/01/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=1', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/02/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=2', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/03/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=3', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/04/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=4', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/05/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=5', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/06/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=6', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/07/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=7', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/08/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=8', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/2720260713/27202607130100/09/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130100/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&gradeCd=1&kaisaiDate=20260713&raceNo=9', '', '745,455') ;">映像</a></p>
+								</td>
+							</tr>
+						</table>
+						<table class="" id="tbl_day2720260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_a" colspan="2">チャレンジ一般</td>
+								<td class="name  bg_a" colspan="2">チャレンジ準決勝</td>
+								<td class="name  bg_a" colspan="2">Ａ級特一般</td>
+								<td class="name  bg_a" colspan="3">Ａ級準決勝</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/01/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/02/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/08/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/09/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/2720260713/27202607130200/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day2720260715">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+				<li id="k62" class="race_program_parent">
+					<div class="header cf">
+						<h3 class="title">
+							<span class="velodrome">広島競輪</span>
+							<span class="icon_grade gr1"></span>
+								<span class="icon_status s3"></span>
+									<span class="icon_girls"></span>
+								<span class="day">2日目</span>
+							<span class="race">  前検日コメならウィンチケット杯</span>
+						</h3>
+						<ul class="flt_r">
+								<li class="btn_live">
+								<a
+									href="javascript:void(0);"
+									onClick="windowOpen('https://keirin.kdreams.jp/gamboo/stadium/live/?kyogijoCd=62', 'live', '710,460');"
+									target="live"
+								>
+									<span>LIVE</span>映像
+								</a>
+							</li>
+										<li class="btn_bet"><a href="javascript:void(0);" onclick="windowOpen('https://keirin.kdreams.jp/gamboo/console/device_checker/?kaisaiDateId=62202607130200&it=1&l-id=l-ki-cmpi-kaisai_betbtn_8', 'console')">投票</a></li>
+							</ul>
+					</div>
+					<ul class="kaisai_nav cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/6220260713/62202607130200/">レースプログラム</a></li>
+							<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/6220260713/62202607130200/">出場予定選手一覧</a></li>
+								<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/6220260713/62202607130200/">展望・記者の推しメン</a></li>
+							</ul>
+							<div class="kaisai_data_nav">
+						<ul class="cf">
+									<li name="day6220260713" class="">
+								<span class="day"><a href="javascript:void(0);">初日</a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/6220260713/62202607130100/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/6220260713/62202607130100/">結果・払戻金一覧</a></li>
+												</ul>
+							</li>
+								<li name="day6220260714" class="active">
+								<span class="day"><a href="javascript:void(0);">2日目<span class="icon_today">本日</span></a></span>
+								<ul>
+											<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-list/6220260713/62202607130200/">出走表一覧</a></li>
+													<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/6220260713/62202607130200/">結果・払戻金一覧</a></li>
+												</ul>
+							</li>
+								<li name="day6220260715" class="">
+								<span class="day"><a href="javascript:void(0);">最終日</a></span>
+								<ul>
+											<li>出走表一覧</li>
+													<li>結果・払戻金一覧</li>
+												</ul>
+							</li>
+							</ul>
+					</div>
+					<div class="program_table">
+						<table class="none" id="tbl_day6220260713">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_l" colspan="2">ガールズ予選１</td>
+								<td class="name  bg_a" colspan="6">Ａ級予選</td>
+								<td class="name  bg_a" colspan="1">Ａ級初日特選</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/01/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=1', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/02/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=2', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/03/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=3', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/04/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=4', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/05/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=5', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/06/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=6', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/07/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=7', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/08/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=8', '', '745,455') ;">映像</a></p>
+								</td>
+								<td class="status">
+									<p class="btn_result"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/6220260713/62202607130100/09/#detail">結果</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130100/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&gradeCd=1&kaisaiDate=20260713&raceNo=9', '', '745,455') ;">映像</a></p>
+								</td>
+							</tr>
+						</table>
+						<table class="" id="tbl_day6220260714">
+							<tr>
+								<th>1R</th>
+								<th>2R</th>
+								<th>3R</th>
+								<th>4R</th>
+								<th>5R</th>
+								<th>6R</th>
+								<th>7R</th>
+								<th>8R</th>
+								<th>9R</th>
+							</tr>
+							<tr>
+								<td class="name  bg_l" colspan="2">ガールズ予選２</td>
+								<td class="name  bg_a" colspan="2">Ａ級一般</td>
+								<td class="name  bg_a" colspan="2">Ａ級選抜</td>
+								<td class="name  bg_a" colspan="3">Ａ級準決勝</td>
+							</tr>
+							<tr>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/01/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/01/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/02/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/02/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/03/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/03/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/04/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/04/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/05/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/05/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/06/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/06/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/07/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/07/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/08/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/08/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+								<td class="status">
+									<p class="btn_racecard"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/09/3rentan/">出走表</a></p>
+
+				<p class="btn_odds"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/6220260713/62202607130200/09/3rentan/#detail">オッズ</a></p>
+									<p class="btn_digest"><span class="disabled">映像</span></p>
+								</td>
+							</tr>
+						</table>
+						<p class="error_message none" id="tbl_day6220260715">レース情報を取得できませんでした。</p>
+					</div>
+				</li>
+			</ul>
+			<div class="kaisai_list_note cf">
+				<ul class="icon_guide">
+					<li class="morning">モーニング</li>
+					<li class="s2">ナイター</li>
+					<li class="s3">ミッドナイト</li>
+					<li class="girls">ガールズ</li>
+				</ul>
+			</div>
+		</section>
+		<!--  Section End -->
+		<!-- InstanceEndEditable -->
+	</div>
+	<!-- Article End -->
+	<!-- Aside Start -->
+	<!-- Aside End -->
+</div>
+<!-- Contents Wrapper End -->
+
+
+
+<!-- Script Start -->
+<script type="text/javascript" src="https://kdreams.r10s.jp/keirin/js/lib/textshadowforIE9.js?ckl=1494809434"></script>
+
+<script>
+$(function(){
+	$("li span.day").click(function(){
+		var obj = $(this).parent('li');
+		obj.parent('ul').find('li').removeClass('active');
+		obj.addClass('active');
+
+		var name = 'tbl_' + obj.attr('name');
+		obj2 = obj.parents('.race_program_parent').find('.program_table');
+		obj2.children().addClass('none');
+		obj2.find('#'+name).removeClass('none');
+	});
+});
+</script>
+
+<!-- Footer Start -->
+<div id="PAGE_FOOTER">
+	<p class="copyright">Copyright© 2012-2026 GambooBET All Rights Reserved.</p>
+</div>
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+
+</body>
+</html><!-- Fixed Footer Start -->
+<div id="FIXED_FOOTER">
+	<div class="marquee marquee_thin">
+		<ul id="MARQUEE"></ul>
+	</div>
+</div>
+<p id="PAGETOP" style="position:fixed; bottom: 40px; right: 20px;"><a href="#">ページの先頭へ戻る</a></p>
+
+<!-- Script Start -->
+<script type="text/javascript" src="https://kdreams.r10s.jp/keirin/js/lib/digesturl.js?ckl=1756749849"></script>
+<!-- Script End -->
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+</body>
+</html>

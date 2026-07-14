@@ -1,0 +1,2834 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=1024">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="expires" content="604800">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/base.css?ckl=1779642021" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/css/pc/raceinfo.css?ckl=1629045581" rel="stylesheet" type="text/css">
+<link href="https://kdreams.r10s.jp/keirin/gamboo/css/pc/base-gamboo.css?ckl=1493607743" rel="stylesheet" type="text/css">
+<link rel="apple-touch-icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo-touch-icon.png">
+<link rel="icon" type="image/vnd.microsoft.icon" href="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/gamboo_favicon.ico">
+
+
+<script type="text/javascript">
+otk = '';
+
+svPrevDay  = "20260713";
+svToDay    = "20260714";
+svThisYear = "2026";
+svNowTime  = "1320";
+svNextDay  = "20260715";
+svPrevYobi = "月";
+svToYobi   = "火";
+svNextYobi = "水";
+
+marqueeTime = 30000; // 1000=1秒
+marqueeTimeDef = 5; // 分
+
+kdUrl   = "https://my.keirin.kdreams.jp/gamboo/sso/go_old_keirin/?ac=";
+baseUrl = "https://my.keirin.kdreams.jp/gamboo/";
+
+ajaxMasterStatus = {
+	"success"           : "kd-00000",
+	"failure"           : "kd-01000",
+	"loginErr"          : "ks-10001",
+	"kaisaiNotFound"    : "ks-10400",
+	"aggregating"       : "ks-10203",
+	"loyalNoEntry"      : "ks-10200",
+	"loyalAlreadyEntry" : "ks-10202",
+	"loyalNotAvailable" : "ks-10201"
+};
+
+ajaxMasterErrorStatus = {
+	close : 0, // default
+	reload : 1,
+	top : 2
+}
+
+device = 'pc';
+devicePc = 'pc';
+deviceSp = 'sp';
+deviceMb = 'mb';
+deviceTb = 'tb';
+deviceApp = 'app';
+
+dayMasterStatus = {
+	prevDay  : parseInt('1', 10),
+	toDay    : parseInt('2', 10),
+	nextDay  : parseInt('3', 10),
+	nextOpen : 4,
+};
+
+kakeshikiBunruiMasterData = {
+	"kd"      : parseInt('1', 10),
+	"basic"   : parseInt('2', 10),
+	"dokanto" : parseInt('3', 10),
+};
+
+kakeshikiMasterName = {
+	"k3"         : parseInt('1', 10),
+	"k5"         : parseInt('2', 10),
+	"bd"         : parseInt('3', 10),
+	"k7"         : parseInt('4', 10),
+	"sanrentan"  : parseInt('5', 10),
+	"nishatan"   : parseInt('6', 10),
+	"sanrenfuku" : parseInt('7', 10),
+	"nishafuku"  : parseInt('8', 10),
+	"niwakutan"  : parseInt('9', 10),
+	"niwakufuku" : parseInt('10', 10),
+	"wide"       : parseInt('11', 10),
+	"k3two"      : parseInt('12', 10),
+	"d4two"      : parseInt('13', 10),
+	"d7"         : parseInt('14', 10),
+};
+
+normalKakeshikiMaster = {
+	"sanrentan"  : parseInt('5',    10)
+	, "nishatan"   : parseInt('6',  10)
+	, "sanrenfuku" : parseInt('7', 10)
+	, "nishafuku"  : parseInt('8',  10)
+	, "niwakutan"  : parseInt('9',  10)
+	, "niwakufuku" : parseInt('10', 10)
+	, "wide"       : parseInt('11',     10)
+};
+
+kakeshikiMasterOrder = {
+	"0" : 0, // 通常賭式
+	"1" : parseInt('1', 10),
+	"2" : parseInt('2', 10),
+	"3" : parseInt('12', 10),
+	"4" : parseInt('4', 10),
+	"5" : parseInt('3', 10),
+	"6" : parseInt('14', 10),
+	"7" : parseInt('13', 10),
+};
+
+kaisaiDayMasterStatus = {
+	"1"  : "初日",
+	"2"  : "2日目",
+	"3"  : "3日目",
+	"4"  : "4日目",
+	"5"  : "5日目",
+	"6"  : "6日目",
+	"7"  : "7日目",
+	"8"  : "8日目",
+	"9"  : "9日目",
+	"99"  : "最終日",
+};
+
+kakeshikiMasterData = {
+	"0" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "通常車券",
+		kakeshikiType : 1,
+	},
+	"1" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3",
+		kakeshikiType : 2,
+	},
+	"2" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K5",
+		kakeshikiType : 2,
+	},
+	"3" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "BiGDREAM",
+		kakeshikiType : 3,
+	},
+	"4" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K7",
+		kakeshikiType : 3,
+	},
+	"5" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連単",
+		kakeshikiType : 1,
+	},
+	"6" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車単",
+		kakeshikiType : 1,
+	},
+	"7" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "3連複",
+		kakeshikiType : 1,
+	},
+	"8" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2車複",
+		kakeshikiType : 1,
+	},
+	"9" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠単",
+		kakeshikiType : 1,
+	},
+	"10" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "2枠複",
+		kakeshikiType : 1,
+	},
+	"11" : {
+		kakeshikiBunrui : parseInt('2', 10),
+		kakeshikiName : "ワイド",
+		kakeshikiType : 1,
+	},
+	"12" : {
+		kakeshikiBunrui : parseInt('1', 10),
+		kakeshikiName : "K3two",
+		kakeshikiType : 2,
+	},
+	"13" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto4two",
+		kakeshikiType : 3,
+	},
+	"14" : {
+		kakeshikiBunrui : parseInt('3', 10),
+		kakeshikiName : "Dokanto7",
+		kakeshikiType : 3,
+	},
+};
+
+commFlg = {
+	"trueFlg"           : "1",
+	"falseFlg"          : "0",
+};
+
+ksBetBaitaiCdPC = "0";
+
+pcLiveUrl = "https://keirin.kdreams.jp/gamboo/live/";
+newPCLiveVideoUrl = 'https://keirin.kdreams.jp/gamboo/stadium/live/';
+
+// PVモード
+privateErrMsg      = "プライベートブラウズ機能がオンになっているか、シークレットモードをご利用中のため投票できません。";
+
+// 車券販売場所ID
+shakenSalePlaceId = '3';
+
+</script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.marquee.min.js?ckl=1494809431" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/common.js?ckl=1756749849" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/tate.js?ckl=1494809433" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/marquee.js?ckl=1494809432" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/raceinfo.forecast.js?ckl=1722228006" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/lib/scrollTop.js?ckl=1494809433" type="text/javascript"></script>
+<title>レース出走表・結果・払戻金詳細 | 平塚競輪 ＧＰ ＫＥＩＲＩＮグランプリ２０２５ 初日（2025年12月28日） 11レース | 競輪投票は【GambooBET】</title>
+
+</head>
+<body>
+<script type="text/javascript">
+$(function(){
+		$('.scroll a[href^=#]').click(function() {
+		var href= $(this).attr("href");
+		var target = $(href == "#" || href == "" ? 'html' : href);
+		var position = target.offset().top;
+		$('body,html').animate({scrollTop:position}, 500, 'swing');
+		return false;
+	});
+});
+</script>
+<div id="PAGE_HEADER">
+	<div class="container">
+		<p class="logo logo_gamboo"><a href="https://gamboo.jp/"><img src="https://kdreams.r10s.jp/keirin/gamboo/images/pc/common/logo_gamboo.png" width="226" height="30" alt="GambooBET"></a></p>
+	</div>
+</div>
+<!-- Main Start -->
+<div id="MAIN" class="cf">
+	<!-- InstanceBeginEditable name="Breadcrumb" -->
+	<ul class="breadcrumb">
+<li><strong><a href="https://keirin.kdreams.jp/gamboo/kaisai/">開催レース情報</a></strong></li>
+<li>出走表詳細</li>
+</ul>	<!-- InstanceEndEditable -->
+	<!-- Article Start -->
+	<div class="article">
+		<!-- InstanceBeginEditable name="Contents" -->
+		<!--  Section Start -->
+		<section class="section raceinfo_section">
+
+			<h1 class="section_title">出走表詳細 平塚ＧＰ レース情報</h1><!-- #BeginLibraryItem "/Library/pc_raceinfo_nav.lbi" -->
+						<div class="raceinfo_nav">
+				<dl class="schedule_nav">
+					<dt>レース開催スケジュール</dt>
+					<dd>
+						<ul class="cf">
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/search/2025/12/">開催スケジュール</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/highgrade/search/2025/">GP･GI･GII開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/grade/search/2025/">GⅢ(記念競輪)開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/frace/search/2025/">特定レース開催</a></li>
+						<li><a href="https://keirin.kdreams.jp/gamboo/schedule/dokanto/search/2025/1/">Dokanto!発売</a></li>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+			<p class="return_raceinfo">
+				<a href="https://keirin.kdreams.jp/gamboo/kaisai/2025/12/28/"><span>2025年12月28日</span>の開催レース情報一覧へもどる</a>
+			</p>
+			<div class="kaisai_header cf">
+				<h2 class="title">
+					<span class="velodrome">平塚競輪</span>
+					<span class="icon_grade gr6"></span>
+					<span class="icon_girls"></span>					<span class="race">ＫＥＩＲＩＮグランプリ２０２５</span>
+				</h2>
+				<ul class="flt_r">
+					<li class="btn_live">
+						<span class="disabled"><span>LIVE</span>映像</span>
+					</li>
+					<li class="btn_bet">
+						<span class="closed"><span class="disabled">発売<br>終了</span></span>
+					</li>
+				</ul>
+			</div>
+<!-- #EndLibraryItem --><!-- #BeginLibraryItem "/Library/pc_kaisai_global_nav.lbi" -->
+			<ul class="kaisai_global_nav">
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-program/3520251228/35202512280100/">レースプログラム</a></li>
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/assen/3520251228/35202512280100/">出場予定選手一覧</a></li>
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-news/3520251228/35202512280100/">展望・記者の推しメン</a></li>
+				<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/interview/3520251228/35202512280100/">選手インタビュー</a></li>
+			</ul>
+<!-- #EndLibraryItem --><!-- #BeginLibraryItem "/Library/pc_kaisai_race_contents.lbi" --><div class="kaisai_race_data_nav">
+				<dl class="date_nav cf">
+					<dt>開催日程選択</dt>
+					<dd>
+						<ul class="cf">
+							<li class="active" >
+
+								<a >
+									<span class="date">12月28日</span><span class="day">初日</span>
+																	</a>
+							</li>
+							<li >
+
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280200/11/">
+									<span class="date">12月29日</span><span class="day">2日目</span>
+																	</a>
+							</li>
+							<li >
+
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280300/11/">
+									<span class="date">12月30日</span><span class="day">最終日</span>
+																	</a>
+							</li>
+						</ul>
+					</dd>
+				</dl>
+				<dl class="data_info_nav cf">
+					<dt>表示情報選択</dt>
+					<dd>
+						<ul class="cf">
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/3520251228/35202512280100/11/3rentan/">出走表</a>
+							</li>
+							<li class="active" >
+								<a >結果・払戻金</a>
+							</li>
+
+							<li ><a href="https://keirin.kdreams.jp/gamboo/kaisai/jusho-result/3520251228/35202512280100/">ドカント経過・結果</a></li>
+
+						</ul>
+					</dd>
+				</dl>
+				<dl class="race_nav cf">
+					<dt>レース選択</dt>
+					<dd>
+						<ul class="cf">
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/result-list/3520251228/35202512280100/">
+									一覧
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/01/">
+									1R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/02/">
+									2R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/03/">
+									3R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/04/">
+									4R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/05/">
+									5R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/06/">
+									6R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/07/">
+									7R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/08/">
+									8R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/09/">
+									9R
+								</a>
+							</li>
+							<li >
+								<a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/10/">
+									10R
+								</a>
+							</li>
+							<li  class="active" >
+								<a >
+									11R
+								</a>
+							</li>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+			<div class="race_header cf" id="RACECARD">
+				<h3 class="raceinfo_title"><span>11R 出走表詳細（12月28日 初日）</span></h3>
+				<p class="btn_digest"><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/11/#detail"><span>ダイジェスト</span>映像</a></p>
+			</div>
+
+
+			<div class="racecard_area_container">
+				<dl class="tipster_note cf">
+					<dt>予想担当記者</dt>
+					<dd>アオケイ 長谷川 剛由</dd>
+					<dt>情報提供</dt>
+					<dd>小田競・サイクル</dd>
+				</dl>
+				<div class="race_title_header cf">
+					<h2 class="title">捲り合戦</h2>
+					<p class="status">
+					<span>ヤンググランプリ</span>
+					</p>
+					<dl class="time">
+						<dt>発走予定</dt>
+						<dd>16:30</dd>
+						<dt>投票締切</dt>
+						<dd>16:25</dd>
+					</dl>
+				</div>
+				<dl class="condition cf">
+					<dt>賞金</dt>
+					<dd>1着：6,000,000円、2着：2,590,000円、3着：1,570,000円、4着：1,045,000円、5着：829,000円、6着：721,000円、7着：628,000円、8着：570,000円、9着：518,000円</dd>
+				</dl>
+
+				<div class="racecard_area_top_header">
+					<p class="approach_guide">【誘導員】石塚 孝幸 Ｓ１</p>
+					<ul class="racecard_area_top_header_sub_nav cf">
+												<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/3520251228/35202512280100/11/3rentan/#detail">オッズ</a></li>
+																		<li><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/3520251228/35202512280100/11/#detail">展開予想･狙い目</a></li>
+																		<li><a href="#detail">結果･払戻金</a></li>
+											</ul>
+				</div>
+
+				<div class="racecard_area">
+					<div class="racecard_area_header cf">
+						<ul class="racecard_area_nav cf">
+							<li id="jsRacerCardDetail" class="active"><a href="javascript:void(0);">出走表<br>詳細</a></li>
+							<li id="jsRacerCardComment" class=""><a href="javascript:void(0);">選手コメント<br>前回出走レース成績</a></li>
+							<li id="jsRacerCardBasho" class=""><a href="javascript:void(0);">今場所・前場所・前々場所<br>出走レース成績</a></li>
+							<li id="jsRacerCardAoGrade" class=""><a href="javascript:void(0);">グレード別<br>勝利度数</a></li>
+							<li id="jsRacerCardAoLength" class=""><a href="javascript:void(0);">同走路年間<br>勝利度数</a></li>
+							<li id="jsRacerCardAoBankYear" class=""><a href="javascript:void(0);">当所5年</a></li>
+						</ul>
+					</div>
+
+					<div class="racecard_area_inner cf jsRacerCardDetail">
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="2" >予<br>想</th>
+								<th rowspan="2" >好<br>気<br>合</th>
+								<th rowspan="2" class="bdr_r ">総<br>評</th>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">級<br>班</th>
+								<th rowspan="2" class="bdr_r">脚<br>質</th>
+								<th rowspan="2">ギヤ<br>倍数</th>
+								<th colspan="16">直近4ヶ月の成績</th>
+							</tr>
+							<tr>
+								<th class="bdr_r">競走得点</th>
+								<th>S</th>
+																								<th class="bdr_r">B</th>
+								<th>逃</th>
+								<th>捲</th>
+								<th>差</th>
+								<th class="bdr_r">マ</th>
+								<th>1<br>着</th>
+								<th>2<br>着</th>
+								<th>3<br>着</th>
+								<th class="bdr_r">着<br>外</th>
+								<th>勝<br>率</th>
+								<th>2連<br>対率</th>
+								<th>3連<br>対率</th>
+							</tr>
+							<tr class="n1 ">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+								<td class="bracket missing " >1</td>
+								<td class="num"><span>1</span></td>
+								<td class="rider bdr_r">
+									西田 優大<br><span class="home">広　島/28/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								<span class="best">108.19</span>
+								</td>
+								<td>
+								4								</td>
+																								<td class="bdr_r">
+								11								</td>
+								<td>
+								<span class="best">6</span>
+								</td>
+								<td>
+								4								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								<span class="best">1</span>
+								</td>
+								<td>
+								<span class="best">7</span>
+								</td>
+								<td>
+								4								</td>
+								<td>
+								2								</td>
+								<td class="bdr_r">
+								13								</td>
+								<td>
+								26.9								</td>
+								<td>
+								42.3								</td>
+								<td class="bdr_r">
+								50.0								</td>
+							</tr>
+
+
+							<tr class="n2 ">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+								<td class="bracket missing " >2</td>
+								<td class="num"><span>2</span></td>
+								<td class="rider bdr_r">
+									篠田 幸希<br><span class="home">群　馬/26/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								105.00								</td>
+								<td>
+								2								</td>
+																								<td class="bdr_r">
+								7								</td>
+								<td>
+								2								</td>
+								<td>
+								6								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								6								</td>
+								<td>
+								2								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								7								</td>
+								<td>
+								<span class="best">37.5</span>
+								</td>
+								<td>
+								50.0								</td>
+								<td class="bdr_r">
+								56.2								</td>
+							</tr>
+
+
+							<tr class="n3 ">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+								<td class="bracket missing " >3</td>
+								<td class="num"><span>3</span></td>
+								<td class="rider bdr_r">
+									中石 湊<br><span class="home">北海道/21/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								106.62								</td>
+								<td>
+								<span class="best">11</span>
+								</td>
+																								<td class="bdr_r">
+								11								</td>
+								<td>
+								5								</td>
+								<td>
+								5								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								6								</td>
+								<td>
+								4								</td>
+								<td>
+								3								</td>
+								<td class="bdr_r">
+								3								</td>
+								<td>
+								<span class="best">37.5</span>
+								</td>
+								<td>
+								<span class="best">62.5</span>
+								</td>
+								<td class="bdr_r">
+								<span class="best">81.2</span>
+								</td>
+							</tr>
+
+
+							<tr class="n4 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+								<td class="bracket missing "  rowspan="2" >4</td>
+								<td class="num"><span>4</span></td>
+								<td class="rider bdr_r">
+									松崎 広太<br><span class="home">茨　城/26/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								99.14								</td>
+								<td>
+								4								</td>
+																								<td class="bdr_r">
+								8								</td>
+								<td>
+								2								</td>
+								<td>
+								2								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								1								</td>
+								<td>
+								3								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								10								</td>
+								<td>
+								6.6								</td>
+								<td>
+								26.6								</td>
+								<td class="bdr_r">
+								33.3								</td>
+							</tr>
+
+
+							<tr class="n5 ">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+								<td class="num"><span>5</span></td>
+								<td class="rider bdr_r">
+									阿部 英斗<br><span class="home">福　岡/21/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								99.00								</td>
+								<td>
+								0								</td>
+																								<td class="bdr_r">
+								10								</td>
+								<td>
+								3								</td>
+								<td>
+								2								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								2								</td>
+								<td>
+								3								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								12								</td>
+								<td>
+								11.1								</td>
+								<td>
+								27.7								</td>
+								<td class="bdr_r">
+								33.3								</td>
+							</tr>
+
+
+							<tr class="n6 ">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+								<td class="bracket missing "  rowspan="2" >5</td>
+								<td class="num"><span>6</span></td>
+								<td class="rider bdr_r">
+									栗山 和樹<br><span class="home">岐　阜/28/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								103.06								</td>
+								<td>
+								1								</td>
+																								<td class="bdr_r">
+								12								</td>
+								<td>
+								3								</td>
+								<td>
+								5								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								5								</td>
+								<td>
+								3								</td>
+								<td>
+								3								</td>
+								<td class="bdr_r">
+								21								</td>
+								<td>
+								15.6								</td>
+								<td>
+								25.0								</td>
+								<td class="bdr_r">
+								34.3								</td>
+							</tr>
+
+
+							<tr class="n7 ">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+								<td class="num"><span>7</span></td>
+								<td class="rider bdr_r">
+									黒瀬 浩太郎<br><span class="home">広　島/25/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								102.85								</td>
+								<td>
+								3								</td>
+																								<td class="bdr_r">
+								2								</td>
+								<td>
+								1								</td>
+								<td>
+								0								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								1								</td>
+								<td>
+								0								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								5								</td>
+								<td>
+								14.2								</td>
+								<td>
+								14.2								</td>
+								<td class="bdr_r">
+								28.5								</td>
+							</tr>
+
+
+							<tr class="n8 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+								<td class="bracket missing "  rowspan="2" >6</td>
+								<td class="num"><span>8</span></td>
+								<td class="rider bdr_r">
+									梶原 海斗<br><span class="home">福　岡/26/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.93</td>
+								<td class="bdr_r">
+								104.94								</td>
+								<td>
+								0								</td>
+																								<td class="bdr_r">
+								9								</td>
+								<td>
+								4								</td>
+								<td>
+								<span class="best">7</span>
+								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								6								</td>
+								<td>
+								<span class="best">5</span>
+								</td>
+								<td>
+								1								</td>
+								<td class="bdr_r">
+								7								</td>
+								<td>
+								31.5								</td>
+								<td>
+								57.8								</td>
+								<td class="bdr_r">
+								63.1								</td>
+							</tr>
+
+
+							<tr class="n9 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+								<td class="num"><span>9</span></td>
+								<td class="rider bdr_r">
+									森田 一郎<br><span class="home">埼　玉/24/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+								<td>3.92</td>
+								<td class="bdr_r">
+								104.75								</td>
+								<td>
+								10								</td>
+																								<td class="bdr_r">
+								<span class="best">19</span>
+								</td>
+								<td>
+								5								</td>
+								<td>
+								3								</td>
+								<td>
+								0								</td>
+								<td class="bdr_r">
+								0								</td>
+								<td>
+								6								</td>
+								<td>
+								2								</td>
+								<td>
+								<span class="best">5</span>
+								</td>
+								<td class="bdr_r">
+								12								</td>
+								<td>
+								24.0								</td>
+								<td>
+								32.0								</td>
+								<td class="bdr_r">
+								52.0								</td>
+							</tr>
+
+
+						</table>
+					</div>
+
+
+					<div class="racecard_area_inner cf jsRacerCardComment" style="display:none">
+						<table class="racecard_table">
+							<tr>
+								<th >予<br>想</th>
+								<th >好<br>気<br>合</th>
+								<th class="bdr_r ">総<br>評</th>
+								<th>枠<br>番</th>
+								<th>車<br>番</th>
+								<th class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th>級<br>班</th>
+								<th class="bdr_r">脚<br>質</th>
+								<th>ギヤ<br>倍数</th>
+								<th class="bdr_r">競走得点</th>
+								<th class="bdr_r">選手コメント</th>
+								<th>短評</th>
+							</tr>
+										<tr class="n1 ">
+								<td class="tip"><span class="icon icon_t6">▲</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+																					<td class="bracket missing " >1</td>
+															<td class="num"><span>1</span></td>
+								<td class="rider bdr_r">
+									西田 優大<br><span class="home">広　島/28/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											<span class="best">108.19</span>
+											</td>
+								<td class="comment bdr_r">自力。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n2 ">
+								<td class="tip"><span class="icon icon_t2">○</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+																					<td class="bracket missing " >2</td>
+															<td class="num"><span>2</span></td>
+								<td class="rider bdr_r">
+									篠田 幸希<br><span class="home">群　馬/26/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											105.00											</td>
+								<td class="comment bdr_r">森田君。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n3 ">
+								<td class="tip"><span class="icon icon_t1">◎</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+																					<td class="bracket missing " >3</td>
+															<td class="num"><span>3</span></td>
+								<td class="rider bdr_r">
+									中石 湊<br><span class="home">北海道/21/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											106.62											</td>
+								<td class="comment bdr_r">単騎で。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n4 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+																					<td class="bracket missing "  rowspan="2" >4</td>
+															<td class="num"><span>4</span></td>
+								<td class="rider bdr_r">
+									松崎 広太<br><span class="home">茨　城/26/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											99.14											</td>
+								<td class="comment bdr_r">関東３番手。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n5 ">
+								<td class="tip"><span class="icon icon_t4">△</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+																						<td class="num"><span>5</span></td>
+								<td class="rider bdr_r">
+									阿部 英斗<br><span class="home">福　岡/21/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											99.00											</td>
+								<td class="comment bdr_r">単騎で。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n6 ">
+								<td class="tip"><span class="icon icon_t5">注</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+																					<td class="bracket missing "  rowspan="2" >5</td>
+															<td class="num"><span>6</span></td>
+								<td class="rider bdr_r">
+									栗山 和樹<br><span class="home">岐　阜/28/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											103.06											</td>
+								<td class="comment bdr_r">単騎で。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n7 ">
+								<td class="tip"><span class="icon icon_t3">×</span></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>4</span></td>
+																						<td class="num"><span>7</span></td>
+								<td class="rider bdr_r">
+									黒瀬 浩太郎<br><span class="home">広　島/25/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											102.85											</td>
+								<td class="comment bdr_r">西田さんへ。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n8 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+																					<td class="bracket missing "  rowspan="2" >6</td>
+															<td class="num"><span>8</span></td>
+								<td class="rider bdr_r">
+									梶原 海斗<br><span class="home">福　岡/26/123</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.93</td>
+											<td class="bdr_r">
+											104.94											</td>
+								<td class="comment bdr_r">単騎で。</td>
+								<td>------</td>
+							</tr>
+												<tr class="n9 ">
+								<td class="tip"></td>
+								<td class="kiai"></td>
+								<td class="evaluation bdr_r"><span>3</span></td>
+																						<td class="num"><span>9</span></td>
+								<td class="rider bdr_r">
+									森田 一郎<br><span class="home">埼　玉/24/125</span>
+																	</td>
+								<td>S2</td>
+								<td class="bdr_r">逃</td>
+											<td>3.92</td>
+											<td class="bdr_r">
+											104.75											</td>
+								<td class="comment bdr_r">先頭で自力。</td>
+								<td>------</td>
+							</tr>
+									</table>
+
+					</div>
+
+					<div class="racecard_area_inner cf jsRacerCardBasho" style="display:none">
+						<table class="racecard_table past_racecard_table">
+							<tr>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">競走得点</th>
+								<th>今場所成績</th>
+								<th>前場所成績</th>
+								<th>前々場所成績</th>
+							</tr>
+							<tr>
+								<th>日付/種目/着順/上り</th>
+								<th>開催場<br>日付/種目/着順/上り</th>
+								<th>開催場<br>日付/種目/着順/上り</th>
+							</tr>
+										<tr class="n1 ">
+							<td class="bracket missing " >1</td>
+								<td class="num"><span>1</span></td>
+								<td class="rider bdr_r">
+									西田 優大<br><span class="home">広　島/28/123</span>
+																	</td>
+								<td>
+												<span class="best">108.19</span>
+											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">広島 Ｇ３</p>
+									<ul>
+													<li><span>12/20</span><span>Ｓ級一予選</span><span>1着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251220&gradeCd=3&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/21</span><span>Ｓ級二予選</span><span>2着</span><span>11.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251221&gradeCd=3&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/22</span><span>Ｓ級準決勝</span><span>4着</span><span>12.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251222&gradeCd=3&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/23</span><span>Ｓ級特別優秀</span><span>9着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251223&gradeCd=3&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">小倉 Ｇ１</p>
+									<ul>
+													<li><span>11/20</span><span>Ｓ級一次予選１</span><span>7着</span><span>11.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=81&kaisaiDate=20251120&gradeCd=5&raceNo=4', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/21</span><span>Ｓ級一次予選２</span><span>3着</span><span>11.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=81&kaisaiDate=20251121&gradeCd=5&raceNo=1', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/22</span><span>Ｓ級二次予選Ｂ</span><span>3着</span><span>11.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=81&kaisaiDate=20251122&gradeCd=5&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/23</span><span>Ｓ級特選</span><span>7着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=81&kaisaiDate=20251123&gradeCd=5&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/24</span><span>Ｓ級特選</span><span>4着</span><span>11.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=81&kaisaiDate=20251124&gradeCd=5&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n2 ">
+							<td class="bracket missing " >2</td>
+								<td class="num"><span>2</span></td>
+								<td class="rider bdr_r">
+									篠田 幸希<br><span class="home">群　馬/26/123</span>
+																	</td>
+								<td>
+												105.00											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">前橋 Ｆ１</p>
+									<ul>
+													<li><span>12/8</span><span>Ｓ級予選</span><span>2着</span><span>10.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=22&kaisaiDate=20251208&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/9</span><span>Ｓ級準決勝</span><span>5着</span><span>10.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=22&kaisaiDate=20251209&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/10</span><span>Ｓ級特選</span><span>1着</span><span>9.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=22&kaisaiDate=20251210&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">高知 Ｆ１</p>
+									<ul>
+													<li><span>11/19</span><span>Ｓ級予選</span><span>1着</span><span>13.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=74&kaisaiDate=20251119&gradeCd=2&raceNo=7', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/20</span><span>Ｓ級準決勝</span><span>2着</span><span>14.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=74&kaisaiDate=20251120&gradeCd=2&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/21</span><span>Ｓ級決勝</span><span>1着</span><span>14.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=74&kaisaiDate=20251121&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n3 ">
+							<td class="bracket missing " >3</td>
+								<td class="num"><span>3</span></td>
+								<td class="rider bdr_r">
+									中石 湊<br><span class="home">北海道/21/125</span>
+																	</td>
+								<td>
+												106.62											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">広島 Ｇ３</p>
+									<ul>
+													<li><span>12/20</span><span>Ｓ級一予選</span><span>3着</span><span>12.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251220&gradeCd=3&raceNo=1', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/21</span><span>Ｓ級二予選</span><span>9着</span><span>13.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251221&gradeCd=3&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/22</span><span>Ｓ級選抜</span><span>1着</span><span>12.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251222&gradeCd=3&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/23</span><span>Ｓ級特選</span><span>6着</span><span>12.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251223&gradeCd=3&raceNo=7', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">四日市 Ｆ１</p>
+									<ul>
+													<li><span>12/12</span><span>Ｓ級予選</span><span>1着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=48&kaisaiDate=20251212&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/13</span><span>Ｓ級準決勝</span><span>2着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=48&kaisaiDate=20251213&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/14</span><span>Ｓ級決勝</span><span>1着</span><span>11.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=48&kaisaiDate=20251214&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n4 ">
+							<td class="bracket missing "  rowspan="2" >4</td>
+								<td class="num"><span>4</span></td>
+								<td class="rider bdr_r">
+									松崎 広太<br><span class="home">茨　城/26/123</span>
+																	</td>
+								<td>
+												99.14											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">伊東 Ｇ３</p>
+									<ul>
+													<li><span>12/11</span><span>Ｓ級一予選</span><span>2着</span><span>10.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=37&kaisaiDate=20251211&gradeCd=3&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/12</span><span>Ｓ級二予選</span><span>5着</span><span>9.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=37&kaisaiDate=20251212&gradeCd=3&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/13</span><span>Ｓ級特選</span><span>落</span><span></span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=37&kaisaiDate=20251213&gradeCd=3&raceNo=7', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">京王閣 Ｆ１</p>
+									<ul>
+													<li><span>11/29</span><span>Ｓ級予選</span><span>6着</span><span>12.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&kaisaiDate=20251129&gradeCd=2&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/30</span><span>Ｓ級一般</span><span>1着</span><span>12.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&kaisaiDate=20251130&gradeCd=2&raceNo=6', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/1</span><span>Ｓ級特選</span><span>3着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=27&kaisaiDate=20251201&gradeCd=2&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n5 ">
+								<td class="num"><span>5</span></td>
+								<td class="rider bdr_r">
+									阿部 英斗<br><span class="home">福　岡/21/125</span>
+																	</td>
+								<td>
+												99.00											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">佐世保 Ｇ３</p>
+									<ul>
+													<li><span>12/4</span><span>Ｓ級一予選</span><span>7着</span><span>12.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&kaisaiDate=20251204&gradeCd=3&raceNo=2', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/5</span><span>Ｓ級選抜</span><span>9着</span><span>12.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&kaisaiDate=20251205&gradeCd=3&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/6</span><span>Ｓ級一般</span><span>6着</span><span>12.5</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&kaisaiDate=20251206&gradeCd=3&raceNo=1', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/7</span><span>Ｓ級一般</span><span>1着</span><span>11.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=85&kaisaiDate=20251207&gradeCd=3&raceNo=2', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">岸和田 Ｆ１</p>
+									<ul>
+													<li><span>11/16</span><span>Ｓ級予選</span><span>2着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&kaisaiDate=20251116&gradeCd=2&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/17</span><span>Ｓ級準決勝</span><span>2着</span><span>12.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&kaisaiDate=20251117&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>11/18</span><span>Ｓ級決勝</span><span>7着</span><span>13.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=56&kaisaiDate=20251118&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n6 ">
+							<td class="bracket missing "  rowspan="2" >5</td>
+								<td class="num"><span>6</span></td>
+								<td class="rider bdr_r">
+									栗山 和樹<br><span class="home">岐　阜/28/125</span>
+																	</td>
+								<td>
+												103.06											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">別府 Ｆ１</p>
+									<ul>
+													<li><span>12/15</span><span>Ｓ級予選</span><span>1着</span><span>11.8</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=86&kaisaiDate=20251215&gradeCd=2&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/16</span><span>Ｓ級準決勝</span><span>7着</span><span>12.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=86&kaisaiDate=20251216&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/17</span><span>Ｓ級特選</span><span>5着</span><span>12.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=86&kaisaiDate=20251217&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">広島 Ｆ１</p>
+									<ul>
+													<li><span>12/7</span><span>Ｓ級予選</span><span>3着</span><span>11.3</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251207&gradeCd=2&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/8</span><span>Ｓ級準決勝</span><span>6着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251208&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/9</span><span>Ｓ級特選</span><span>5着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251209&gradeCd=2&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n7 ">
+								<td class="num"><span>7</span></td>
+								<td class="rider bdr_r">
+									黒瀬 浩太郎<br><span class="home">広　島/25/123</span>
+																	</td>
+								<td>
+												102.85											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">広島 Ｇ３</p>
+									<ul>
+													<li><span>12/20</span><span>Ｓ級一予選</span><span>4着</span><span>11.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251220&gradeCd=3&raceNo=5', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/21</span><span>Ｓ級二予選</span><span>5着</span><span>11.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251221&gradeCd=3&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/22</span><span>Ｓ級特選</span><span>8着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251222&gradeCd=3&raceNo=7', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/23</span><span>Ｓ級選抜</span><span>3着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=62&kaisaiDate=20251223&gradeCd=3&raceNo=3', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">奈良 Ｆ１</p>
+									<ul>
+													<li><span>12/11</span><span>Ｓ級予選</span><span>1着</span><span>10.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=53&kaisaiDate=20251211&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/12</span><span>Ｓ級準決勝</span><span>4着</span><span>9.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=53&kaisaiDate=20251212&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/13</span><span>Ｓ級特選</span><span>4着</span><span>10.1</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=53&kaisaiDate=20251213&gradeCd=2&raceNo=8', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n8 ">
+							<td class="bracket missing "  rowspan="2" >6</td>
+								<td class="num"><span>8</span></td>
+								<td class="rider bdr_r">
+									梶原 海斗<br><span class="home">福　岡/26/123</span>
+																	</td>
+								<td>
+												104.94											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">松阪 Ｆ１</p>
+									<ul>
+													<li><span>12/17</span><span>Ｓ級予選</span><span>1着</span><span>11.6</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=47&kaisaiDate=20251217&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/18</span><span>Ｓ級準決勝</span><span>2着</span><span>11.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=47&kaisaiDate=20251218&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/19</span><span>Ｓ級決勝</span><span>1着</span><span>11.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=47&kaisaiDate=20251219&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">松戸 Ｆ１</p>
+									<ul>
+													<li><span>12/8</span><span>Ｓ級予選</span><span>2着</span><span>10.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20251208&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/9</span><span>Ｓ級準決勝</span><span>7着</span><span>11.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20251209&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/10</span><span>Ｓ級一般</span><span>1着</span><span>9.7</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20251210&gradeCd=2&raceNo=7', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+												<tr class="n9 ">
+								<td class="num"><span>9</span></td>
+								<td class="rider bdr_r">
+									森田 一郎<br><span class="home">埼　玉/24/125</span>
+																	</td>
+								<td>
+												104.75											</td>
+											<td>
+									<p class="stadium"></p>
+									<ul>
+															</ul>
+								</td>
+								<td>
+									<p class="stadium">武雄 Ｆ１</p>
+									<ul>
+													<li><span>12/10</span><span>Ｓ級予選</span><span>1着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=84&kaisaiDate=20251210&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/11</span><span>Ｓ級準決勝</span><span>4着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=84&kaisaiDate=20251211&gradeCd=2&raceNo=10', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/12</span><span>Ｓ級特選</span><span>5着</span><span>12.2</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=84&kaisaiDate=20251212&gradeCd=2&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+								<td>
+									<p class="stadium">松戸 Ｆ１</p>
+									<ul>
+													<li><span>12/2</span><span>Ｓ級予選</span><span>1着</span><span>10.4</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20251202&gradeCd=2&raceNo=9', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/3</span><span>Ｓ級準決勝</span><span>3着</span><span>10.0</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20251203&gradeCd=2&raceNo=11', '', '745,455') ;">[映像]</a></span></li>
+													<li><span>12/4</span><span>Ｓ級決勝</span><span>1着</span><span>9.9</span><span><a href="javascript:void(0) ;" onClick="windowOpen('https://keirin.kdreams.jp/gamboo/kaisai/digest/?kyogijoCd=31&kaisaiDate=20251204&gradeCd=2&raceNo=12', '', '745,455') ;">[映像]</a></span></li>
+												</ul>
+								</td>
+							</tr>
+									</table>
+					</div>
+						<!-- 年間勝利度数・グレード別勝利度数時 Start -->
+
+					<div class="racecard_area_inner cf jsRacerCardAoGrade" style="display:none">
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="3" >予<br>想</th>
+								<th rowspan="3" >好<br>気<br>合</th>
+								<th rowspan="3" class="bdr_r ">総<br>評</th>
+								<th rowspan="3">枠<br>番</th>
+								<th rowspan="3">車<br>番</th>
+								<th rowspan="3" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="3">級<br>班</th>
+								<th rowspan="3" class="bdr_r">脚<br>質</th>
+								<th rowspan="3">ギヤ<br>倍数</th>
+								<th class="bdr_r" rowspan="3">競走得点</th>
+								<th colspan="16">
+									グレード別勝利度数
+								</th>
+							</tr>
+							<tr>
+								<th class="bdr_r" colspan="4">Ｇ１</th>
+								<th class="bdr_r" colspan="4">Ｇ２</th>
+								<th class="bdr_r" colspan="4">Ｇ３</th>
+								<th class="bdr_r" colspan="4">Ｆ１</th>
+							</tr>
+							<tr>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+							</tr>
+							<tr class="n1 ">
+							<td class="tip">
+								<span class="icon icon_t6">▲</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >1</td>
+							<td class="num"><span>1</span></td>
+							<td class="rider bdr_r">
+								西田 優大<br>
+								<span class="home">広　島/28/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								<span class="best">108.19</span>
+							</td>
+							<td>
+								0							</td>
+							<td>
+								1							</td>
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">6</span>
+							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								<span class="best">7</span>
+							</td>
+							<td>
+								<span class="best">5</span>
+							</td>
+							<td>
+								<span class="best">4</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">20</span>
+							</td>
+
+
+							<td>
+								11							</td>
+							<td>
+								3							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								12							</td>
+							</tr>
+							<tr class="n2 ">
+							<td class="tip">
+								<span class="icon icon_t2">○</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >2</td>
+							<td class="num"><span>2</span></td>
+							<td class="rider bdr_r">
+								篠田 幸希<br>
+								<span class="home">群　馬/26/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								105.00							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								4							</td>
+							<td>
+								2							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								17							</td>
+
+
+							<td>
+								17							</td>
+							<td>
+								5							</td>
+							<td>
+								6							</td>
+							<td class="bdr_r">
+								12							</td>
+							</tr>
+							<tr class="n3 ">
+							<td class="tip">
+								<span class="icon icon_t1">◎</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >3</td>
+							<td class="num"><span>3</span></td>
+							<td class="rider bdr_r">
+								中石 湊<br>
+								<span class="home">北海道/21/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								106.62							</td>
+							<td>
+								0							</td>
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								3							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td>
+								1							</td>
+							<td class="bdr_r">
+								2							</td>
+
+
+							<td>
+								17							</td>
+							<td>
+								5							</td>
+							<td>
+								3							</td>
+							<td class="bdr_r">
+								5							</td>
+							</tr>
+							<tr class="n4 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >4</td>
+							<td class="num"><span>4</span></td>
+							<td class="rider bdr_r">
+								松崎 広太<br>
+								<span class="home">茨　城/26/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								99.14							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								3							</td>
+							<td>
+								3							</td>
+							<td>
+								3							</td>
+							<td class="bdr_r">
+								16							</td>
+
+
+							<td>
+								10							</td>
+							<td>
+								7							</td>
+							<td>
+								<span class="best">8</span>
+							</td>
+							<td class="bdr_r">
+								17							</td>
+							</tr>
+							<tr class="n5 ">
+							<td class="tip">
+								<span class="icon icon_t4">△</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="num"><span>5</span></td>
+							<td class="rider bdr_r">
+								阿部 英斗<br>
+								<span class="home">福　岡/21/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								99.00							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								<span class="best">7</span>
+							</td>
+							<td>
+								1							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								15							</td>
+
+
+							<td>
+								11							</td>
+							<td>
+								8							</td>
+							<td>
+								6							</td>
+							<td class="bdr_r">
+								17							</td>
+							</tr>
+							<tr class="n6 ">
+							<td class="tip">
+								<span class="icon icon_t5">注</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >5</td>
+							<td class="num"><span>6</span></td>
+							<td class="rider bdr_r">
+								栗山 和樹<br>
+								<span class="home">岐　阜/28/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								103.06							</td>
+							<td>
+								0							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								5							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								<span class="best">4</span>
+							</td>
+
+
+							<td>
+								3							</td>
+							<td>
+								1							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								16							</td>
+
+
+							<td>
+								12							</td>
+							<td>
+								4							</td>
+							<td>
+								3							</td>
+							<td class="bdr_r">
+								17							</td>
+							</tr>
+							<tr class="n7 ">
+							<td class="tip">
+								<span class="icon icon_t3">×</span>
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="num"><span>7</span></td>
+							<td class="rider bdr_r">
+								黒瀬 浩太郎<br>
+								<span class="home">広　島/25/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								102.85							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								2							</td>
+							<td>
+								<span class="best">5</span>
+							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								10							</td>
+
+
+							<td>
+								11							</td>
+							<td>
+								7							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								13							</td>
+							</tr>
+							<tr class="n8 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >6</td>
+							<td class="num"><span>8</span></td>
+							<td class="rider bdr_r">
+								梶原 海斗<br>
+								<span class="home">福　岡/26/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								104.94							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								3							</td>
+							<td>
+								4							</td>
+							<td>
+								3							</td>
+							<td class="bdr_r">
+								17							</td>
+
+
+							<td>
+								<span class="best">24</span>
+							</td>
+							<td>
+								<span class="best">13</span>
+							</td>
+							<td>
+								<span class="best">8</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">24</span>
+							</td>
+							</tr>
+							<tr class="n9 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							</td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="num"><span>9</span></td>
+							<td class="rider bdr_r">
+								森田 一郎<br>
+								<span class="home">埼　玉/24/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								104.75							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+
+
+							<td>
+								2							</td>
+							<td>
+								4							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								11							</td>
+
+
+							<td>
+								14							</td>
+							<td>
+								10							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								19							</td>
+							</tr>
+						</table>
+					</div>
+						<!-- 年間勝利度数・グレード別勝利度数時 End -->
+
+					<!-- 同走路年間勝利度数時 Start -->
+					<div class="racecard_area_inner cf jsRacerCardAoLength" style="display:none">
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="2" >予<br>想</th>
+								<th rowspan="2" >好<br>気<br>合</th>
+								<th rowspan="2" class="bdr_r ">総<br>評</th>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">級<br>班</th>
+								<th rowspan="2" class="bdr_r">脚<br>質</th>
+								<th rowspan="2">ギヤ<br>倍数</th>
+								<th class="bdr_r" rowspan="2">競走得点</th>
+								<th colspan="4">同走路年間勝利度数【400】</th>
+							</tr>
+							<tr>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+							</tr>
+							<tr class="n1 ">
+							<td class="tip">
+								<span class="icon icon_t6">▲</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >1</td>
+							<td class="num"><span>1</span></td>
+							<td class="rider bdr_r">
+								西田 優大<br>
+								<span class="home">広　島/28/123										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								<span class="best">108.19</span>
+							</td>
+							<td>
+								11							</td>
+							<td>
+								7							</td>
+							<td>
+								8							</td>
+							<td class="bdr_r">
+								29							</td>
+							</tr>
+							<tr class="n2 ">
+							<td class="tip">
+								<span class="icon icon_t2">○</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >2</td>
+							<td class="num"><span>2</span></td>
+							<td class="rider bdr_r">
+								篠田 幸希<br>
+								<span class="home">群　馬/26/123										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								105.00							</td>
+							<td>
+								10							</td>
+							<td>
+								3							</td>
+							<td>
+								6							</td>
+							<td class="bdr_r">
+								20							</td>
+							</tr>
+							<tr class="n3 ">
+							<td class="tip">
+								<span class="icon icon_t1">◎</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >3</td>
+							<td class="num"><span>3</span></td>
+							<td class="rider bdr_r">
+								中石 湊<br>
+								<span class="home">北海道/21/125										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								106.62							</td>
+							<td>
+								13							</td>
+							<td>
+								7							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								8							</td>
+							</tr>
+							<tr class="n4 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >4</td>
+							<td class="num"><span>4</span></td>
+							<td class="rider bdr_r">
+								松崎 広太<br>
+								<span class="home">茨　城/26/123										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								99.14							</td>
+							<td>
+								10							</td>
+							<td>
+								9							</td>
+							<td>
+								<span class="best">10</span>
+							</td>
+							<td class="bdr_r">
+								29							</td>
+							</tr>
+							<tr class="n5 ">
+							<td class="tip">
+								<span class="icon icon_t4">△</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="num"><span>5</span></td>
+							<td class="rider bdr_r">
+								阿部 英斗<br>
+								<span class="home">福　岡/21/125										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								99.00							</td>
+							<td>
+								<span class="best">18</span>
+							</td>
+							<td>
+								7							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								26							</td>
+							</tr>
+							<tr class="n6 ">
+							<td class="tip">
+								<span class="icon icon_t5">注</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >5</td>
+							<td class="num"><span>6</span></td>
+							<td class="rider bdr_r">
+								栗山 和樹<br>
+								<span class="home">岐　阜/28/125										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								103.06							</td>
+							<td>
+								14							</td>
+							<td>
+								3							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								<span class="best">41</span>
+							</td>
+							</tr>
+							<tr class="n7 ">
+							<td class="tip">
+								<span class="icon icon_t3">×</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="num"><span>7</span></td>
+							<td class="rider bdr_r">
+								黒瀬 浩太郎<br>
+								<span class="home">広　島/25/123										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								102.85							</td>
+							<td>
+								6							</td>
+							<td>
+								9							</td>
+							<td>
+								5							</td>
+							<td class="bdr_r">
+								16							</td>
+							</tr>
+							<tr class="n8 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >6</td>
+							<td class="num"><span>8</span></td>
+							<td class="rider bdr_r">
+								梶原 海斗<br>
+								<span class="home">福　岡/26/123										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								104.94							</td>
+							<td>
+								<span class="best">18</span>
+							</td>
+							<td>
+								<span class="best">14</span>
+							</td>
+							<td>
+								9							</td>
+							<td class="bdr_r">
+								25							</td>
+							</tr>
+							<tr class="n9 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="num"><span>9</span></td>
+							<td class="rider bdr_r">
+								森田 一郎<br>
+								<span class="home">埼　玉/24/125										</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								104.75							</td>
+							<td>
+								12							</td>
+							<td>
+								12							</td>
+							<td>
+								2							</td>
+							<td class="bdr_r">
+								19							</td>
+							</tr>
+						</table>
+						<!-- 同走路年間勝利度数時 End -->
+					</div>
+					<div class="racecard_area_inner cf jsRacerCardAoBankYear" style="display:none">
+						<!-- 当所5年時 Start -->
+						<table class="racecard_table">
+							<tr>
+								<th rowspan="2" >予<br>想</th>
+								<th rowspan="2" >好<br>気<br>合</th>
+								<th rowspan="2" class="bdr_r ">総<br>評</th>
+								<th rowspan="2">枠<br>番</th>
+								<th rowspan="2">車<br>番</th>
+								<th rowspan="2" class="bdr_r">選手名<br>府県/年齢/期別</th>
+								<th rowspan="2">級<br>班</th>
+								<th rowspan="2" class="bdr_r">脚<br>質</th>
+								<th rowspan="2">ギヤ<br>倍数</th>
+								<th class="bdr_r" rowspan="2">競走得点</th>
+								<th colspan="4">当所5年</th>
+							</tr>
+							<tr>
+								<th>1着</th>
+								<th>2着</th>
+								<th>3着</th>
+								<th class="bdr_r">着外</th>
+							</tr>
+							<tr class="n1 ">
+							<td class="tip">
+								<span class="icon icon_t6">▲</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >1</td>
+							<td class="num"><span>1</span></td>
+							<td class="rider bdr_r">
+								西田 優大<br>
+								<span class="home">広　島/28/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								<span class="best">108.19</span>
+							</td>
+							<td>
+								2							</td>
+							<td>
+								1							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td class="bdr_r">
+								<span class="best">4</span>
+							</td>
+							</tr>
+							<tr class="n2 ">
+							<td class="tip">
+								<span class="icon icon_t2">○</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >2</td>
+							<td class="num"><span>2</span></td>
+							<td class="rider bdr_r">
+								篠田 幸希<br>
+								<span class="home">群　馬/26/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								105.00							</td>
+							<td>
+								2							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								1							</td>
+							</tr>
+							<tr class="n3 ">
+							<td class="tip">
+								<span class="icon icon_t1">◎</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing " >3</td>
+							<td class="num"><span>3</span></td>
+							<td class="rider bdr_r">
+								中石 湊<br>
+								<span class="home">北海道/21/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								106.62							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+							</tr>
+							<tr class="n4 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >4</td>
+							<td class="num"><span>4</span></td>
+							<td class="rider bdr_r">
+								松崎 広太<br>
+								<span class="home">茨　城/26/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								99.14							</td>
+							<td>
+								2							</td>
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+							</tr>
+							<tr class="n5 ">
+							<td class="tip">
+								<span class="icon icon_t4">△</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="num"><span>5</span></td>
+							<td class="rider bdr_r">
+								阿部 英斗<br>
+								<span class="home">福　岡/21/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								99.00							</td>
+							<td>
+								1							</td>
+							<td>
+								<span class="best">2</span>
+							</td>
+							<td>
+								<span class="best">1</span>
+							</td>
+							<td class="bdr_r">
+								1							</td>
+							</tr>
+							<tr class="n6 ">
+							<td class="tip">
+								<span class="icon icon_t5">注</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >5</td>
+							<td class="num"><span>6</span></td>
+							<td class="rider bdr_r">
+								栗山 和樹<br>
+								<span class="home">岐　阜/28/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								103.06							</td>
+							<td>
+								1							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								1							</td>
+							</tr>
+							<tr class="n7 ">
+							<td class="tip">
+								<span class="icon icon_t3">×</span>
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>4</span>
+							</td>
+							<td class="num"><span>7</span></td>
+							<td class="rider bdr_r">
+								黒瀬 浩太郎<br>
+								<span class="home">広　島/25/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								102.85							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								2							</td>
+							</tr>
+							<tr class="n8 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="bracket missing "  rowspan="2" >6</td>
+							<td class="num"><span>8</span></td>
+							<td class="rider bdr_r">
+								梶原 海斗<br>
+								<span class="home">福　岡/26/123									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.93</td>
+							<td class="bdr_r">
+								104.94							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								0							</td>
+							</tr>
+							<tr class="n9 ">
+							<td class="tip">
+							</td>
+							<td class="kiai"></td>
+							<td class="evaluation bdr_r">
+								<span>3</span>
+							</td>
+							<td class="num"><span>9</span></td>
+							<td class="rider bdr_r">
+								森田 一郎<br>
+								<span class="home">埼　玉/24/125									</span>
+							</td>
+							<td>S2</td>
+							<td class="bdr_r">逃</td>
+							<td>3.92</td>
+							<td class="bdr_r">
+								104.75							</td>
+							<td>
+								<span class="best">8</span>
+							</td>
+							<td>
+								1							</td>
+							<td>
+								0							</td>
+							<td class="bdr_r">
+								3							</td>
+							</tr>
+						</table>
+						<!-- 時 End -->
+					</div>
+				</div>
+
+
+				<dl class="line_position cf">
+					<dt>並び予想</dt>
+					<dd>
+					<div class="line_position_inner">
+					<span class="icon_p"><span class="p000">←</span></span>
+					
+																			<span class="icon_p"><span class="p001">1</span><span class="p201">先行</span></span>
+																			<span class="icon_p"><span class="p007">7</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p003">3</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p005">5</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p009">9</span><span class="p202">押え先</span></span>
+																			<span class="icon_p"><span class="p002">2</span><span class="p105">追込</span></span>
+																			<span class="icon_p"><span class="p004">4</span><span class="p105">追込</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p006">6</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p"><span class="p008">8</span><span class="p206">自在</span></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+																			<span class="icon_p space"></span>
+											</div>
+					</dd>
+				</dl>
+
+
+				<p class="racecard_area_note">※各項目トップの数値は赤字で表示されます。</p>
+				<div class="racereview cf">
+					<h4 class="title">レース評</h4>
+					<p class="text">ナショナルパワーで中石が捲る。関東２段駆けで浮上するのは篠田。広島勢は黒瀬が番手。阿部は混戦が得意だ。</p>
+				</div>
+
+			</div><!-- #EndLibraryItem -->
+			<div class="detail_info_header cf" id="detail">
+				<ul class="detail_info_nav cf">
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/odds/3520251228/35202512280100/11/3rentan/#detail">オッズ</a></li>
+					<li ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/yoso/3520251228/35202512280100/11/#detail">展開予想・狙い目</a></li>
+					<li  class="active" ><a href="https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/3520251228/35202512280100/11/#detail">結果・払戻金</a></li>
+				</ul>
+				<ul class="sub_nav cf scroll">
+					<li class="return_racecard"><a href="#RACECARD">出走表へもどる</a></li>
+				</ul>
+			</div>
+			<div class="detail_info_container result_info_container">
+			<p class="weather_info"><span>天候 晴</span>/<span>風速 0.5m</span></p>
+			<div class="result_table_container cf">
+				<div class="result_table_area">
+					<table class="result_table">
+						<tr>
+							<th>予<br>想</th>
+							<th>着<br>順</th>
+							<th>車<br>番</th>
+							<th>選手名</th>
+							<th>着差</th>
+							<th>上り</th>
+							<th>決ま<br>り手</th>
+							<th>S<br>／<br>B</th>
+							<th class="comment">勝敗因</th>
+						</tr>
+							<tr>
+									<td class="tip"><span class="icon icon_t1">◎</span></td>
+									<td>1</td>
+							<td class="num"><span class="n3">3</span></td>
+							<td class="rider">中石 湊</td>
+							<td></td>
+							<td>11.0</td>
+							<td>捲</td>
+							<td></td>
+							<td class="comment">後方大外捲</td>
+						</tr>
+							<tr>
+									<td class="tip"></td>
+									<td>2</td>
+							<td class="num"><span class="n9">9</span></td>
+							<td class="rider">森田 一郎</td>
+							<td>１/２車身</td>
+							<td>11.1</td>
+							<td>差</td>
+							<td>S</td>
+							<td class="comment">前追い伸び</td>
+						</tr>
+							<tr>
+									<td class="tip"><span class="icon icon_t5">注</span></td>
+									<td>3</td>
+							<td class="num"><span class="n6">6</span></td>
+							<td class="rider">栗山 和樹</td>
+							<td>３/４車身</td>
+							<td>11.0</td>
+							<td></td>
+							<td></td>
+							<td class="comment">中石を追い</td>
+						</tr>
+							<tr>
+									<td class="tip"><span class="icon icon_t4">△</span></td>
+									<td>4</td>
+							<td class="num"><span class="n5">5</span></td>
+							<td class="rider">阿部 英斗</td>
+							<td>３/４車輪</td>
+							<td>11.4</td>
+							<td></td>
+							<td></td>
+							<td class="comment">捲り合され</td>
+						</tr>
+							<tr>
+									<td class="tip"><span class="icon icon_t3">×</span></td>
+									<td>5</td>
+							<td class="num"><span class="n7">7</span></td>
+							<td class="rider">黒瀬 浩太郎</td>
+							<td>１/２車輪</td>
+							<td>11.4</td>
+							<td></td>
+							<td></td>
+							<td class="comment">前捲れ一緒</td>
+						</tr>
+							<tr>
+									<td class="tip"><span class="icon icon_t2">○</span></td>
+									<td>6</td>
+							<td class="num"><span class="n2">2</span></td>
+							<td class="rider">篠田 幸希</td>
+							<td>１/２車輪</td>
+							<td>11.2</td>
+							<td></td>
+							<td></td>
+							<td class="comment">目標追込策</td>
+						</tr>
+							<tr>
+									<td class="tip"></td>
+									<td>7</td>
+							<td class="num"><span class="n4">4</span></td>
+							<td class="rider">松崎 広太</td>
+							<td>１車身</td>
+							<td>11.2</td>
+							<td></td>
+							<td></td>
+							<td class="comment">動ずライン</td>
+						</tr>
+							<tr>
+									<td class="tip"><span class="icon icon_t6">▲</span></td>
+									<td>8</td>
+							<td class="num"><span class="n1">1</span></td>
+							<td class="rider">西田 優大</td>
+							<td>３車身</td>
+							<td>11.9</td>
+							<td></td>
+							<td>B</td>
+							<td class="comment">嵌り番手捲</td>
+						</tr>
+							<tr>
+									<td class="tip"></td>
+									<td>9</td>
+							<td class="num"><span class="n8">8</span></td>
+							<td class="rider">梶原 海斗</td>
+							<td>８車身</td>
+							<td>12.7</td>
+							<td></td>
+							<td></td>
+							<td class="comment">単騎カマシ</td>
+						</tr>
+						</table>
+				</div>
+				<div class="video_area">
+					<h4 class="title">レースダイジェスト映像</h4>
+					<div class="container" name="digestControl">
+						<a href="javascript:void(0)"><img src="https://kdreams.r10s.jp/keirin/images/pc/raceinfo/img_digest.png" width="320" height="240" alt="ダイジェスト映像を見る"></a>
+					</div>
+					<div class="container" name="digestError" style="display:none;">
+						<p class="message_digest_notfound">レースダイジェスト映像が<br>取得できませんでした。</p>
+					</div>
+				</div>
+			</div>
+					<div class="refund_table_area">
+				<table class="refund_table">
+					<tr>
+						<th rowspan="2">2<br>枠<br>連</th>
+						<td>複</td>
+						<td>
+																<dl class="cf">
+								<dt>3=6</dt>
+								<dd>820円<span>(2)</span></dd>
+							</dl>
+															</td>
+						<th rowspan="2">2<br>車<br>連</th>
+						<td>複</td>
+						<td>
+																<dl class="cf">
+								<dt>3=9</dt>
+								<dd>3,550円<span>(15)</span></dd>
+							</dl>
+															</td>
+						<th rowspan="2">3<br>連<br>勝</th>
+						<td>複</td>
+						<td>
+																<dl class="cf">
+								<dt>3=6=9</dt>
+								<dd>12,580円<span>(55)</span></dd>
+							</dl>
+															</td>
+						<th rowspan="2">ワ<br>イ<br>ド</th>
+						<td rowspan="2" class="wide">
+																<dl class="cf">
+								<dt>3=6</dt>
+								<dd>820円<span>(12)</span></dd>
+							</dl>
+											<dl class="cf">
+								<dt>3=9</dt>
+								<dd>950円<span>(13)</span></dd>
+							</dl>
+											<dl class="cf">
+								<dt>6=9</dt>
+								<dd>3,740円<span>(36)</span></dd>
+							</dl>
+															</td>
+					</tr>
+					<tr>
+						<td>単</td>
+						<td>
+																<dl class="cf">
+								<dt>3-6</dt>
+								<dd>1,310円<span>(2)</span></dd>
+							</dl>
+															</td>
+						<td>単</td>
+						<td>
+																<dl class="cf">
+								<dt>3-9</dt>
+								<dd>5,310円<span>(24)</span></dd>
+							</dl>
+															</td>
+						<td>単</td>
+						<td>
+																<dl class="cf">
+								<dt>3-9-6</dt>
+								<dd>74,450円<span>(269)</span></dd>
+							</dl>
+															</td>
+					</tr>
+				</table>
+			</div>
+			<div class="postscript">
+				<h4 class="title">戦い終わって</h4>
+				<div class="inner cf">
+						<p class="photo"><img src="https://grespo-contents.s3-ap-northeast-1.amazonaws.com/racenote/35/20251228/img/962f83abb95c2787aa97e21502eb3ab361b2ad07.JPG" width="340" alt="戦い終わって写真"></p>
+						<p class="text">　単騎の梶原海斗がホームでカマすと西田優大がハマって番手から捲り上げる。中石湊は２角前から仕掛けるとグイグイ伸びて前団を飲み込む。阿部英斗の仕掛けに乗っていた森田一郎が中を伸びて２着、中石を離れ気味に追っていた栗山和樹が３着入線。<br />　中石は「すごく楽しみにしていたし取れてよかった。声援も多くてありがたかったですね。いつもより出がよかったし、どんな展開でも踏み切ってやろうと。今年を１着で締めくくれたのはよかったけど、来年はもっと上を目指したい。自分の実力でＧ１に出られるようになりたい」。森田「いつも通り主導権を取るレースを心掛けたけど…。３コーナー上ってから、と見てしまったのが全て。悔しいってよりも情けない。今まで積み上げてきたものが台無し」。栗山「波もあって行くに行けず。結果的に自力を出した選手が勝ったし、自分の力不足。中石にも千切れたので。だけど、強い人たちと走れたことは光栄です」。<br /></p>
+				</div>
+			</div>
+		</div>
+
+		<script>
+		$(function() {
+			//結果ダイジェスト
+			$("div.video_area a").click(function(){
+				loadDigestVideoFromApi(35,6,20251228,11);
+			});
+		});
+		</script>		</section>
+		<!--  Section End -->
+		<!-- InstanceEndEditable -->
+	</div>
+	<!-- Article End -->
+	<!-- Aside Start -->
+	<!-- Aside End -->
+</div>
+<!-- InstanceEndEditable -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.jster.centeringSyncer.js?ckl=1494809430" type="text/javascript"></script>
+<script>
+$(function(){
+	$(".racecard_area_nav li").click(function(){
+		$obj = $(this).attr("id");
+		$(this).parent('ul').find('li').removeClass('active');
+		$(this).addClass('active');
+		$('.racecard_area_inner').hide();
+		$('.' + $obj).show();
+	});
+});
+
+//縦書き対応
+$(function(){
+	$(".tate").textVertical(); // 縦書き
+	$(".tate_name").nameVertical(); // 縦書きの名前
+});
+</script>
+<!-- Footer Start -->
+<div id="PAGE_FOOTER">
+	<p class="copyright">Copyright© 2012-2026 GambooBET All Rights Reserved.</p>
+</div>
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+
+</body>
+</html><!-- Fixed Footer Start -->
+<div id="FIXED_FOOTER">
+	<div class="marquee marquee_thin">
+		<ul id="MARQUEE"></ul>
+	</div>
+</div>
+<p id="PAGETOP" style="position:fixed; bottom: 40px; right: 20px;"><a href="#">ページの先頭へ戻る</a></p>
+
+<!-- Script Start -->
+<script type="text/javascript" src="https://kdreams.r10s.jp/keirin/js/lib/digesturl.js?ckl=1756749849"></script>
+<!-- Script End -->
+
+
+
+
+<!-- gzip check(start) -->
+<script src="https://kdreams.r10s.jp/keirin/js/lib/jquery.cookie.js?ckl=1501630235" type="text/javascript"></script>
+<script src="/js/gzipchecker/zipccheck.js.gz?ckl=1575873678" type="text/javascript"></script>
+<script src="https://kdreams.r10s.jp/keirin/js/gzipchecker/normalcheck.js?ckl=1501630235" type="text/javascript"></script>
+<!-- gzip check(end) -->
+
+</body>
+</html>
