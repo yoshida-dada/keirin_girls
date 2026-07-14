@@ -16,6 +16,23 @@ from src.model.plackett_luce import all_trifecta_probs
 from src.model.train_pl import PLModel
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "models" / "pl_model.pkl"
+DEFAULT_ELO_STATE_PATH = DEFAULT_MODEL_PATH.parent / "elo_state.json"
+
+
+def save_elo_state(state: dict, path: str | Path = DEFAULT_ELO_STATE_PATH) -> Path:
+    """最終Elo {氏名: Elo} をJSONで保存（ライブ予測で選手の現在Eloを引く）。"""
+    import json
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def load_elo_state(path: str | Path = DEFAULT_ELO_STATE_PATH) -> dict:
+    """保存済みElo状態を読む。無ければ {}（全員デフォルトElo扱い）。"""
+    import json
+    p = Path(path)
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 
 def save_model(model: PLModel, path: str | Path = DEFAULT_MODEL_PATH) -> Path:
@@ -35,14 +52,21 @@ def load_model(path: str | Path = DEFAULT_MODEL_PATH) -> PLModel:
 
 
 def strengths_from_model(model: PLModel, entries: list[Entry],
-                         recent: dict | None = None) -> dict[int, float]:
+                         recent: dict | None = None,
+                         elo_state: dict | None = None) -> dict[int, float]:
     """出走選手 → {車番: 1着確率}(Σ=1)。特徴量を組み立てて学習済みモデルで推論する。
 
-    モデルの学習特徴（model.feature_names）に追従。拡張モデルは直近4ヶ月(recent)を必要とするため、
-    recent を渡すこと。特徴量が揃わない場合は {} を返す（呼び出し側でベースラインにフォールバック）。
+    モデルの学習特徴（model.feature_names）に追従。拡張モデルは直近4ヶ月(recent)を、
+    Elo付きモデルは elo_state({氏名: Elo}) を必要とする。特徴量が揃わなければ {} を返す。
     """
+    import pandas as pd
     feats = model.feature_names or PL_FEATURES
     df = build_features(entries, recent or {})
+    if "rel_elo" in feats:                      # Eloモデル: レース内相対Eloを列追加
+        from src.model.elo import DEFAULT_ELO
+        state = elo_state or {}
+        elos = pd.Series({e.car_number: state.get(e.rider_name, DEFAULT_ELO) for e in entries})
+        df["rel_elo"] = elos - elos.mean()
     if df[feats].isna().any().any():
         return {}
     cars = list(df.index)
@@ -51,7 +75,7 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
 
 
 def trifecta_from_model(model: PLModel, entries: list[Entry],
-                        recent: dict | None = None) -> dict[tuple, float]:
+                        recent: dict | None = None, elo_state: dict | None = None) -> dict[tuple, float]:
     """出走選手 → 三連単210通り確率 {(a,b,c): p}。強さが出せなければ {}。"""
-    strengths = strengths_from_model(model, entries, recent)
+    strengths = strengths_from_model(model, entries, recent, elo_state)
     return all_trifecta_probs(strengths) if strengths else {}
