@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_odds import build_odds_url, parse_trifecta_odds, parse_deadline
 from src.collect.gamboo_racecard import parse_race_card, parse_recent_form, is_girls_race
-from src.model.persist import load_model, strengths_from_model
+from src.model.persist import load_model, strengths_from_model, load_elo_state
 from src.model.plackett_luce import all_trifecta_probs
 from src.model.race_type import classify_race
 from src.ev.market import implied_trifecta_probs, blend_loglinear
@@ -34,8 +34,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     deadline = parse_deadline(html)
 
     model = load_model()
-    strengths = strengths_from_model(model, entries, recent)
-    source = "学習済みモデル(拡張20特徴)"
+    elo_state = load_elo_state() if "rel_elo" in (model.feature_names or []) else None
+    strengths = strengths_from_model(model, entries, recent, elo_state)
+    source = "学習済みモデル(拡張+Elo)" if elo_state is not None else "学習済みモデル(拡張20特徴)"
     if not strengths:
         from src.model.strength import strengths_from_entries
         strengths = strengths_from_entries(entries)
