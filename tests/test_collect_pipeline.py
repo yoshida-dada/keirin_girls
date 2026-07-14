@@ -33,6 +33,15 @@ def test_parse_race_numbers():
     assert nums == list(range(1, 13))             # 12レース
 
 
+def test_kaisai_race_date():
+    # 開催日コードから実施日を計算（初日/2日目の混在を排除する要）。
+    from datetime import date
+    from src.collect.gamboo_schedule import kaisai_race_date
+    assert kaisai_race_date("62202607130100") == date(2026, 7, 13)   # 初日
+    assert kaisai_race_date("62202607130200") == date(2026, 7, 14)   # 2日目
+    assert kaisai_race_date("11202607140100") == date(2026, 7, 14)   # 別開催の初日
+
+
 def test_parse_girls_race_numbers():
     # レース一覧の級班列からL級レースだけ絞り込む（男子戦のオッズ取得を省く高速化）。
     from src.collect.gamboo_schedule import parse_girls_race_numbers

@@ -55,6 +55,19 @@ def parse_kaisai_list(html: str) -> list[Kaisai]:
     return out
 
 
+def kaisai_race_date(kaisai_day_code: str):
+    """開催日コードから実施日を計算する。
+
+    形式: {場2}{開催初日YYYYMMDD}{開催日目NN}{連番2}（例 62202607130200 = 場62・初日07-13・2日目）。
+    実施日 = 初日 + (開催日目 - 1)日。/gamboo/kaisai/YYYY/MM/DD/ は開催中の全日程を返すため、
+    特定日のレースだけ選ぶにはこの実施日でフィルタする（初日と2日目の混在を防ぐ）。
+    """
+    from datetime import date, timedelta
+    start = date(int(kaisai_day_code[2:6]), int(kaisai_day_code[6:8]), int(kaisai_day_code[8:10]))
+    nn = int(kaisai_day_code[10:12])
+    return start + timedelta(days=nn - 1)
+
+
 def build_race_list_url(kaisai_code: str, kaisai_day_code: str) -> str:
     return f"{HOST}/gamboo/keirin-kaisai/race-list/{kaisai_code}/{kaisai_day_code}/"
 
