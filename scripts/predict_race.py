@@ -31,6 +31,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     entries = parse_race_card(html)
     recent = parse_recent_form(html)
     odds = parse_trifecta_odds(html)
+    # 9999.9 はGambooBETの表示上限（実質オッズなし＝ほぼ無投票）なので除外する。
+    odds = {k: v for k, v in odds.items() if v and v < 9999}
     deadline = parse_deadline(html)
 
     model = load_model()
@@ -70,6 +72,14 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                 "odds": odds.get(c), "need_odds": round(1 / p, 1) if p > 0 else None}
                for c, p in sorted(probs.items(), key=lambda kv: -kv[1])[:8]]
 
+    # オッズテーブル用の全210通り: [1着,2着,3着,オッズ,確率,EV]（EV=確率×オッズ, 1超で妙味）。
+    # ダッシュボードは1着車で絞って 2着×3着 マトリクスを描き、EV>1 をハイライトする。
+    combos = []
+    for (a, b, c), p in probs.items():
+        o = odds.get((a, b, c))
+        ev = round(p * o, 2) if o else None
+        combos.append([a, b, c, o, round(p, 5), ev])
+
     # 最新オッズに基づくEV判定（発走10分前更新で使う）。エッジ未確立のため参考値。
     ev = {"status": "no_odds", "threshold": 1.10, "n_buy": 0, "buys": [],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"}
@@ -91,6 +101,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
+        "combos": combos,                          # 全210通り（オッズテーブル用）
         "has_odds": bool(odds),
         "updated_at": datetime.now(jst).strftime("%Y-%m-%d %H:%M"),
     }
