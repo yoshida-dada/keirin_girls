@@ -153,11 +153,11 @@ table.hm td.l{padding:8px 10px;font-weight:800}
 .pr-name{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;line-height:1.15}
 .pr-name .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pr-name .mt{font-size:.62rem;color:var(--muted);font-weight:600}
-.pr-bar{flex:0 0 34%;max-width:150px;height:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:5px;position:relative;overflow:hidden}
+.pr-bar{flex:0 1 26%;max-width:120px;height:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:5px;position:relative;overflow:hidden}
 .pr-fill{height:100%;border-radius:4px 0 0 4px;background:var(--accent)}
-.pr-pct{flex:none;width:50px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
-.pr-synth{flex:none;width:62px;text-align:right;font-size:.72rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
-.pr-synth .u{font-size:.6rem;font-weight:600;opacity:.8}
+.pr-pct{flex:none;width:72px;display:flex;flex-direction:column;align-items:flex-end;line-height:1.12;font-variant-numeric:tabular-nums}
+.pr-pct .pp-win{font-weight:800;font-size:.9rem}
+.pr-pct .pp-synth{font-size:.66rem;font-weight:700;color:var(--muted);margin-top:2px;white-space:nowrap}
 .pred-tfhead{font-size:.64rem;letter-spacing:.04em;color:var(--muted);font-weight:800;margin:12px 2px 5px;text-transform:uppercase}
 .oddson{color:var(--good);font-weight:800}
 /* predictions: last-updated banner */
@@ -308,14 +308,14 @@ function boot(DB){
       const fair = rd.fair_odds_1st, synth = rd.synth_odds_1st;
       const fairTxt = fair!=null ? `・必要${(+fair).toFixed(1)}倍` : "";
       const legWr = `${esc(rd.leg||"—")}・勝率${pctR(rd.win_rate)}・得点${(rd.score||0).toFixed(1)}${fairTxt}`;
-      const synthEl = synth!=null
-        ? `<span class="pr-synth" title="一着固定の合成オッズ（この車を1着に固定した三連単を合成した実効オッズ）">合成${(+synth).toFixed(1)}<span class="u">倍</span></span>`
-        : `<span class="pr-synth">—</span>`;
+      // 右カラムは二段: 上=1着確率, 下=一着固定の合成オッズ（幅を確保するため縦積み）
+      const synthLine = synth!=null
+        ? `<span class="pp-synth" title="一着固定の合成オッズ（この車を1着に固定した三連単を合成した実効オッズ）">合成${(+synth).toFixed(1)}倍</span>`
+        : `<span class="pp-synth">合成—</span>`;
       return `<div class="pr-row">${carChip(rd.car)}`
         +`<span class="pr-name"><span class="nm">${esc(rd.name||"")}</span><span class="mt">${legWr}</span></span>`
         +`<span class="pr-bar"><span class="pr-fill" style="width:${w}%"></span></span>`
-        +`<span class="pr-pct">${pct1(rd.win_prob)}</span>`
-        +synthEl+`</div>`;
+        +`<span class="pr-pct"><span class="pp-win">${pct1(rd.win_prob)}</span>${synthLine}</span></div>`;
     }
 
     // EV判定（最新オッズ×モデルの参考値。推奨買い目ではない）
