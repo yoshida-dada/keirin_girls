@@ -158,6 +158,29 @@ table.hm td.l{padding:8px 10px;font-weight:800}
 .pr-pct{flex:none;width:50px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
 .pred-tfhead{font-size:.64rem;letter-spacing:.04em;color:var(--muted);font-weight:800;margin:12px 2px 5px;text-transform:uppercase}
 .oddson{color:var(--good);font-weight:800}
+/* predictions: last-updated banner */
+.pred-updated{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:8px 12px;margin-bottom:12px;font-size:.72rem;color:var(--muted);font-weight:600;line-height:1.5}
+.pred-updated .lu{color:var(--ink);font-size:.82rem;font-weight:700}
+.pred-updated .lu b{color:var(--accent);font-variant-numeric:tabular-nums}
+/* predictions: venue tabs */
+.pred-vtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pred-vtab{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.78rem;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.pred-vtab .vc{font-size:.64rem;font-weight:700;background:var(--surface2);color:var(--muted);border-radius:999px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.pred-vtab[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pred-vtab[aria-selected="true"] .vc{background:rgba(255,255,255,.22);color:#fff}
+.pred-vtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pred-vbox{border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);padding:2px 14px 8px}
+.pred-vpanel[hidden]{display:none}
+/* predictions: per-race update time */
+.pred-rupd{font-size:.6rem;color:var(--muted);font-weight:700}
+/* predictions: EV block */
+.pred-ev{margin-top:12px;border:1px solid var(--edge);border-radius:11px;background:var(--edge-soft);padding:9px 11px}
+.pred-ev-head{font-size:.72rem;font-weight:800;color:var(--edge);display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.pred-ev-head .nb{font-variant-numeric:tabular-nums;font-size:.82rem}
+.pred-ev-head .more{font-size:.6rem;color:var(--muted);font-weight:700}
+.pred-ev-none{font-size:.74rem;font-weight:700;color:var(--muted)}
+.pred-ev .tblwrap{margin-top:8px}
+.pred-ev-note{font-size:.64rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.5}
 
 .foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
 .foot b{color:var(--ink)}
@@ -286,6 +309,32 @@ function boot(DB){
         +`<span class="pr-pct">${pct1(rd.win_prob)}</span></div>`;
     }
 
+    // EV判定（最新オッズ×モデルの参考値。推奨買い目ではない）
+    function evBlock(ev){
+      if(!ev) return "";
+      const note = ev.note ? `<div class="pred-ev-note">⚠ ${esc(ev.note)}</div>` : "";
+      if(ev.status==="no_odds"){
+        return `<div class="pred-ev"><div class="pred-ev-none">オッズ未発売</div>${note}</div>`;
+      }
+      const thr = ev.threshold!=null ? ev.threshold.toFixed(2) : "1.10";
+      const buys = ev.buys||[];
+      if(!ev.n_buy || !buys.length){
+        return `<div class="pred-ev"><div class="pred-ev-none">最新オッズで＋EVの買い目なし</div>${note}</div>`;
+      }
+      const more = buys.length < ev.n_buy ? `<span class="more">（上位${buys.length}点を表示）</span>` : "";
+      const rows = buys.map(b=>`<tr>`
+        +`<td class="l combo">${esc(b.combo)}</td>`
+        +`<td>${pct1(b.prob)}</td>`
+        +`<td>${oddsF(b.odds)}</td>`
+        +`<td class="evp">${b.ev!=null?b.ev.toFixed(2):"—"}</td></tr>`).join("");
+      return `<div class="pred-ev">`
+        +`<div class="pred-ev-head">🎯 最新オッズでEV≥${thr}の買い目 <span class="nb">${ev.n_buy}点</span>${more}</div>`
+        +`<div class="tblwrap"><table class="t"><thead><tr>`
+        +`<th class="l">買い目</th><th>モデル確率</th><th>オッズ</th><th>EV</th>`
+        +`</tr></thead><tbody>${rows}</tbody></table></div>`
+        +note+`</div>`;
+    }
+
     function raceBlock(r){
       const top1 = (r.riders&&r.riders.length)?(r.riders[0].win_prob||0):0;
       const riders = (r.riders||[]).map(rd=>riderRow(rd, top1)).join("");
@@ -308,22 +357,57 @@ function boot(DB){
         +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
         +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
         +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
+        +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
         +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
-        +riders + tfBlock
+        +riders + tfBlock + evBlock(r.ev)
         +`</div>`;
     }
 
     let html = `<div class="pred-disc">⚠ これは各車の着順（1着）確率と三連単モデル確率の提示です。`
       +`${esc(P.note||"")} 買い目の推奨ではありません。</div>`;
-    byVenue.forEach((rs,venue)=>{
-      const body = rs.map(raceBlock).join("");
-      html += `<details class="pred-venue" open><summary>${esc(venue)}`
-        +`<span class="vcount">${rs.length}レース</span><span class="chev">▶</span></summary>`
-        +`<div class="pred-races">${body}</div></details>`;
-    });
+    if(P.last_updated){
+      html += `<div class="pred-updated"><span class="lu">最終更新 <b>${esc(P.last_updated)}</b></span>`
+        +`<span>発走10分前に最新オッズで自動更新されます。</span></div>`;
+    }
+    const venues = [...byVenue.keys()];
+    const tabs = venues.map((v,i)=>{
+      const rs = byVenue.get(v);
+      return `<button class="pred-vtab" type="button" role="tab" id="pvtab-${i}" aria-controls="pvpanel-${i}"`
+        +` aria-selected="${i===0?"true":"false"}" tabindex="${i===0?0:-1}">`
+        +`${esc(v)}<span class="vc">${rs.length}R</span></button>`;
+    }).join("");
+    const panels = venues.map((v,i)=>{
+      const body = byVenue.get(v).map(raceBlock).join("");
+      return `<div class="pred-vpanel" role="tabpanel" id="pvpanel-${i}" aria-labelledby="pvtab-${i}"${i===0?"":" hidden"}>`
+        +`<div class="pred-vbox">${body}</div></div>`;
+    }).join("");
+    html += `<div class="pred-vtabs" role="tablist" aria-label="会場切替">${tabs}</div>${panels}`;
     host.innerHTML = html;
+
+    // 会場タブの切替（クリック＋キーボード操作）
+    const tabEls = [...host.querySelectorAll(".pred-vtab")];
+    const panelEls = [...host.querySelectorAll(".pred-vpanel")];
+    function selectTab(i){
+      tabEls.forEach((t,j)=>{
+        const on = j===i;
+        t.setAttribute("aria-selected", on?"true":"false");
+        t.tabIndex = on?0:-1;
+        if(panelEls[j]) panelEls[j].hidden = !on;
+      });
+    }
+    tabEls.forEach((t,i)=>{
+      t.addEventListener("click",()=>selectTab(i));
+      t.addEventListener("keydown",e=>{
+        let ni=null;
+        if(e.key==="ArrowRight"||e.key==="ArrowDown") ni=(i+1)%tabEls.length;
+        else if(e.key==="ArrowLeft"||e.key==="ArrowUp") ni=(i-1+tabEls.length)%tabEls.length;
+        else if(e.key==="Home") ni=0;
+        else if(e.key==="End") ni=tabEls.length-1;
+        if(ni!=null){ e.preventDefault(); selectTab(ni); tabEls[ni].focus(); }
+      });
+    });
   })();
 
   // ---------- (a) recommendations ----------
