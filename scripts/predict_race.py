@@ -44,14 +44,27 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     rt = classify_race(strengths)
     probs = all_trifecta_probs(strengths)
 
+    # 一着固定の合成オッズ: 車cを1着に固定した三連単(c,*,*)全通りを合成した実効オッズ
+    #   合成オッズ_c = 1 / Σ(1/オッズ)   … cを1着で買い切ったときの実効配当倍率
+    # モデル勝率 win_prob と突き合わせると市場が各車の「勝ち」を割高/割安に見ているか分かる。
+    #   win_ev = win_prob × 合成オッズ（>1でモデル的に割安=1着を過小評価）
+    def _synth_1st(car: int) -> float | None:
+        inv = sum(1.0 / o for k, o in odds.items() if k[0] == car and o and o > 0)
+        return round(1.0 / inv, 2) if inv > 0 else None
+
     riders = []
     for e in sorted(entries, key=lambda e: -strengths.get(e.car_number, 0)):
         f = recent.get(e.car_number)
+        wp = round(strengths.get(e.car_number, 0), 4)
+        synth = _synth_1st(e.car_number) if odds else None
         riders.append({
             "car": e.car_number, "name": e.rider_name,
             "score": e.racing_score, "leg": e.leg_type,
             "win_rate": (f.win_rate if f else None),
-            "win_prob": round(strengths.get(e.car_number, 0), 4),
+            "win_prob": wp,
+            "synth_odds_1st": synth,                         # 一着固定の合成オッズ
+            "fair_odds_1st": round(1 / wp, 2) if wp > 0 else None,  # モデル勝率の必要オッズ
+            "win_ev": round(wp * synth, 2) if synth else None,     # >1=市場が1着を過小評価
         })
     top_tri = [{"combo": format_combo(c), "prob": round(p, 4),
                 "odds": odds.get(c), "need_odds": round(1 / p, 1) if p > 0 else None}
