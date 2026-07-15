@@ -153,12 +153,13 @@ table.hm td.l{padding:8px 10px;font-weight:800}
 .pr-name{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;line-height:1.15}
 .pr-name .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pr-name .mt{font-size:.62rem;color:var(--muted);font-weight:600}
-.pr-stats{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;margin-top:2px;font-size:.6rem;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
-.pr-stats b{color:var(--ink);font-weight:800}
-.pr-stats small{font-size:.86em;opacity:.8;margin-left:1px}
-.pr-stats i{color:var(--border2);font-style:normal}
+.pr-stats{display:flex;flex-wrap:wrap;gap:3px 5px;margin-top:4px}
+.pr-stats .st{display:inline-flex;align-items:baseline;gap:3px;white-space:nowrap;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:1px 6px;font-size:.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+.pr-stats .st i{color:var(--muted);font-style:normal;font-weight:700}
+.pr-stats .st b{color:var(--ink);font-weight:800}
+.pr-stats .st s{color:var(--muted);text-decoration:none;font-weight:700;font-size:.9em}
 .pr-bar{flex:0 1 26%;max-width:120px;height:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:5px;position:relative;overflow:hidden}
-.pr-fill{height:100%;border-radius:4px 0 0 4px;background:var(--accent)}
+.pr-fill{display:block;height:100%;border-radius:4px 0 0 4px;background:var(--accent)}
 .pr-pct{flex:none;width:72px;display:flex;flex-direction:column;align-items:flex-end;line-height:1.12;font-variant-numeric:tabular-nums}
 .pr-pct .pp-win{font-weight:800;font-size:.9rem}
 .pr-pct .pp-synth{font-size:.66rem;font-weight:700;color:var(--muted);margin-top:2px;white-space:nowrap}
@@ -382,30 +383,33 @@ function boot(DB){
     const byVenue = new Map();
     races.forEach(r=>{ const k=r.venue||"—"; if(!byVenue.has(k)) byVenue.set(k,[]); byVenue.get(k).push(r); });
 
-    // 収集済み全履歴からの現時点成績（通算勝率/直近5走平均着順/当地勝率/前走からの間隔）
-    function statLine(rd){
-      const p=[];
-      if(rd.career_win_rate!=null)
-        p.push(`通算<b>${(rd.career_win_rate*100).toFixed(1)}%</b><small>${rd.career_starts||0}走</small>`);
-      if(rd.recent5_finish!=null) p.push(`直近5走<b>${rd.recent5_finish.toFixed(1)}</b>着`);
-      if(rd.venue_win_rate!=null && rd.venue_starts)
-        p.push(`当地<b>${(rd.venue_win_rate*100).toFixed(0)}%</b><small>${rd.venue_starts}走</small>`);
-      if(rd.days_since!=null) p.push(`中<b>${rd.days_since}</b>日`);
-      return p.length ? `<span class="pr-stats">${p.join('<i>·</i>')}</span>` : "";
+    // 選手情報をラベル付きチップに分割（見やすさ優先で1項目=1チップ・折り返し可）
+    function statChip(lab,val,sub){
+      return `<span class="st"><i>${lab}</i><b>${val}</b>${sub?`<s>${sub}</s>`:""}</span>`;
+    }
+    function riderStats(rd){
+      const c=[];
+      c.push(statChip("脚", esc(rd.leg||"—")));
+      c.push(statChip("得点",(rd.score||0).toFixed(1)));
+      if(rd.win_rate!=null) c.push(statChip("勝率", pctR(rd.win_rate)));
+      if(rd.fair_odds_1st!=null) c.push(statChip("必要",(+rd.fair_odds_1st).toFixed(1)+"倍"));
+      if(rd.career_win_rate!=null) c.push(statChip("通算",(rd.career_win_rate*100).toFixed(1)+"%",(rd.career_starts||0)+"走"));
+      if(rd.recent5_finish!=null) c.push(statChip("直近5走", rd.recent5_finish.toFixed(1)+"着"));
+      if(rd.venue_win_rate!=null && rd.venue_starts) c.push(statChip("当地",(rd.venue_win_rate*100).toFixed(0)+"%", rd.venue_starts+"走"));
+      if(rd.days_since!=null) c.push(statChip("間隔", rd.days_since+"日"));
+      return `<span class="pr-stats">${c.join("")}</span>`;
     }
     function riderRow(rd, top1){
+      // バー = この車の1着確率をトップ車比で可視化（数値は右の%）。field全体の「軸堅/混戦」が一目で分かる。
       const w = top1>0 ? Math.max(3, Math.round((rd.win_prob||0)/top1*100)) : 0;
-      // 必要オッズ=モデル勝率の損益分岐(1/勝率)。合成=一着固定の合成オッズ。並べて妥当性を見る。
-      const fair = rd.fair_odds_1st, synth = rd.synth_odds_1st;
-      const fairTxt = fair!=null ? `・必要${(+fair).toFixed(1)}倍` : "";
-      const legWr = `${esc(rd.leg||"—")}・勝率${pctR(rd.win_rate)}・得点${(rd.score||0).toFixed(1)}${fairTxt}`;
+      const synth = rd.synth_odds_1st;
       // 右カラムは二段: 上=1着確率, 下=一着固定の合成オッズ（幅を確保するため縦積み）
       const synthLine = synth!=null
         ? `<span class="pp-synth" title="一着固定の合成オッズ（この車を1着に固定した三連単を合成した実効オッズ）">合成${(+synth).toFixed(1)}倍</span>`
         : `<span class="pp-synth">合成—</span>`;
       return `<div class="pr-row">${carChip(rd.car)}`
-        +`<span class="pr-name"><span class="nm">${esc(rd.name||"")}</span><span class="mt">${legWr}</span>${statLine(rd)}</span>`
-        +`<span class="pr-bar"><span class="pr-fill" style="width:${w}%"></span></span>`
+        +`<span class="pr-name"><span class="nm">${esc(rd.name||"")}</span>${riderStats(rd)}</span>`
+        +`<span class="pr-bar" title="1着確率（トップ車比）"><span class="pr-fill" style="width:${w}%"></span></span>`
         +`<span class="pr-pct"><span class="pp-win">${pct1(rd.win_prob)}</span>${synthLine}</span></div>`;
     }
 
