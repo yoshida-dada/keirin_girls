@@ -25,9 +25,24 @@ from src.collect.gamboo_schedule import (
 )
 from predict_race import predict_race_dict
 from build_predictions import _venue_map
+from src.collect.snapshot import build_race_id
+from db.repository import SnapshotRepo
 
 DEFAULT_OUT = ROOT / "dashboard" / "data.json"
+SNAPSHOT_DB = ROOT / "data" / "odds_snapshots.sqlite"   # オッズ時系列(haircut/変動特徴の土台)
 JST = timezone(timedelta(hours=9))
+
+
+def _store_snapshot(repo, race_id: str, race: dict, now: datetime) -> None:
+    """予測レースdictの combos から確定前オッズを取り出し、取得時刻付きで時系列保存する。"""
+    if repo is None:
+        return
+    odds = {(c[0], c[1], c[2]): c[3] for c in race.get("combos", []) if c[3] is not None}
+    if odds:
+        try:
+            repo.save_snapshot(race_id, odds, now)
+        except Exception:
+            pass
 
 
 def _minutes_to_deadline(deadline: str, now: datetime) -> float | None:
@@ -51,6 +66,10 @@ def main() -> None:
     doc = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {}
     now = datetime.now(JST)
     target = now.date()
+    try:
+        snap_repo = SnapshotRepo(SNAPSHOT_DB)     # オッズ時系列を蓄積（haircut/変動特徴の土台）
+    except Exception:
+        snap_repo = None
 
     res = fetch(build_kaisai_list_url(target.year, target.month, target.day))
     kaisai_list = [k for k in parse_kaisai_list(res.text)
@@ -80,6 +99,7 @@ def main() -> None:
                 mins = _minutes_to_deadline(d.get("deadline", ""), now)
                 if mins is None or mins < -5 or mins > args.only_near:
                     continue
+            _store_snapshot(snap_repo, build_race_id(k.kaisai_day_code, rno), d, now)
             races.append(d)
 
     if args.only_near is not None and doc.get("predictions", {}).get("races"):

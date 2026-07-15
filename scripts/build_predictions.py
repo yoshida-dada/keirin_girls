@@ -140,6 +140,8 @@ def main() -> None:
     doc.update(build_model_sections(db_path))    # race_type_dist / calibration を実データ化
     from verify_predictions import build_accuracy_section
     doc["prediction_accuracy"] = build_accuracy_section(db_path)   # D13: 予測実績
+    from accuracy_history import build_accuracy_history
+    doc["accuracy_history"] = build_accuracy_history(db_path)      # D13時系列: 週次推移
     if args.predict:
         target = date.fromisoformat(args.date) if args.date else date.today()
         print(f"{target} のガールズ予測を生成中…")
