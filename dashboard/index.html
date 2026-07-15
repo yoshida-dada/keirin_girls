@@ -348,8 +348,13 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 .rh-tools{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap}
 .rh-tools .vtoggle{margin-left:0}
 .rh-count{font-size:.68rem;color:var(--muted);font-weight:700;margin-left:auto}
-table.t.rh-t{min-width:640px}
+.rh-sel{background:var(--surface);border:1px solid var(--border);color:var(--ink);border-radius:9px;padding:6px 9px;font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
+table.t.rh-t{min-width:520px}
 table.t.rh-t td{vertical-align:top}
+.rh-meta{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+.rh-date{font-size:.66rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.rh-ven{font-weight:800;font-size:.8rem}
+.rh-fm{color:var(--muted);font-size:.66rem;font-weight:700;margin-top:2px}
 .rh-r{color:var(--muted);font-weight:800;margin-left:5px}
 .rh-fin{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .rh-leg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
@@ -431,7 +436,7 @@ table.t.rh-t td{vertical-align:top}
 
   <div id="tab-results" class="tabpane" role="tabpanel" hidden>
     <!-- 成績（過去1ヶ月の開催結果） -->
-    <div class="secthead"><span class="sect" id="rhTitle">成績（過去1ヶ月の開催結果）</span></div>
+    <div class="secthead"><span class="sect" id="rhTitle">成績（過去半年の開催結果）</span></div>
     <div class="sub" id="rhSub"></div>
     <div id="rhBody"></div>
   </div><!-- /tab-results -->
@@ -1204,13 +1209,13 @@ function boot(DB){
   // ---------- (d3) results history (成績: 過去1ヶ月の開催結果) ----------
   (function(){
     const RH = DB.results_history||{};
-    document.getElementById("rhTitle").innerHTML = "成績（過去1ヶ月の開催結果）"+badge(RH.status);
+    document.getElementById("rhTitle").innerHTML = "成績（過去半年の開催結果）"+badge(RH.status);
     const races = RH.races||[];
     document.getElementById("rhSub").textContent =
       (RH.period?`期間 ${esc(RH.period)}　`:"") + (RH.n_races!=null?`${(+RH.n_races).toLocaleString()}レース`:"");
     const host = document.getElementById("rhBody");
     if(!isShown(RH.status) || !races.length){
-      host.innerHTML = emptyBox("成績はまだ集計されていません。過去約1ヶ月の各レースについて、モデルの印(◎○▲△×)・決着印順・決着三連単のモデル確率順位・払戻がここに表示されます。");
+      host.innerHTML = emptyBox("成績はまだ集計されていません。過去約半年の各レースについて、モデルの印(◎○▲△×)・決着印順・決着三連単のモデル確率順位・払戻がここに表示されます。");
       return;
     }
     // 車番→競走服の色（1白2黒3赤4青5黄6緑7橙8桃9紫）
@@ -1223,8 +1228,10 @@ function boot(DB){
       return `<span class="carno" style="background:${c[0]};color:${c[1]}">${esc(n)}</span>`; };
 
     const STEP = 50;
-    let filter = "all";        // all|軸堅|標準|混戦
+    let fType = "all", fVenue = "all", fMonth = "all";   // レースタイプ / 会場 / 月
     let shown = STEP;
+    const venues = [...new Set(races.map(r=>r.venue).filter(Boolean))].sort();
+    const months = [...new Set(races.map(r=>String(r.date||"").slice(0,7)).filter(Boolean))].sort().reverse();
 
     const finishCell = fin => `<div class="rh-fin">`
       + (fin||[]).map((f,i)=>`<span class="rh-leg${i===0?" top":""}">`
@@ -1239,14 +1246,21 @@ function boot(DB){
     const payCell = p => p==null ? "—"
       : `<span class="${p>=10000?"rh-big":""}">¥${(+p).toLocaleString()}</span>`;
 
+    // 開催（日付・会場R・タイプ）を縦3段で1セルに
+    const meta = r => `<div class="rh-meta">`
+      +`<span class="rh-date">${esc(r.date||"—")}</span>`
+      +`<span class="rh-ven">${esc(r.venue||"—")}<span class="rh-r">R${r.race_no!=null?r.race_no:"—"}</span></span>`
+      +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span></div>`;
+
     function render(){
-      const list = filter==="all" ? races : races.filter(r=>r.race_type===filter);
+      const list = races.filter(r =>
+        (fType==="all" || r.race_type===fType) &&
+        (fVenue==="all" || r.venue===fVenue) &&
+        (fMonth==="all" || String(r.date||"").slice(0,7)===fMonth));
       const slice = list.slice(0, shown);
       const rows = slice.map(r=>`<tr>`
-        +`<td class="l num">${esc(r.date||"—")}</td>`
-        +`<td class="l">${esc(r.venue||"—")}<span class="rh-r">R${r.race_no!=null?r.race_no:"—"}</span></td>`
-        +`<td class="l"><span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span></td>`
-        +`<td class="l">${finishCell(r.finish)}${r.finish_marks?` <span style="color:var(--muted);font-size:.72rem;font-weight:700">(${esc(r.finish_marks)})</span>`:""}</td>`
+        +`<td class="l">${meta(r)}</td>`
+        +`<td class="l">${finishCell(r.finish)}${r.finish_marks?`<div class="rh-fm">(${esc(r.finish_marks)})</div>`:""}</td>`
         +`<td class="combo">${esc(r.win_combo||"—")}</td>`
         +`<td>${rankCell(r.tri_rank)}</td>`
         +`<td>${payCell(r.payout)}</td>`
@@ -1256,19 +1270,28 @@ function boot(DB){
       const more = rest>0
         ? `<div class="rh-morewrap"><button class="rh-more" type="button">もっと見る（残り ${rest.toLocaleString()}）</button></div>`
         : "";
+      const venOpts = `<option value="all">全会場</option>`
+        + venues.map(v=>`<option value="${esc(v)}"${v===fVenue?" selected":""}>${esc(v)}</option>`).join("");
+      const monOpts = `<option value="all">全期間</option>`
+        + months.map(m=>`<option value="${esc(m)}"${m===fMonth?" selected":""}>${esc(m)}</option>`).join("");
       host.innerHTML =
         `<div class="rh-tools"><div class="vtoggle" id="rhFilter">`
-        + ["all","軸堅","標準","混戦"].map(t=>`<button data-f="${t}" aria-pressed="${t===filter?"true":"false"}">${t==="all"?"全":t}</button>`).join("")
-        + `</div><span class="rh-count">${list.length.toLocaleString()}レース</span></div>`
+        + ["all","軸堅","標準","混戦"].map(t=>`<button data-f="${t}" aria-pressed="${t===fType?"true":"false"}">${t==="all"?"全":t}</button>`).join("")
+        + `</div><select id="rhVenue" class="rh-sel" aria-label="会場で絞り込み">${venOpts}</select>`
+        + `<select id="rhMonth" class="rh-sel" aria-label="月で絞り込み">${monOpts}</select>`
+        + `<span class="rh-count">${list.length.toLocaleString()}レース</span></div>`
         + `<div class="tblwrap"><table class="t rh-t"><thead><tr>`
-        + `<th class="l">日付</th><th class="l">会場R</th><th class="l">タイプ</th>`
-        + `<th class="l">決着（印順）</th><th>三連単</th><th>モデル予測順位</th><th>払戻</th><th>人気</th>`
+        + `<th class="l">開催</th><th class="l">決着（印順）</th><th>三連単</th><th>モデル予測順位</th><th>払戻</th><th>人気</th>`
         + `</tr></thead><tbody>${rows}</tbody></table></div>`
         + more
         + `<div class="note">印＝モデルの1着確率順（◎1位 ○2位 ▲3位 △4位 ×5位 −6位以降）。決着（印順）＝実際の1→2→3着の車と、その車に付いていた印。モデル予測順位＝決着した三連単がモデルの三連単確率（全210通り）で何位か。10位以内は<b style="color:var(--good)">強調</b>、210通りに現れなかった着順は「圏外」。買い目推奨ではありません。</div>`;
       const fl = document.getElementById("rhFilter");
       if(fl) fl.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return;
-        filter=b.dataset.f; shown=STEP; render(); });
+        fType=b.dataset.f; shown=STEP; render(); });
+      const vs = document.getElementById("rhVenue");
+      if(vs) vs.addEventListener("change", ()=>{ fVenue=vs.value; shown=STEP; render(); });
+      const ms = document.getElementById("rhMonth");
+      if(ms) ms.addEventListener("change", ()=>{ fMonth=ms.value; shown=STEP; render(); });
       const mb = host.querySelector(".rh-more");
       if(mb) mb.addEventListener("click", ()=>{ shown+=STEP; render(); });
     }
