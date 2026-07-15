@@ -16,8 +16,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from config.settings import DATA_DIR, EV_THRESHOLDS, EV_GUARD
-from src.model.training_data import load_samples
-from src.model.train_pl import train_pl
+from src.model.training_data import load_samples, PL_FEATURES_FULL
+from src.model.train_gbdt import train_gbdt
+from src.model.feature_augment import augment_samples
+from src.features.tactics_features import TACTIC_NAMES
 from src.model.evaluate import time_split
 from src.backtest.bucket_analysis import build_records, bucket_roi, odds_bucket_roi
 
@@ -31,12 +33,15 @@ def main() -> None:
     ap.add_argument("--haircut", type=float, default=1.0, help="オッズhaircut係数(暫定1.0)")
     args = ap.parse_args()
 
-    samples = load_samples(args.db)
+    # 本番と同じ31特徴(拡張20+rel_elo+展開10)を as-of 付与し、train期間のみで lambdarank を学習
+    base = load_samples(args.db, features=PL_FEATURES_FULL)
+    feats31 = list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES)
+    samples = augment_samples(base, args.db, feats31)
     train, test = time_split(samples, args.test_frac)
-    print(f"サンプル {len(samples)}（train {len(train)} / test {len(test)}）")
+    print(f"サンプル {len(samples)}（train {len(train)} / test {len(test)}） 特徴{len(samples[0].feature_names)}列")
     print(f"検証期間: {test[0].date} 〜 {test[-1].date}\n")
 
-    model = train_pl(train)
+    model = train_gbdt(train)                        # 検証期間は out-of-sample（リーク無し）
     test_ids = [s.race_id for s in test]
     records = build_records(args.db, model, test_ids, haircut=args.haircut)
     print(f"検証買い目レコード: {len(records)}（{len(test_ids)}レース × 各210点）\n")
