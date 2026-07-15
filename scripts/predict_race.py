@@ -71,7 +71,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     model = load_model()
     elo_state = load_elo_state() if "rel_elo" in (model.feature_names or []) else None
     strengths = strengths_from_model(model, entries, recent, elo_state)
-    source = "学習済みモデル(拡張+Elo)" if elo_state is not None else "学習済みモデル(拡張20特徴)"
+    _mtype = "LightGBM" if type(model).__name__ == "GBDTModel" else "PL線形"
+    source = (f"学習済みモデル({_mtype}+Elo)" if elo_state is not None
+              else f"学習済みモデル({_mtype}拡張20特徴)")
     if not strengths:
         from src.model.strength import strengths_from_entries
         strengths = strengths_from_entries(entries)

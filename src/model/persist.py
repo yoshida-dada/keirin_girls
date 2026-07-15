@@ -35,18 +35,38 @@ def load_elo_state(path: str | Path = DEFAULT_ELO_STATE_PATH) -> dict:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 
-def save_model(model: PLModel, path: str | Path = DEFAULT_MODEL_PATH) -> Path:
+def save_model(model, path: str | Path = DEFAULT_MODEL_PATH) -> Path:
+    """PL線形 / LightGBM(lambdarank) いずれのモデルも保存する（kindで判別）。
+
+    両者とも .strengths(X, car_numbers) を実装し推論経路(strengths_from_model)は共通。
+    LightGBMは booster を文字列化して可搬・pickle安全に保存する。
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    if type(model).__name__ == "GBDTModel":       # lightgbm を必須化しないため型名で判定
+        payload = {"kind": "gbdt", "booster_str": model.booster.model_to_string(),
+                   "mean": model.mean, "std": model.std,
+                   "feature_names": model.feature_names,
+                   "standardize_x": getattr(model, "standardize_x", True)}
+    else:
+        payload = {"kind": "pl", "weights": model.weights, "mean": model.mean,
+                   "std": model.std, "feature_names": model.feature_names, "features": PL_FEATURES}
     with open(path, "wb") as f:
-        pickle.dump({"weights": model.weights, "mean": model.mean, "std": model.std,
-                     "feature_names": model.feature_names, "features": PL_FEATURES}, f)
+        pickle.dump(payload, f)
     return path
 
 
-def load_model(path: str | Path = DEFAULT_MODEL_PATH) -> PLModel:
+def load_model(path: str | Path = DEFAULT_MODEL_PATH):
+    """保存済みモデルを読む。kind=="gbdt" は GBDTModel、それ以外は PLModel（後方互換）。"""
     with open(path, "rb") as f:
         d = pickle.load(f)
+    if d.get("kind") == "gbdt":
+        import lightgbm as lgb
+        from src.model.train_gbdt import GBDTModel
+        booster = lgb.Booster(model_str=d["booster_str"])
+        return GBDTModel(booster=booster, mean=d["mean"], std=d["std"],
+                         feature_names=d["feature_names"],
+                         standardize_x=d.get("standardize_x", True))
     return PLModel(weights=d["weights"], mean=d["mean"], std=d["std"],
                    feature_names=d["feature_names"])
 
