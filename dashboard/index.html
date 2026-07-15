@@ -337,6 +337,28 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 
 .foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
 .foot b{color:var(--ink)}
+
+/* 成績（過去1ヶ月の開催結果） */
+.rh-tools{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap}
+.rh-tools .vtoggle{margin-left:0}
+.rh-count{font-size:.68rem;color:var(--muted);font-weight:700;margin-left:auto}
+table.t.rh-t{min-width:640px}
+table.t.rh-t td{vertical-align:middle}
+.rh-r{color:var(--muted);font-weight:800;margin-left:5px}
+.rh-fin{display:flex;align-items:center;gap:12px;white-space:nowrap}
+.rh-leg{display:inline-flex;align-items:center;gap:5px}
+.rh-mk{font-size:.9rem;font-weight:800;color:var(--muted);width:1.1em;text-align:center;font-variant-numeric:tabular-nums}
+.rh-mk.win{font-size:1.15rem;color:var(--accent)}
+.rh-nm{font-weight:700;font-size:.78rem}
+.rh-leg.top .rh-nm{font-weight:800}
+.rh-rank{font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+.rh-rank.hit{color:var(--good)}
+.rh-rank.out{color:var(--muted);font-weight:700;opacity:.8}
+.rh-big{color:var(--loss);font-weight:800}
+.rh-morewrap{text-align:center;margin-top:10px}
+.rh-more{background:var(--surface);border:1px solid var(--border);color:var(--accent);font-family:inherit;
+  font-size:.74rem;font-weight:800;padding:8px 18px;border-radius:9px;cursor:pointer;box-shadow:var(--shadow)}
+.rh-more:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 
 <header>
@@ -382,6 +404,11 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
   <div class="secthead"><span class="sect" id="accTitle">予測実績（検証期間）</span></div>
   <div class="sub" id="accSub"></div>
   <div id="accBody"></div>
+
+  <!-- (d3) 成績（過去1ヶ月の開催結果） -->
+  <div class="secthead"><span class="sect" id="rhTitle">成績（過去1ヶ月の開催結果）</span></div>
+  <div class="sub" id="rhSub"></div>
+  <div id="rhBody"></div>
 
   <!-- (e) 全体累積ROI推移 -->
   <div class="secthead"><span class="sect" id="pnlTitle">全体 累積ROI 推移</span></div>
@@ -1156,6 +1183,79 @@ function boot(DB){
       +`<div class="tblwrap" style="margin-top:8px"><table class="t"><thead><tr><th class="l">三連単の的中（モデル確率順の上位に実着順が入った割合）</th><th>的中率</th></tr></thead><tbody>${tri}</tbody></table></div>`
       +`<div class="note">${esc(A.period||"")}・${(A.n_races||0).toLocaleString()}レース（学習に使っていない直近区間）でモデル予測を実結果と照合した実績。買い目推奨ではありません。</div>`
       +histHtml;
+  })();
+
+  // ---------- (d3) results history (成績: 過去1ヶ月の開催結果) ----------
+  (function(){
+    const RH = DB.results_history||{};
+    document.getElementById("rhTitle").innerHTML = "成績（過去1ヶ月の開催結果）"+badge(RH.status);
+    const races = RH.races||[];
+    document.getElementById("rhSub").textContent =
+      (RH.period?`期間 ${esc(RH.period)}　`:"") + (RH.n_races!=null?`${(+RH.n_races).toLocaleString()}レース`:"");
+    const host = document.getElementById("rhBody");
+    if(!isShown(RH.status) || !races.length){
+      host.innerHTML = emptyBox("成績はまだ集計されていません。過去約1ヶ月の各レースについて、モデルの印(◎○▲△×)・決着印順・決着三連単のモデル確率順位・払戻がここに表示されます。");
+      return;
+    }
+    // 車番→競走服の色（1白2黒3赤4青5黄6緑7橙8桃9紫）
+    const CARCOL = {
+      1:["#ffffff","#111"], 2:["#242424","#fff"], 3:["#e03131","#fff"],
+      4:["#1c7ed6","#fff"], 5:["#f2d600","#111"], 6:["#2f9e44","#fff"],
+      7:["#f76707","#fff"], 8:["#f06595","#fff"], 9:["#7048e8","#fff"]
+    };
+    const carChip = n => { const c=CARCOL[n]||["var(--surface2)","var(--ink)"];
+      return `<span class="carno" style="background:${c[0]};color:${c[1]}">${esc(n)}</span>`; };
+
+    const STEP = 50;
+    let filter = "all";        // all|軸堅|標準|混戦
+    let shown = STEP;
+
+    const finishCell = fin => `<div class="rh-fin">`
+      + (fin||[]).map((f,i)=>`<span class="rh-leg${i===0?" top":""}">`
+          +`<span class="rh-mk${i===0?" win":""}">${esc(f.mark||"−")}</span>`
+          +carChip(f.car)
+          +`<span class="rh-nm">${esc(f.name||"")}</span></span>`).join("")
+      + `</div>`;
+    const rankCell = tr => tr==null
+      ? `<span class="rh-rank out">圏外</span>`
+      : `<span class="rh-rank ${tr<=10?"hit":""}">${tr}位</span>`;
+    const payCell = p => p==null ? "—"
+      : `<span class="${p>=10000?"rh-big":""}">¥${(+p).toLocaleString()}</span>`;
+
+    function render(){
+      const list = filter==="all" ? races : races.filter(r=>r.race_type===filter);
+      const slice = list.slice(0, shown);
+      const rows = slice.map(r=>`<tr>`
+        +`<td class="l num">${esc(r.date||"—")}</td>`
+        +`<td class="l">${esc(r.venue||"—")}<span class="rh-r">R${r.race_no!=null?r.race_no:"—"}</span></td>`
+        +`<td class="l"><span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span></td>`
+        +`<td class="l">${finishCell(r.finish)}${r.finish_marks?` <span style="color:var(--muted);font-size:.72rem;font-weight:700">(${esc(r.finish_marks)})</span>`:""}</td>`
+        +`<td class="combo">${esc(r.win_combo||"—")}</td>`
+        +`<td>${rankCell(r.tri_rank)}</td>`
+        +`<td>${payCell(r.payout)}</td>`
+        +`<td>${r.popularity!=null?esc(r.popularity)+"番人気":"—"}</td>`
+        +`</tr>`).join("");
+      const rest = list.length - slice.length;
+      const more = rest>0
+        ? `<div class="rh-morewrap"><button class="rh-more" type="button">もっと見る（残り ${rest.toLocaleString()}）</button></div>`
+        : "";
+      host.innerHTML =
+        `<div class="rh-tools"><div class="vtoggle" id="rhFilter">`
+        + ["all","軸堅","標準","混戦"].map(t=>`<button data-f="${t}" aria-pressed="${t===filter?"true":"false"}">${t==="all"?"全":t}</button>`).join("")
+        + `</div><span class="rh-count">${list.length.toLocaleString()}レース</span></div>`
+        + `<div class="tblwrap"><table class="t rh-t"><thead><tr>`
+        + `<th class="l">日付</th><th class="l">会場R</th><th class="l">タイプ</th>`
+        + `<th class="l">決着（印順）</th><th>三連単</th><th>モデル予測順位</th><th>払戻</th><th>人気</th>`
+        + `</tr></thead><tbody>${rows}</tbody></table></div>`
+        + more
+        + `<div class="note">印＝モデルの1着確率順（◎1位 ○2位 ▲3位 △4位 ×5位 −6位以降）。決着（印順）＝実際の1→2→3着の車と、その車に付いていた印。モデル予測順位＝決着した三連単がモデルの三連単確率（全210通り）で何位か。10位以内は<b style="color:var(--good)">強調</b>、210通りに現れなかった着順は「圏外」。買い目推奨ではありません。</div>`;
+      const fl = document.getElementById("rhFilter");
+      if(fl) fl.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return;
+        filter=b.dataset.f; shown=STEP; render(); });
+      const mb = host.querySelector(".rh-more");
+      if(mb) mb.addEventListener("click", ()=>{ shown+=STEP; render(); });
+    }
+    render();
   })();
 
   // ---------- (e) cumulative ROI ----------
