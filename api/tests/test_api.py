@@ -192,3 +192,59 @@ def test_predictions_today_pending_when_missing(monkeypatch, tmp_path):
     assert body["status"] == "pending"
     assert body["races"] == []
     assert api_main  # import 参照を保持（未使用警告回避）
+
+
+def test_accuracy_structure():
+    """予測精度: 200 と JSON 構造（status/note、ok のとき期待キーの存在）を検証。"""
+    r = client.get("/accuracy")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["status"] in ("ok", "pending")
+    assert "note" in body
+
+    if body["status"] == "ok":
+        for key in ("period", "n_races", "top1_rate", "top3_rate", "trifecta", "brier"):
+            assert key in body, f"accuracy に {key} がありません"
+        assert isinstance(body["trifecta"], list)
+        if body["trifecta"]:
+            for key in ("topn", "rate"):
+                assert key in body["trifecta"][0], f"trifecta に {key} がありません"
+
+
+def test_accuracy_pending_when_missing(monkeypatch, tmp_path):
+    """data.json が無い場合は status='pending' のプレースホルダを 200 で返す。"""
+    monkeypatch.setenv("KEIRIN_DASHBOARD_DATA", str(tmp_path / "does_not_exist.json"))
+    r = client.get("/accuracy")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["status"] == "pending"
+    assert body["trifecta"] == []
+
+
+def test_predictions_history_structure():
+    """予測精度の週次推移: 200 と JSON 構造（status/note、ok のとき期待キー）を検証。"""
+    r = client.get("/predictions/history")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["status"] in ("ok", "pending")
+    assert "note" in body
+    assert isinstance(body["weeks"], list)
+
+    if body["status"] == "ok":
+        for key in ("period", "n_weeks", "n_races", "weeks"):
+            assert key in body, f"history に {key} がありません"
+        if body["weeks"]:
+            week = body["weeks"][0]
+            for key in ("week_start", "date_from", "date_to", "n_races",
+                        "top1_rate", "top3_rate", "tri10_rate"):
+                assert key in week, f"week に {key} がありません"
+
+
+def test_predictions_history_pending_when_missing(monkeypatch, tmp_path):
+    """data.json が無い場合は status='pending' のプレースホルダを 200 で返す。"""
+    monkeypatch.setenv("KEIRIN_DASHBOARD_DATA", str(tmp_path / "does_not_exist.json"))
+    r = client.get("/predictions/history")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["status"] == "pending"
+    assert body["weeks"] == []

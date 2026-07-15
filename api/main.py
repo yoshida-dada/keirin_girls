@@ -115,12 +115,51 @@ def _dashboard_data_path() -> Path:
     return _bootstrap.PROJECT_ROOT / "dashboard" / "data.json"
 
 
+def _read_dashboard_section(key: str, pending: dict) -> dict:
+    """dashboard/data.json の指定セクションを読み取り専用で返す共通ヘルパー。
+
+    data.json が無い / JSON 破損 / 当該セクションが無い / status!="ok" の場合は
+    渡された pending プレースホルダ（status="pending"）を 200 で返す。
+    """
+    path = _dashboard_data_path()
+    try:
+        with path.open(encoding="utf-8") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return dict(pending)
+
+    section = data.get(key)
+    if not isinstance(section, dict) or section.get("status") != "ok":
+        return dict(pending)
+    return section
+
+
 _PREDICTIONS_PENDING = {
     "status": "pending",
     "date": None,
     "model": None,
     "note": "本日のレース予測はまだ生成されていません（data.json 未生成 or predictions 未収載）。",
     "races": [],
+}
+
+_ACCURACY_PENDING = {
+    "status": "pending",
+    "note": "予測精度はまだ算出されていません（data.json 未生成 or prediction_accuracy 未収載）。",
+    "period": None,
+    "n_races": None,
+    "top1_rate": None,
+    "top3_rate": None,
+    "trifecta": [],
+    "brier": None,
+}
+
+_ACCURACY_HISTORY_PENDING = {
+    "status": "pending",
+    "note": "予測精度の週次推移はまだ算出されていません（data.json 未生成 or accuracy_history 未収載）。",
+    "period": None,
+    "n_weeks": None,
+    "n_races": None,
+    "weeks": [],
 }
 
 
@@ -132,17 +171,27 @@ def predictions_today() -> dict:
     data.json が無い / predictions セクションが無い / status!="ok" の場合は
     status="pending" のプレースホルダを返す（ダッシュボードと同じ契約）。
     """
-    path = _dashboard_data_path()
-    try:
-        with path.open(encoding="utf-8") as f:
-            data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError, OSError):
-        return dict(_PREDICTIONS_PENDING)
+    return _read_dashboard_section("predictions", _PREDICTIONS_PENDING)
 
-    preds = data.get("predictions")
-    if not isinstance(preds, dict) or preds.get("status") != "ok":
-        return dict(_PREDICTIONS_PENDING)
-    return preds
+
+@app.get("/accuracy", summary="予測精度（過去レースでのモデル的中率）")
+def accuracy() -> dict:
+    """dashboard/data.json の prediction_accuracy セクションを読み取り専用で返す。
+
+    検証期間でのモデル的中率（top1/top3・三連単 topn・Brier）。data.json が無い /
+    prediction_accuracy セクションが無い / status!="ok" の場合は status="pending" を返す。
+    """
+    return _read_dashboard_section("prediction_accuracy", _ACCURACY_PENDING)
+
+
+@app.get("/predictions/history", summary="予測精度の週次推移")
+def predictions_history() -> dict:
+    """dashboard/data.json の accuracy_history セクションを読み取り専用で返す。
+
+    週次の的中率推移。data.json が無い / accuracy_history セクションが無い /
+    status!="ok" の場合は status="pending" のプレースホルダを返す。
+    """
+    return _read_dashboard_section("accuracy_history", _ACCURACY_HISTORY_PENDING)
 
 
 @app.post("/predict", response_model=PredictResponse, summary="当日レースの確率・買い目・必要オッズ")

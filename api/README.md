@@ -31,6 +31,10 @@ uvicorn api.main:app --reload
 | GET | `/dataset/status` | 収集状況。`data.json` の `data_status` 相当をSQLiteから実データ集計 |
 | GET | `/buckets` | バケット別ROI/キャリブレーション。現状 `status="pending"`（3タイプ×5オッズ帯=15セル） |
 | GET | `/race-types` | レースタイプ分布。現状 `status="pending"` |
+| GET | `/model/info` | 学習済みモデルの有無・特徴量・重み・既定ソース |
+| GET | `/predictions/today` | 本日のレース予測（着順確率・三連単確率）。`data.json` の `predictions` を読み取り専用で返す。未生成なら `status="pending"` |
+| GET | `/accuracy` | 予測精度（検証期間のモデル的中率 top1/top3・三連単 topn・Brier）。`data.json` の `prediction_accuracy`。未算出なら `status="pending"` |
+| GET | `/predictions/history` | 予測精度の週次推移。`data.json` の `accuracy_history`。未算出なら `status="pending"` |
 | POST | `/predict` | 出走選手リスト（＋任意オッズ）→ レースタイプ・210通り確率上位・必要オッズ・EV |
 
 ### POST /predict
