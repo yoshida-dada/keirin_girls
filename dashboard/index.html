@@ -338,15 +338,22 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 .foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
 .foot b{color:var(--ink)}
 
+/* トップレベルのタブ（予測・分析 / 成績） */
+.toptabs{display:flex;gap:8px;position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 0 8px;margin-bottom:2px}
+.toptab{flex:0 0 auto;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.92rem;font-weight:800;padding:9px 18px;border-radius:11px;cursor:pointer;box-shadow:var(--shadow)}
+.toptab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.toptab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabpane[hidden]{display:none}
 /* 成績（過去1ヶ月の開催結果） */
 .rh-tools{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap}
 .rh-tools .vtoggle{margin-left:0}
 .rh-count{font-size:.68rem;color:var(--muted);font-weight:700;margin-left:auto}
 table.t.rh-t{min-width:640px}
-table.t.rh-t td{vertical-align:middle}
+table.t.rh-t td{vertical-align:top}
 .rh-r{color:var(--muted);font-weight:800;margin-left:5px}
-.rh-fin{display:flex;align-items:center;gap:12px;white-space:nowrap}
-.rh-leg{display:inline-flex;align-items:center;gap:5px}
+.rh-fin{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.rh-leg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.rh-pos{font-size:.58rem;color:var(--muted);font-weight:700;min-width:22px}
 .rh-mk{font-size:.9rem;font-weight:800;color:var(--muted);width:1.1em;text-align:center;font-variant-numeric:tabular-nums}
 .rh-mk.win{font-size:1.15rem;color:var(--accent)}
 .rh-nm{font-weight:700;font-size:.78rem}
@@ -369,6 +376,11 @@ table.t.rh-t td{vertical-align:middle}
 <div class="notice" id="notice"></div>
 
 <div class="wrap">
+  <div class="toptabs" role="tablist" aria-label="表示切替">
+    <button class="toptab" type="button" role="tab" data-tab="main" aria-selected="true" tabindex="0">🏁 予測・分析</button>
+    <button class="toptab" type="button" role="tab" data-tab="results" aria-selected="false" tabindex="-1">📊 成績</button>
+  </div>
+  <div id="tab-main" class="tabpane" role="tabpanel">
   <!-- 本日のレース予測（着順確率・買い目ではない） -->
   <div class="secthead"><span class="sect" id="predTitle">本日のレース予測</span></div>
   <div class="sub" id="predSub"></div>
@@ -405,11 +417,6 @@ table.t.rh-t td{vertical-align:middle}
   <div class="sub" id="accSub"></div>
   <div id="accBody"></div>
 
-  <!-- (d3) 成績（過去1ヶ月の開催結果） -->
-  <div class="secthead"><span class="sect" id="rhTitle">成績（過去1ヶ月の開催結果）</span></div>
-  <div class="sub" id="rhSub"></div>
-  <div id="rhBody"></div>
-
   <!-- (e) 全体累積ROI推移 -->
   <div class="secthead"><span class="sect" id="pnlTitle">全体 累積ROI 推移</span></div>
   <div class="sub" id="pnlSub"></div>
@@ -419,6 +426,15 @@ table.t.rh-t td{vertical-align:middle}
   <div class="secthead"><span class="sect" id="dsTitle">データ収集状況</span></div>
   <div class="sub" id="dsSub"></div>
   <div id="dsBody"></div>
+
+  </div><!-- /tab-main -->
+
+  <div id="tab-results" class="tabpane" role="tabpanel" hidden>
+    <!-- 成績（過去1ヶ月の開催結果） -->
+    <div class="secthead"><span class="sect" id="rhTitle">成績（過去1ヶ月の開催結果）</span></div>
+    <div class="sub" id="rhSub"></div>
+    <div id="rhBody"></div>
+  </div><!-- /tab-results -->
 
   <div class="foot" id="foot"></div>
 </div>
@@ -1212,6 +1228,7 @@ function boot(DB){
 
     const finishCell = fin => `<div class="rh-fin">`
       + (fin||[]).map((f,i)=>`<span class="rh-leg${i===0?" top":""}">`
+          +`<span class="rh-pos">${i+1}着</span>`
           +`<span class="rh-mk${i===0?" win":""}">${esc(f.mark||"−")}</span>`
           +carChip(f.car)
           +`<span class="rh-nm">${esc(f.name||"")}</span></span>`).join("")
@@ -1339,6 +1356,27 @@ function boot(DB){
       document.documentElement.setAttribute("data-theme",next);
       localStorage.setItem(KEY,next);
     }
+  });
+})();
+
+// ---- トップレベルタブ（予測・分析 / 成績）の切替（静的DOM・データ非依存） ----
+(function(){
+  const tabs=[...document.querySelectorAll(".toptab")];
+  const panes={main:document.getElementById("tab-main"), results:document.getElementById("tab-results")};
+  function select(name){
+    tabs.forEach(t=>{ const on=t.dataset.tab===name;
+      t.setAttribute("aria-selected", on?"true":"false"); t.tabIndex=on?0:-1; });
+    Object.keys(panes).forEach(k=>{ if(panes[k]) panes[k].hidden = (k!==name); });
+    window.scrollTo(0,0);
+  }
+  tabs.forEach((t,i)=>{
+    t.addEventListener("click",()=>select(t.dataset.tab));
+    t.addEventListener("keydown",e=>{
+      let ni=null;
+      if(e.key==="ArrowRight") ni=(i+1)%tabs.length;
+      else if(e.key==="ArrowLeft") ni=(i-1+tabs.length)%tabs.length;
+      if(ni!=null){ e.preventDefault(); select(tabs[ni].dataset.tab); tabs[ni].focus(); }
+    });
   });
 })();
 
