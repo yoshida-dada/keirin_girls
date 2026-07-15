@@ -74,15 +74,54 @@ def _fill_race(raw: list[float | None]) -> list[float]:
     return [v if v is not None else m for v in raw]
 
 
+def dynamics_for_cars(cars: list[int], t_list: list[dict]) -> dict[int, dict]:
+    """1レースの出走者（cars と、その並び順の rider_tactics 値 t_list）から展開特徴を作る純関数。
+
+    学習(compute_pre_race_dynamics)と推論(predict時の単一レース)で**同一ロジック**を共有し、
+    train/inference skew を防ぐ。返すキーの定義はモジュール docstring を参照。
+    """
+    lead = _fill_race([x.get("lead_index") for x in t_list])
+    sik = _fill_race([x.get("sikake") for x in t_list])
+    lap = _fill_race([x.get("avg_last_lap") for x in t_list])
+    surv = _fill_race([x.get("escape_survival") for x in t_list])   # 実質常に present
+
+    lead_mean = _mean(lead)
+    sik_mean = _mean(sik)
+    lap_mean = _mean(lap)
+
+    srt = sorted(lead, reverse=True)
+    lead_contest = (srt[0] - srt[1]) if len(srt) >= 2 else 0.0
+    pace_mean = sik_mean
+    pace_max = max(sik) if sik else 0.0
+    pace_std = _std(sik)
+    pace_n600 = float(sum(1 for v in sik if v >= _SIKAKE_FRONT))
+
+    out: dict[int, dict] = {}
+    for i, c in enumerate(cars):
+        others = [lead[j] for j in range(len(cars)) if j != i]
+        max_other = max(others) if others else 0.0
+        threat = min(1.0, max(0.0, max_other))       # 攻撃力[~0,1.3]を[0,1]にクランプ
+        escape_success = surv[i] * (1.0 - threat)
+        out[c] = {
+            "lead_margin": lead[i] - max_other,
+            "leadidx_rel": lead[i] - lead_mean,
+            "sikake_rel": sik[i] - sik_mean,
+            "escape_success": escape_success,
+            "last_lap_rel": lap[i] - lap_mean,
+            "lead_contest": lead_contest,
+            "pace_mean": pace_mean, "pace_max": pace_max,
+            "pace_n600": pace_n600, "pace_std": pace_std,
+            "escape_survival": surv[i],
+        }
+    return out
+
+
 def compute_pre_race_dynamics(db_path: str | Path) -> dict[tuple[str, int], dict]:
     """各エントリ (race_id, car_number) の発走前(as-of)レース展開特徴を返す。
 
-    rider_tactics.compute_pre_race_tactics を出走者集合ごとにレース内相対化/交互作用する。
-    返すキーの定義はモジュール docstring を参照。
+    rider_tactics.compute_pre_race_tactics を出走者集合ごとに dynamics_for_cars で相対化する。
     """
     tactics = compute_pre_race_tactics(db_path)
-
-    # race_id ごとに (car, tactics) をまとめる
     by_race: dict[str, list[int]] = defaultdict(list)
     for (rid, car) in tactics:
         by_race[rid].append(car)
@@ -90,53 +129,9 @@ def compute_pre_race_dynamics(db_path: str | Path) -> dict[tuple[str, int], dict
     out: dict[tuple[str, int], dict] = {}
     for rid, cars in by_race.items():
         cars = sorted(cars)
-        t = [tactics[(rid, c)] for c in cars]
-
-        lead = _fill_race([x.get("lead_index") for x in t])
-        sik = _fill_race([x.get("sikake") for x in t])
-        lap = _fill_race([x.get("avg_last_lap") for x in t])
-        surv = _fill_race([x.get("escape_survival") for x in t])   # 実質常に present
-
-        lead_mean = _mean(lead)
-        sik_mean = _mean(sik)
-        lap_mean = _mean(lap)
-
-        # 主導権争い指数（レース定数）: 首位 − 2番手 の lead_index
-        srt = sorted(lead, reverse=True)
-        lead_contest = (srt[0] - srt[1]) if len(srt) >= 2 else 0.0
-
-        # 想定ペース（レース定数）
-        pace_mean = sik_mean
-        pace_max = max(sik) if sik else 0.0
-        pace_std = _std(sik)
-        pace_n600 = float(sum(1 for v in sik if v >= _SIKAKE_FRONT))
-
-        for i, c in enumerate(cars):
-            # 他車の最大攻撃力（lead_index）= 先頭を脅かす最強のライバル
-            others = [lead[j] for j in range(len(cars)) if j != i]
-            max_other = max(others) if others else 0.0
-
-            # 逃げ成功確率(flagship): 逃げ残率 × (1 − 他車の最大攻撃力)。
-            # 攻撃力(lead_index)は概ね[0,1.3]なので [0,1] にクランプして割引率とする。
-            threat = min(1.0, max(0.0, max_other))
-            escape_success = surv[i] * (1.0 - threat)
-
-            out[(rid, c)] = {
-                # ★レース内変動（ランキングモデルに効く相対量・交互作用）
-                "lead_margin": lead[i] - max_other,
-                "leadidx_rel": lead[i] - lead_mean,
-                "sikake_rel": sik[i] - sik_mean,
-                "escape_success": escape_success,
-                "last_lap_rel": lap[i] - lap_mean,
-                # 【レース定数】解釈用（group内ランキングには寄与しない）
-                "lead_contest": lead_contest,
-                "pace_mean": pace_mean,
-                "pace_max": pace_max,
-                "pace_n600": pace_n600,
-                "pace_std": pace_std,
-                # 絶対値の素通し（診断用）
-                "escape_survival": surv[i],
-            }
+        per_car = dynamics_for_cars(cars, [tactics[(rid, c)] for c in cars])
+        for c, d in per_car.items():
+            out[(rid, c)] = d
     return out
 
 

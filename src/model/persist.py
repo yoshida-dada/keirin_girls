@@ -73,11 +73,13 @@ def load_model(path: str | Path = DEFAULT_MODEL_PATH):
 
 def strengths_from_model(model: PLModel, entries: list[Entry],
                          recent: dict | None = None,
-                         elo_state: dict | None = None) -> dict[int, float]:
+                         elo_state: dict | None = None,
+                         tactics_ctx: dict | None = None) -> dict[int, float]:
     """出走選手 → {車番: 1着確率}(Σ=1)。特徴量を組み立てて学習済みモデルで推論する。
 
     モデルの学習特徴（model.feature_names）に追従。拡張モデルは直近4ヶ月(recent)を、
-    Elo付きモデルは elo_state({氏名: Elo}) を必要とする。特徴量が揃わなければ {} を返す。
+    Elo付きモデルは elo_state({氏名: Elo}) を、展開特徴付きモデルは tactics_ctx（current_tactics
+    の氏名別 as-of history）を必要とする。特徴量が揃わなければ {} を返す。
     """
     import pandas as pd
     feats = model.feature_names or PL_FEATURES
@@ -87,6 +89,14 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         state = elo_state or {}
         elos = pd.Series({e.car_number: state.get(e.rider_name, DEFAULT_ELO) for e in entries})
         df["rel_elo"] = elos - elos.mean()
+    from src.features.tactics_features import TACTIC_NAMES
+    if any(n in feats for n in TACTIC_NAMES):   # 展開特徴付きモデル: 10列を推論と同一関数で付与
+        from src.features.rider_tactics import tactics_for_entries
+        from src.features.tactics_features import tactic_columns
+        tac = tactics_for_entries(entries, recent or {}, tactics_ctx or {})
+        cols = tactic_columns(list(df.index), tac)          # {car: [A(6)...B(4)]}
+        for i, name in enumerate(TACTIC_NAMES):
+            df[name] = [cols[c][i] for c in df.index]
     if df[feats].isna().any().any():
         return {}
     cars = list(df.index)
