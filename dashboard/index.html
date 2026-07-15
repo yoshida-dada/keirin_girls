@@ -159,8 +159,18 @@ table.rt td.strong{color:var(--ink);font-size:.84rem}
 table.rt td s{color:var(--muted);text-decoration:none;font-size:.82em;font-weight:700;margin-left:2px}
 table.rt th.rt-car,table.rt td.rt-car{position:sticky;left:0;z-index:2;width:30px;min-width:30px;text-align:center;padding-left:4px;padding-right:4px;background:var(--surface)}
 table.rt th.rt-car{z-index:3;background:var(--surface2)}
-table.rt th.rt-name,table.rt td.rt-name{position:sticky;left:30px;z-index:2;background:var(--surface);font-weight:800;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+table.rt th.rt-name,table.rt td.rt-name{position:sticky;left:30px;z-index:2;background:var(--surface);font-weight:800;vertical-align:top}
+table.rt td.rt-name{padding-top:6px}
 table.rt th.rt-name{z-index:3;background:var(--surface2)}
+/* 出走表に統合した今場所成績（選手名の下） */
+.rt .rn-nm{display:block;white-space:nowrap;font-weight:800}
+.rt .rn-meet{display:flex;gap:5px;align-items:baseline;margin-top:2px;font-size:.6rem;font-weight:700;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rt .rn-meet .rn-md{color:var(--muted)}
+.rt .rn-meet .rn-mr{color:var(--muted)}
+.rt .rn-meet .rn-mp{color:var(--ink);font-weight:800}
+.rt .rn-meet .rn-mp.p1{color:#e03131}
+.rt .rn-meet .rn-mp.p3{color:var(--accent)}
+.rt .rn-meet .rn-ml{color:var(--muted)}
 table.rt tr.rt-top td{background:var(--accent-soft)}
 table.rt tr.rt-top td.rt-car,table.rt tr.rt-top td.rt-name{background:var(--accent-soft)}
 /* 今場所成績（選手ごと複数行） */
@@ -239,6 +249,16 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .pred-ev-head .more{font-size:.6rem;color:var(--muted);font-weight:700}
 .pred-ev-none{font-size:.74rem;font-weight:700;color:var(--muted)}
 .pred-ev .tblwrap{margin-top:8px}
+/* EV買い目: 全買いサマリ・1着車タブ・車頭別サマリ */
+.ev-allsum{margin-top:8px;background:var(--surface);border:1px solid var(--edge);border-radius:9px;padding:7px 10px;font-size:.72rem;font-weight:700;color:var(--ink);line-height:1.5}
+.ev-allsum b{color:var(--edge);font-variant-numeric:tabular-nums}
+.ev-sel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+.ev-tab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 6px 3px 3px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;line-height:1}
+.ev-tab[aria-selected="true"]{border-color:var(--edge);box-shadow:0 0 0 2px var(--edge-soft)}
+.ev-tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ev-tab .ev-tc{font-size:.6rem;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.ev-subsum{font-size:.7rem;font-weight:700;color:var(--ink);margin:2px 0 4px}
+.ev-subsum b{color:var(--edge);font-variant-numeric:tabular-nums}
 .pred-ev-note{font-size:.64rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.5}
 /* predictions: 三連単オッズテーブル（1着固定マトリクス） */
 .om{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
@@ -479,38 +499,25 @@ function boot(DB){
         + cols.map(c=>`<th class="${c.cls}">${c.th}</th>`).join("");
       const body = (r.riders||[]).map((rd,i)=>{
         const tds = cols.map(c=>`<td class="${c.cls}">${c.get(rd)}</td>`).join("");
+        // 今場所成績を選手名の下に統合（新しい開催日から順に、初日を除く最大日数分）
+        const meet = (rd.meet||[]).slice().reverse();
+        const meetHtml = meet.map(m=>{
+          const pos=m[2], pcls = pos===1?" p1":(pos!=null&&pos<=3?" p3":"");
+          return `<span class="rn-meet"><span class="rn-md">${fmtMD(m[0])}</span>`
+            +`<span class="rn-mr">${m[1]!=null?m[1]+"R":""}</span>`
+            +`<span class="rn-mp${pcls}">${pos!=null?pos+"着":"—"}</span>`
+            +(m[3]!=null?`<span class="rn-ml">上${(+m[3]).toFixed(1)}</span>`:"")+`</span>`;
+        }).join("");
         return `<tr${i===0?' class="rt-top"':''}>`
           +`<td class="rt-car">${carChip(rd.car)}</td>`
-          +`<td class="rt-name l">${esc(rd.name||"")}</td>${tds}</tr>`;
+          +`<td class="rt-name l"><span class="rn-nm">${esc(rd.name||"")}</span>${meetHtml}</td>${tds}</tr>`;
       }).join("");
       return `<div class="tblwrap rt-wrap"><table class="rt"><thead><tr>${head}</tr></thead>`
         +`<tbody>${body}</tbody></table></div>`;
     }
 
-    // 今場所成績（2日目以降）: 当該開催の前日までの各走を 日付/R/着順/上り で選手ごと複数行表示。
+    // 今場所成績は出走表(riderTable)の選手名の下に統合表示（imsBlockは廃止）。
     const fmtMD = d => { const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||""); return m?`${+m[1]}/${+m[2]}`:esc(d||""); };
-    function imsBlock(r){
-      const any = (r.riders||[]).some(rd=>(rd.meet||[]).length);
-      if(!any) return "";                                   // 初日は今場所成績が無いので非表示
-      const body = (r.riders||[]).map(rd=>{
-        const lines = (rd.meet||[]).map(m=>{
-          const pos=m[2], lap=m[3];
-          const pcls = pos===1?" p1":(pos!=null&&pos<=3?" p3":"");
-          return `<span class="ims-line">`
-            +`<span class="ims-d">${fmtMD(m[0])}</span>`
-            +`<span class="ims-r">${m[1]!=null?m[1]+"R":""}</span>`
-            +`<span class="ims-p${pcls}">${pos!=null?pos+"着":"—"}</span>`
-            +`<span class="ims-l">${lap!=null?"上"+(+lap).toFixed(1):""}</span></span>`;
-        }).join("");
-        return `<tr><td class="rt-car">${carChip(rd.car)}</td>`
-          +`<td class="rt-name l">${esc(rd.name||"")}</td>`
-          +`<td class="ims-cell l">${lines||'<span class="ims-none">出走なし</span>'}</td></tr>`;
-      }).join("");
-      return `<div class="ims"><div class="ims-head">📋 今場所成績 <span class="ims-sub">当該開催・前日まで（日付/R/着順/上り）</span></div>`
-        +`<div class="tblwrap"><table class="rt ims-t"><thead><tr>`
-        +`<th class="rt-car">車</th><th class="rt-name l">選手</th><th class="l">今場所の各走</th>`
-        +`</tr></thead><tbody>${body}</tbody></table></div></div>`;
-    }
 
     // 確定結果（発走後に取得）: 着順・上り・決まり手・払戻＋予測的中を表示。
     function resultBlock(r){
@@ -576,30 +583,56 @@ function boot(DB){
         +`<div class="h2h-names">${names}</div></div></details>`;
     }
 
-    // EV判定（最新オッズ×モデルの参考値。推奨買い目ではない）
-    function evBlock(ev){
-      if(!ev) return "";
-      const note = ev.note ? `<div class="pred-ev-note">⚠ ${esc(ev.note)}</div>` : "";
-      if(ev.status==="no_odds"){
-        return `<div class="pred-ev"><div class="pred-ev-none">オッズ未発売</div>${note}</div>`;
-      }
-      const thr = ev.threshold!=null ? ev.threshold.toFixed(2) : "1.10";
-      const buys = ev.buys||[];
-      if(!ev.n_buy || !buys.length){
-        return `<div class="pred-ev"><div class="pred-ev-none">最新オッズで＋EVの買い目なし</div>${note}</div>`;
-      }
-      const more = buys.length < ev.n_buy ? `<span class="more">（上位${buys.length}点を表示）</span>` : "";
-      const rows = buys.map(b=>`<tr>`
-        +`<td class="l combo">${esc(b.combo)}</td>`
-        +`<td>${pct1(b.prob)}</td>`
-        +`<td>${oddsF(b.odds)}</td>`
-        +`<td class="evp">${b.ev!=null?b.ev.toFixed(2):"—"}</td></tr>`).join("");
-      return `<div class="pred-ev">`
-        +`<div class="pred-ev-head">🎯 最新オッズでEV≥${thr}の買い目 <span class="nb">${ev.n_buy}点</span>${more}</div>`
-        +`<div class="tblwrap"><table class="t"><thead><tr>`
+    // EV買い目（最新オッズ×モデルの参考値。買い目推奨ではない）。combos: [1着,2着,3着,オッズ,確率,EV]。
+    // 1着車で表示切替し、車番順(2着→3着 昇順)に並べてフォーメーション購入を容易にする。
+    const EV_THR = 1.10;
+    let evUid = 0;
+    const evReg = {};
+    function _evSummary(buys){
+      const prob = buys.reduce((s,c)=>s+(c[4]||0),0);                 // 的中率=モデル確率の総和
+      const inv = buys.reduce((s,c)=>s+(c[3]>0?1/c[3]:0),0);          // 合成オッズ=1/Σ(1/オッズ)
+      return {n: buys.length, prob, synth: inv>0?1/inv:null};
+    }
+    function renderEvGrid(uid, head){
+      const g = evReg[uid]||{};
+      const buys = (g.buys||[]).filter(c=>c[0]===head)
+        .sort((x,y)=> (x[1]-y[1]) || (x[2]-y[2]));                    // 車番順(2着→3着)
+      if(!buys.length) return `<div class="om-none">この車頭でEV≥${EV_THR.toFixed(2)}の買い目なし</div>`;
+      const s = _evSummary(buys);
+      const sub = `<div class="ev-subsum">${carChip(head)}頭 <b>${s.n}</b>点買い ｜ 的中率 <b>${(s.prob*100).toFixed(1)}%</b> ｜ 合成 <b>${s.synth!=null?s.synth.toFixed(1):"—"}倍</b></div>`;
+      const rows = buys.map(c=>`<tr>`
+        +`<td class="l combo">${c[0]}-${c[1]}-${c[2]}</td>`
+        +`<td>${(c[4]*100).toFixed(1)}%</td>`
+        +`<td>${(+c[3]).toFixed(1)}</td>`
+        +`<td class="evp">${c[5].toFixed(2)}</td></tr>`).join("");
+      return sub + `<div class="tblwrap"><table class="t"><thead><tr>`
         +`<th class="l">買い目</th><th>モデル確率</th><th>オッズ</th><th>EV</th>`
-        +`</tr></thead><tbody>${rows}</tbody></table></div>`
-        +note+`</div>`;
+        +`</tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+    function evBlock(r){
+      const combos = r.combos||[];
+      const hasOdds = combos.some(c=>c[3]!=null && c[3]<9999);
+      if(!hasOdds)
+        return `<div class="pred-ev"><div class="pred-ev-none">オッズ未発売</div></div>`;
+      const buys = combos.filter(c=>c[3]!=null && c[3]<9999 && c[5]!=null && c[5]>=EV_THR);
+      if(!buys.length)
+        return `<div class="pred-ev"><div class="pred-ev-none">最新オッズでEV≥${EV_THR.toFixed(2)}の買い目なし</div></div>`;
+      const uid = evUid++;
+      evReg[uid] = {buys};
+      const heads = [...new Set(buys.map(c=>c[0]))].sort((a,b)=>a-b);
+      const init = heads[0];
+      const all = _evSummary(buys);
+      const tabs = heads.map(c=>`<button class="ev-tab" type="button" role="tab" data-ev="${uid}" data-car="${c}"`
+        +` aria-selected="${c===init?"true":"false"}" tabindex="${c===init?0:-1}" aria-label="1着 ${c}番">`
+        +`${carChip(c)}<span class="ev-tc">${buys.filter(b=>b[0]===c).length}</span></button>`).join("");
+      return `<div class="pred-ev">`
+        +`<div class="pred-ev-head">🎯 最新オッズでEV≥${EV_THR.toFixed(2)}の買い目 <span class="nb">${buys.length}点</span></div>`
+        +`<div class="ev-allsum">全${all.n}点を購入した場合 ｜ 的中率 <b>${(all.prob*100).toFixed(1)}%</b>（モデル確率の総和）｜ 合成オッズ <b>${all.synth!=null?all.synth.toFixed(1):"—"}倍</b></div>`
+        +`<div class="ev-sel" role="tablist" aria-label="1着車の選択"><span class="om-sellab">1着</span>${tabs}</div>`
+        +`<div id="ev-grid-${uid}">${renderEvGrid(uid, init)}</div>`
+        +`<div class="pred-ev-note">車番順（2着→3着）で表示。EV=モデル確率×オッズ。合成オッズ=1/Σ(1/オッズ)。`
+        +`参考値でエッジ未確立・買い目推奨ではありません。</div>`
+        +`</div>`;
     }
 
     // 三連単オッズテーブル（1着固定マトリクス。確率×市場オッズの比較・買い目推奨ではない）
@@ -688,7 +721,7 @@ function boot(DB){
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
         +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
-        +resultBlock(r) + riders + imsBlock(r) + h2hBlock(r) + tfBlock + evBlock(r.ev) + omBlock(r)
+        +resultBlock(r) + riders + h2hBlock(r) + tfBlock + evBlock(r) + omBlock(r)
         +`</div>`;
     }
 
@@ -805,6 +838,20 @@ function boot(DB){
       if(rst) rst.addEventListener("click",()=>{
         cfg={order:DEFAULT_ORDER.slice(), hidden:DEFAULT_HIDDEN.slice()};
         cfgOpen=true; saveCfg(); render();
+      });
+
+      // EV買い目: 1着車セレクタの切替（車番順表示）
+      host.querySelectorAll(".ev-tab").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const uid=btn.dataset.ev, car=+btn.dataset.car;
+          host.querySelectorAll(`.ev-tab[data-ev="${uid}"]`).forEach(b=>{
+            const on=(+b.dataset.car===car);
+            b.setAttribute("aria-selected", on?"true":"false");
+            b.tabIndex = on?0:-1;
+          });
+          const grid=host.querySelector("#ev-grid-"+uid);
+          if(grid) grid.innerHTML=renderEvGrid(uid,car);
+        });
       });
 
       // 三連単オッズテーブル: 1着固定セレクタの切替
