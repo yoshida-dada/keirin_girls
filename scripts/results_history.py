@@ -80,8 +80,6 @@ def build_results_history(db_path, days: int = 30) -> dict:
             "venue": venue_name(vc) or vc,
             "race_no": rno,
             "race_type": classify_race(st).label,                   # 軸堅/標準/混戦
-            "marks": [{"car": c, "name": names.get((rid, c), ""),
-                       "mark": mark_of[c], "win_prob": round(p, 4)} for c, p in ranked],
             "finish": [{"pos": i + 1, "car": c, "name": names.get((rid, c), ""),
                         "mark": mark_of.get(c, "−")} for i, c in enumerate(order)],
             "finish_marks": "".join(mark_of.get(c, "−") for c in order),
@@ -93,7 +91,7 @@ def build_results_history(db_path, days: int = 30) -> dict:
     races.sort(key=lambda r: (r["date"], r["race_no"] or 0), reverse=True)   # 新しい順
     return {
         "status": "ok",
-        "note": "過去約1ヶ月の開催結果。印=モデル1着確率順(◎○▲△×)、予測順位=決着三連単のモデル確率順位。",
+        "note": "過去約半年の開催結果。印=モデル1着確率順(◎○▲△×)、予測順位=決着三連単のモデル確率順位。",
         "period": f"{races[-1]['date']}〜{races[0]['date']}",
         "n_races": len(races),
         "races": races,
