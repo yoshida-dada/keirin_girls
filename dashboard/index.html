@@ -173,20 +173,23 @@ table.rt th.rt-name{z-index:3;background:var(--surface2)}
 .rt .rn-meet .rn-ml{color:var(--muted)}
 table.rt tr.rt-top td{background:var(--accent-soft)}
 table.rt tr.rt-top td.rt-car,table.rt tr.rt-top td.rt-name{background:var(--accent-soft)}
-/* 今場所成績（選手ごと複数行） */
-.ims{margin:12px 0 2px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
-.ims-head{padding:9px 11px 8px;font-size:.74rem;font-weight:800;color:var(--ink)}
-.ims-head .ims-sub{font-size:.62rem;font-weight:700;color:var(--muted);margin-left:4px}
-.ims .tblwrap{border-radius:0;border-left:none;border-right:none;border-bottom:none}
-table.ims-t td.ims-cell{padding:5px 8px;white-space:normal}
-.ims-line{display:inline-flex;align-items:baseline;gap:6px;margin:2px 8px 2px 0;padding:2px 7px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;font-size:.7rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.ims-line .ims-d{color:var(--muted);font-size:.66rem}
-.ims-line .ims-r{color:var(--muted);font-size:.66rem}
-.ims-line .ims-p{font-weight:800;color:var(--ink)}
-.ims-line .ims-p.p1{color:#e03131}
-.ims-line .ims-p.p3{color:var(--accent)}
-.ims-line .ims-l{color:var(--muted);font-size:.66rem}
-.ims-none{font-size:.68rem;color:var(--muted);font-weight:700}
+/* レース番号タブ（会場選択後に表示） */
+.pred-rtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.pred-rtab{background:var(--surface);border:1px solid var(--border);color:var(--ink);font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 11px;border-radius:9px;min-width:52px}
+.pred-rtab .rn{font-size:.82rem;font-weight:800;font-variant-numeric:tabular-nums}
+.pred-rtab .dl{font-size:.58rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.pred-rtab .done{font-size:.54rem;font-weight:800;color:var(--good)}
+.pred-rtab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.pred-rtab[aria-selected="true"] .dl,.pred-rtab[aria-selected="true"] .done{color:rgba(255,255,255,.85)}
+.pred-rtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pred-rpanel .pred-vbox{border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);padding:2px 14px 12px}
+/* レース内 予測／確定結果 タブ */
+.rc-tabs{display:flex;gap:6px;margin:10px 0 4px}
+.rc-tab{flex:1 1 0;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.8rem;font-weight:800;padding:8px 10px;border-radius:10px;cursor:pointer}
+.rc-tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.rc-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rc-pane[hidden]{display:none}
 /* 確定結果 */
 .res{margin:6px 0 12px;border:1px solid var(--good);border-radius:11px;background:var(--good-soft);overflow:hidden}
 .res-head{padding:8px 11px;font-size:.78rem;font-weight:800;color:var(--good);display:flex;align-items:center;gap:8px}
@@ -695,9 +698,21 @@ function boot(DB){
         +`</div></div>`;
     }
 
-    function raceBlock(r){
+    function raceHead(r){
       const top1 = (r.riders&&r.riders.length)?(r.riders[0].win_prob||0):0;
-      const riders = riderTable(r);
+      return `<div class="pred-rhead">`
+        +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
+        +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
+        +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
+        +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
+        +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
+        +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
+        +`<span class="pred-src">${esc(r.source||"")}</span>`
+        +`</div>`
+        +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`;
+    }
+    // 予測タブの中身（出走表・対戦・三連単モデル確率・EV買い目・オッズテーブル）
+    function predContent(r){
       const tf = (r.top_trifecta||[]).map(t=>{
         const cover = (t.odds!=null && t.odds<9999 && t.need_odds!=null && t.odds>=t.need_odds);
         return `<tr><td class="l combo">${esc(t.combo)}</td>`
@@ -710,19 +725,24 @@ function boot(DB){
           +`<div class="tblwrap"><table class="t"><thead><tr>`
           +`<th class="l">着順</th><th>モデル確率</th><th>必要オッズ</th><th>市場オッズ</th>`
           +`</tr></thead><tbody>${tf}</tbody></table></div>` : "";
-      return `<div class="pred-race">`
-        +`<div class="pred-rhead">`
-        +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
-        +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
-        +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
-        +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
-        +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
-        +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
-        +`<span class="pred-src">${esc(r.source||"")}</span>`
-        +`</div>`
-        +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
-        +resultBlock(r) + riders + h2hBlock(r) + tfBlock + evBlock(r) + omBlock(r)
-        +`</div>`;
+      return riderTable(r) + h2hBlock(r) + tfBlock + evBlock(r) + omBlock(r);
+    }
+    // 1レースのブロック。結果確定後は「予測／確定結果」をタブで分ける（tab: 'pred'|'res'）。
+    function raceBlock(r, tab){
+      const hasRes = !!(r.result && (r.result.order||[]).length);
+      let inner;
+      if(hasRes){
+        const t = tab==="res" ? "res" : "pred";
+        inner = `<div class="rc-tabs" role="tablist" aria-label="予測と結果の切替">`
+          +`<button class="rc-tab" type="button" role="tab" data-rc="pred" aria-selected="${t==="pred"}" tabindex="${t==="pred"?0:-1}">予測</button>`
+          +`<button class="rc-tab" type="button" role="tab" data-rc="res" aria-selected="${t==="res"}" tabindex="${t==="res"?0:-1}">🏁 確定結果</button>`
+          +`</div>`
+          +`<div class="rc-pane"${t==="res"?" hidden":""}>${predContent(r)}</div>`
+          +`<div class="rc-pane"${t==="res"?"":" hidden"}>${resultBlock(r)}</div>`;
+      } else {
+        inner = predContent(r);
+      }
+      return `<div class="pred-race">${raceHead(r)}${inner}</div>`;
     }
 
     // 本日のハイライト（妙味サマリ）: 全レース横断で本命・1着確率・妙味シグナルを締切順で一覧化
@@ -785,8 +805,14 @@ function boot(DB){
         +`</div></details>`;
     }
 
-    let cfgOpen = false, selVenue = 0;
+    let cfgOpen = false, selVenue = 0, selRace = 0, raceTabOverride = null;
     const venues = [...byVenue.keys()];
+    // 会場を「最も早い締切」の時刻順（開催時間順）に並べる
+    const vMinDeadline = v => {
+      const ds = (byVenue.get(v)||[]).map(r=>r.deadline).filter(x=>x && String(x).includes(":"));
+      return ds.length ? ds.slice().sort()[0] : "99:99";
+    };
+    venues.sort((a,b)=> vMinDeadline(a).localeCompare(vMinDeadline(b)));
 
     function render(){
       let html = `<div class="pred-disc">⚠ これは各車の着順（1着）確率と三連単モデル確率の提示です。`
@@ -798,18 +824,29 @@ function boot(DB){
       html += cfgBar();
       html += highlightCard();
       if(selVenue>=venues.length) selVenue=0;
-      const tabs = venues.map((v,i)=>{
-        const rs = byVenue.get(v);
-        return `<button class="pred-vtab" type="button" role="tab" id="pvtab-${i}" aria-controls="pvpanel-${i}"`
-          +` aria-selected="${i===selVenue?"true":"false"}" tabindex="${i===selVenue?0:-1}">`
-          +`${esc(v)}<span class="vc">${rs.length}R</span></button>`;
-      }).join("");
-      const panels = venues.map((v,i)=>{
-        const body = byVenue.get(v).map(raceBlock).join("");
-        return `<div class="pred-vpanel" role="tabpanel" id="pvpanel-${i}" aria-labelledby="pvtab-${i}"${i===selVenue?"":" hidden"}>`
-          +`<div class="pred-vbox">${body}</div></div>`;
-      }).join("");
-      html += `<div class="pred-vtabs" role="tablist" aria-label="会場切替">${tabs}</div>${panels}`;
+      // 会場タブ（開催時間順）
+      const vtabs = venues.map((v,i)=>
+        `<button class="pred-vtab" type="button" role="tab" data-venue="${i}"`
+        +` aria-selected="${i===selVenue?"true":"false"}" tabindex="${i===selVenue?0:-1}">`
+        +`${esc(v)}<span class="vc">${byVenue.get(v).length}R</span></button>`).join("");
+      // 選択会場のレースを開催時間順に並べ、レース番号タブを出す
+      const vraces = (byVenue.get(venues[selVenue])||[]).slice()
+        .sort((a,b)=> String(a.deadline||"~~").localeCompare(String(b.deadline||"~~")) || ((a.race_no||0)-(b.race_no||0)));
+      if(selRace>=vraces.length) selRace=0;
+      const rtabs = vraces.map((r,j)=>
+        `<button class="pred-rtab" type="button" role="tab" data-race="${j}"`
+        +` aria-selected="${j===selRace?"true":"false"}" tabindex="${j===selRace?0:-1}">`
+        +`<span class="rn">${r.race_no!=null?r.race_no:"?"}R</span>`
+        +(r.deadline?`<span class="dl">${esc(r.deadline)}</span>`:"")
+        +(r.result&&(r.result.order||[]).length?`<span class="done">済</span>`:"")+`</button>`).join("");
+      // 選択レースを1件だけ表示（予測／確定結果はタブ切替）
+      const rc = vraces[selRace];
+      const hasRes = !!(rc && rc.result && (rc.result.order||[]).length);
+      const tab = hasRes ? (raceTabOverride || "res") : "pred";   // 確定済みは結果を既定表示
+      const panel = rc ? `<div class="pred-rpanel"><div class="pred-vbox">${raceBlock(rc, tab)}</div></div>` : "";
+      html += `<div class="pred-vtabs" role="tablist" aria-label="会場切替（開催時間順）">${vtabs}</div>`
+        +`<div class="pred-rtabs" role="tablist" aria-label="レース切替">${rtabs}</div>`
+        + panel;
       host.innerHTML = html;
       attachListeners();
     }
@@ -870,29 +907,32 @@ function boot(DB){
         });
       });
 
-      // 会場タブの切替（クリック＋キーボード操作）
-      const tabEls = [...host.querySelectorAll(".pred-vtab")];
-      const panelEls = [...host.querySelectorAll(".pred-vpanel")];
-      function selectTab(i){
-        selVenue=i;
-        tabEls.forEach((t,j)=>{
-          const on = j===i;
-          t.setAttribute("aria-selected", on?"true":"false");
-          t.tabIndex = on?0:-1;
-          if(panelEls[j]) panelEls[j].hidden = !on;
-        });
-      }
-      tabEls.forEach((t,i)=>{
-        t.addEventListener("click",()=>selectTab(i));
-        t.addEventListener("keydown",e=>{
-          let ni=null;
-          if(e.key==="ArrowRight"||e.key==="ArrowDown") ni=(i+1)%tabEls.length;
-          else if(e.key==="ArrowLeft"||e.key==="ArrowUp") ni=(i-1+tabEls.length)%tabEls.length;
-          else if(e.key==="Home") ni=0;
-          else if(e.key==="End") ni=tabEls.length-1;
-          if(ni!=null){ e.preventDefault(); selectTab(ni); tabEls[ni].focus(); }
-        });
+      // 会場タブ（開催時間順）→ 選ぶとレースは先頭にリセット
+      host.querySelectorAll(".pred-vtab").forEach(t=>{
+        t.addEventListener("click",()=>{ selVenue=+t.dataset.venue; selRace=0; raceTabOverride=null; render(); });
       });
+      // レース番号タブ → 単一レース表示に切替
+      host.querySelectorAll(".pred-rtab").forEach(t=>{
+        t.addEventListener("click",()=>{ selRace=+t.dataset.race; raceTabOverride=null; render(); });
+      });
+      // 予測／確定結果 タブ
+      host.querySelectorAll(".rc-tab").forEach(t=>{
+        t.addEventListener("click",()=>{ raceTabOverride=t.dataset.rc; render(); });
+      });
+      // タブの左右キー移動（会場・レース）
+      function arrowNav(sel, pick){
+        const els=[...host.querySelectorAll(sel)];
+        els.forEach((el,i)=> el.addEventListener("keydown",e=>{
+          let ni=null;
+          if(e.key==="ArrowRight"||e.key==="ArrowDown") ni=(i+1)%els.length;
+          else if(e.key==="ArrowLeft"||e.key==="ArrowUp") ni=(i-1+els.length)%els.length;
+          else if(e.key==="Home") ni=0; else if(e.key==="End") ni=els.length-1;
+          if(ni!=null){ e.preventDefault(); pick(ni);
+            const now=host.querySelectorAll(sel)[ni]; if(now) now.focus(); }
+        }));
+      }
+      arrowNav(".pred-vtab", i=>{ selVenue=i; selRace=0; raceTabOverride=null; render(); });
+      arrowNav(".pred-rtab", i=>{ selRace=i; raceTabOverride=null; render(); });
     }
 
     render();

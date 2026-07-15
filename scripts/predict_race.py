@@ -54,8 +54,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         styles = style_counts(db_path) if stats else {}
     except Exception:
         styles = {}
-    try:  # 今場所成績（当該開催の前日までの各走）。初日は空。
-        meets = meet_results(db_path, tuple(car_name.values()), kaisai_code) if stats else {}
+    try:  # 今場所成績（当該開催の前日までの各走）。当日自身は除外（before=当該レース実施日）。
+        from src.collect.gamboo_schedule import kaisai_race_date
+        _rdate = kaisai_race_date(day_code).isoformat()
+        meets = meet_results(db_path, tuple(car_name.values()), kaisai_code,
+                             before=_rdate) if stats else {}
     except Exception:
         meets = {}
 
