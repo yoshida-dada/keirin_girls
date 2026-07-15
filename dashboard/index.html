@@ -212,6 +212,20 @@ table.om-t th.om-corner{font-size:.56rem;color:var(--muted);font-weight:700}
 .om-legend{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:.64rem;color:var(--muted);margin-top:9px}
 .om-legend .om-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;background:var(--good-soft);border:1px solid var(--good)}
 
+/* predictions: 本日のハイライト（妙味サマリ・買い目推奨ではない） */
+.hl-card{margin-bottom:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.hl-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:11px 14px 0}
+.hl-title{font-weight:800;font-size:.95rem}
+.hl-count{font-size:.66rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.hl-note{font-size:.66rem;color:var(--muted);font-weight:600;line-height:1.5;padding:6px 14px 10px;margin:0}
+.hl-card .tblwrap{margin:0 14px 12px;width:auto}
+.hl-honmei{display:flex;align-items:center;gap:7px;min-width:0}
+.hl-honmei .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:8em}
+.hl-spice{display:inline-block;font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap;background:var(--edge-soft);color:var(--edge)}
+.hl-spice.none{background:var(--surface2);color:var(--muted)}
+.hl-ev{font-weight:800;font-variant-numeric:tabular-nums;color:var(--good)}
+.hl-ev.none{color:var(--muted);font-weight:600}
+
 .foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
 .foot b{color:var(--ink)}
 </style>
@@ -467,12 +481,52 @@ function boot(DB){
         +`</div>`;
     }
 
+    // 本日のハイライト（妙味サマリ）: 全レース横断で本命・1着確率・妙味シグナルを締切順で一覧化
+    function highlightCard(){
+      const sorted = races.slice().sort((a,b)=>
+        String(a.deadline||"~~~~~").localeCompare(String(b.deadline||"~~~~~")));
+      const rows = sorted.map(r=>{
+        const rd0 = (r.riders&&r.riders[0])||{};
+        const top1 = r.top1_prob!=null ? r.top1_prob : (rd0.win_prob||0);
+        // 妙味＝win_ev>1（市場がその車の勝ちを過小評価）の車数
+        const spice = (r.riders||[]).filter(x=>x.win_ev!=null && x.win_ev>1).length;
+        // ev>1 の三連単の最大EV（combos: [1着,2着,3着,オッズ,確率,EV]）
+        let maxEv = null;
+        (r.combos||[]).forEach(c=>{ const e=c&&c[5]; if(e!=null && e>1 && (maxEv==null||e>maxEv)) maxEv=e; });
+        const spiceTag = spice>0
+          ? `<span class="hl-spice">妙味 ${spice}車</span>`
+          : `<span class="hl-spice none">—</span>`;
+        const evTxt = maxEv!=null ? `<span class="hl-ev">EV${maxEv.toFixed(2)}</span>`
+          : `<span class="hl-ev none">—</span>`;
+        return `<tr>`
+          +`<td class="l">${esc(r.venue||"—")}</td>`
+          +`<td><b>${r.race_no!=null?r.race_no:"?"}</b>R</td>`
+          +`<td>${r.deadline?esc(r.deadline):"—"}</td>`
+          +`<td class="l"><span class="hl-honmei">${carChip(rd0.car)}<span class="nm">${esc(rd0.name||"")}</span></span></td>`
+          +`<td>${pct1(top1)}</td>`
+          +`<td class="l"><span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span></td>`
+          +`<td>${spiceTag}</td>`
+          +`<td>${evTxt}</td></tr>`;
+      }).join("");
+      const nSpice = races.filter(r=>(r.riders||[]).some(x=>x.win_ev!=null && x.win_ev>1)).length;
+      return `<div class="hl-card">`
+        +`<div class="hl-head"><span class="hl-title">✨ 本日のハイライト</span>`
+        +`<span class="hl-count">${races.length}レース ／ 妙味シグナル ${nSpice}レース</span></div>`
+        +`<p class="hl-note">合成オッズ&gt;必要オッズ（各車の勝ち）・EV&gt;1（三連単）は「モデル確率＞市場」の乖離を示す<b>参考値</b>で、`
+        +`エッジ未確立・買い目推奨ではありません（上の免責を参照）。</p>`
+        +`<div class="tblwrap"><table class="t"><thead><tr>`
+        +`<th class="l">会場</th><th>R</th><th>締切</th><th class="l">本命</th><th>1着確率</th>`
+        +`<th class="l">タイプ</th><th>妙味</th><th>最大三連単EV</th>`
+        +`</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    }
+
     let html = `<div class="pred-disc">⚠ これは各車の着順（1着）確率と三連単モデル確率の提示です。`
       +`${esc(P.note||"")} 買い目の推奨ではありません。</div>`;
     if(P.last_updated){
       html += `<div class="pred-updated"><span class="lu">最終更新 <b>${esc(P.last_updated)}</b></span>`
         +`<span>発走10分前に最新オッズで自動更新されます。</span></div>`;
     }
+    html += highlightCard();
     const venues = [...byVenue.keys()];
     const tabs = venues.map((v,i)=>{
       const rs = byVenue.get(v);
