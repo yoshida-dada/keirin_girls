@@ -49,7 +49,14 @@ def _run(cmd: list[str], timeout: int = 600) -> tuple[int, str]:
 
 
 def _log(msg: str) -> None:
-    print(f"[{datetime.now(JST):%m-%d %H:%M:%S}] {msg}", flush=True)
+    line = f"[{datetime.now(JST):%m-%d %H:%M:%S}] {msg}"
+    try:
+        print(line, flush=True)
+    except UnicodeEncodeError:
+        # Windowsのcp932コンソール/リダイレクトに載らない文字(例: �)でも落とさない
+        enc = (sys.stdout.encoding or "utf-8")
+        sys.stdout.buffer.write((line + "\n").encode(enc, "replace"))
+        sys.stdout.flush()
 
 
 def serve_dashboard() -> None:
@@ -106,6 +113,12 @@ def git_push() -> None:
 
 
 def main() -> None:
+    # ログ出力をUTF-8化（cp932に無い文字での常駐クラッシュを防ぐ／ログも文字化けしない）
+    for _s in (sys.stdout, sys.stderr):
+        try:
+            _s.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
     ap = argparse.ArgumentParser(description="ローカル常駐 予測/オッズ更新スケジューラ")
     ap.add_argument("--once", action="store_true", help="1回だけ更新して終了")
     ap.add_argument("--no-serve", action="store_true", help="ローカル配信をしない")
