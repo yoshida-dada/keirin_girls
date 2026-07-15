@@ -138,12 +138,14 @@ def _race_date_from_id(race_id: str) -> str | None:
         return None
 
 
-def meet_results(db_path: str, names: tuple[str, ...], kaisai_code: str) -> dict[str, list]:
+def meet_results(db_path: str, names: tuple[str, ...], kaisai_code: str,
+                 before: str | None = None) -> dict[str, list]:
     """出走者の「今場所成績」（当該開催の各走の 日付/レース番号/着順/上り）を返す。
 
-    開催は race_id の先頭10桁(=場コード+開催初日)で同定する（kaisai_code と一致）。本日のレースは
-    DB未収録なので、返るのは2日目以降に見える前日までの走のみ（＝初日は空）。日付は races.race_date
-    ではなく race_id から復元する（race_date は初日固定のため、日別に区別できないため）。
+    開催は race_id の先頭10桁(=場コード+開催初日)で同定する（kaisai_code と一致）。日付は
+    races.race_date ではなく race_id から復元する（race_date は初日固定のため日別に区別できない）。
+    before(実施日 ISO) を渡すと、その日より前の走だけを返す（＝当該レース当日を除外。結果取得で
+    当日分がDBに入った後でも今場所成績に当日自身が混入しないようにする）。
     返り値: {氏名: [{"date","race_no","position","last_lap"} ...]}（実施日・R昇順）。
     """
     if not names:
@@ -163,9 +165,11 @@ def meet_results(db_path: str, names: tuple[str, ...], kaisai_code: str) -> dict
 
     out: dict[str, list] = {}
     for name, race_id, rno, pos, lap in rows:
+        rdate = _race_date_from_id(race_id) or ""
+        if before and rdate >= before:            # 当該レース当日以降は今場所成績から除外
+            continue
         out.setdefault(name, []).append(
-            {"date": _race_date_from_id(race_id) or "", "race_no": rno,
-             "position": pos, "last_lap": lap})
+            {"date": rdate, "race_no": rno, "position": pos, "last_lap": lap})
     for lst in out.values():                      # 実施日・R昇順に整列
         lst.sort(key=lambda m: (m["date"], m["race_no"] if m["race_no"] is not None else 0))
     return out
