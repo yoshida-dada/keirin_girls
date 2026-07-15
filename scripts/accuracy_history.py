@@ -31,17 +31,9 @@ from src.model.plackett_luce import all_trifecta_probs
 
 
 def _augment_if_elo(db_path, model, samples):
-    """Eloモデル(rel_elo付き)のとき各サンプルのXにレース内相対Eloを足す（verify_predictions と同型）。"""
-    if "rel_elo" not in (model.feature_names or []):
-        return samples
-    pre = compute_pre_race_elo(db_path)
-    out = []
-    for s in samples:
-        s2 = copy.copy(s)
-        elos = np.array([pre.get((s.race_id, c), DEFAULT_ELO) for c in s.car_numbers])
-        s2.X = np.hstack([s.X, (elos - elos.mean()).reshape(-1, 1)])
-        out.append(s2)
-    return out
+    """モデルの feature_names に合わせて rel_elo / 展開特徴 を付与（共通関数・skew防止）。"""
+    from src.model.feature_augment import augment_samples
+    return augment_samples(samples, db_path, model.feature_names)
 
 
 def _week_start(d: str) -> str:

@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import sqlite3
 from collections import defaultdict, deque
+from functools import lru_cache
 from pathlib import Path
 
 from src.features.rider_history import _race_date_from_id
@@ -103,6 +104,114 @@ def _recent_form_map(conn) -> dict[tuple[str, int], dict]:
     return out
 
 
+def _history_feats(name, starts, top3, lap_sum, lap_cnt, b_runs, b_top3, kim_hist) -> dict:
+    """results履歴アキュムレータ（as-of時点）から avg_last_lap/escape_survival/leg_change_rate を作る。
+
+    学習ループ（compute_pre_race_tactics）と推論（current_tactics 最終状態）で**同一式**を共有し
+    train/inference skew を防ぐ。引数は各 defaultdict と kim_hist[name] の deque。
+    """
+    avg_last_lap = (lap_sum[name] / lap_cnt[name]) if lap_cnt[name] else None
+    prior = (top3[name] / starts[name]) if starts[name] else GLOBAL_TOP3_PRIOR
+    escape_survival = (b_top3[name] + ESCAPE_SURVIVAL_K * prior) / (b_runs[name] + ESCAPE_SURVIVAL_K)
+    hist = list(kim_hist[name])
+    if len(hist) >= 2:
+        changes = sum(1 for a, b in zip(hist, hist[1:]) if a != b)
+        leg_change_rate = changes / (len(hist) - 1)
+    else:
+        leg_change_rate = None
+    return {"avg_last_lap": avg_last_lap, "escape_survival": escape_survival,
+            "leg_change_rate": leg_change_rate}
+
+
+def _run_history(db_path, record_pre: bool):
+    """results履歴をas-of集計する共通ループ。
+
+    record_pre=True: 各エントリの発走前 history 特徴を out[(rid,car)] に記録して返す（学習用）。
+    record_pre=False: 記録せず全レース処理後の最終アキュムレータと氏名集合を返す（推論=current用）。
+    """
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    conn.execute("PRAGMA query_only=1")
+    try:
+        rf_map = _recent_form_map(conn) if record_pre else {}
+        ent_by_race: dict[str, dict[int, str]] = defaultdict(dict)
+        for race_id, car, name in conn.execute(
+                "SELECT race_id, car_number, rider_name FROM entries"):
+            ent_by_race[race_id][car] = name
+        res_by_race: dict[str, dict[int, tuple]] = defaultdict(dict)
+        for race_id, car, pos, lap, sb, kim in conn.execute(
+                "SELECT race_id, car_number, position, last_lap, sb, kimarite FROM results"):
+            res_by_race[race_id][car] = (pos, lap, sb, kim)
+    finally:
+        conn.close()
+
+    race_ids = sorted(ent_by_race, key=lambda rid: (_race_date_from_id(rid) or "", rid))
+    acc = dict(starts=defaultdict(int), top3=defaultdict(int), lap_sum=defaultdict(float),
+               lap_cnt=defaultdict(int), b_runs=defaultdict(int), b_top3=defaultdict(int),
+               kim_hist=defaultdict(lambda: deque(maxlen=LEG_CHANGE_WINDOW)))
+    names: set[str] = set()
+    out: dict[tuple[str, int], dict] = {}
+
+    for rid in race_ids:
+        car_name = ent_by_race[rid]
+        for name in car_name.values():
+            names.add(name)
+        if record_pre:
+            for car, name in car_name.items():
+                feat = dict(tactics_from_recent_form(rf_map.get((rid, car), {})))
+                feat.update(_history_feats(name, acc["starts"], acc["top3"], acc["lap_sum"],
+                                           acc["lap_cnt"], acc["b_runs"], acc["b_top3"], acc["kim_hist"]))
+                out[(rid, car)] = feat
+        for car, (pos, lap, sb, kim) in res_by_race.get(rid, {}).items():
+            name = car_name.get(car)
+            if name is None:
+                continue
+            if pos is not None:
+                acc["starts"][name] += 1
+                if pos <= 3:
+                    acc["top3"][name] += 1
+            if lap is not None:
+                acc["lap_sum"][name] += lap
+                acc["lap_cnt"][name] += 1
+            if sb and "B" in sb:
+                acc["b_runs"][name] += 1
+                if pos is not None and pos <= 3:
+                    acc["b_top3"][name] += 1
+            if kim:
+                acc["kim_hist"][name].append(kim)
+    return out, acc, names
+
+
+@lru_cache(maxsize=4)
+def current_tactics(db_path: str | Path) -> dict[str, dict]:
+    """全history処理後の**現時点**の history 特徴を氏名ごとに返す（推論用・final_elo_state 相当）。
+
+    本日のレース（DB未収録）を予測する際、各出走選手の avg_last_lap/escape_survival/leg_change_rate を
+    引くのに使う。compute_pre_race_tactics と同一の集計・式（_history_feats）なので学習と整合する。
+    履歴ゼロの選手も含む（escape_survival は事前3/7へ縮約された値）。
+    """
+    _, acc, names = _run_history(db_path, record_pre=False)
+    return {name: _history_feats(name, acc["starts"], acc["top3"], acc["lap_sum"],
+                                 acc["lap_cnt"], acc["b_runs"], acc["b_top3"], acc["kim_hist"])
+            for name in names}
+
+
+def tactics_for_entries(entries, recent: dict, current_tac: dict) -> dict[int, dict]:
+    """推論用: 出走選手ごとの raw 展開特徴（recent_form由来 + current_tac由来）を車番キーで返す。
+
+    compute_pre_race_tactics が返すのと同じキー構成（lead_index/lead_index_sb/sikake/kimarite_n
+    + avg_last_lap/escape_survival/leg_change_rate）。履歴が無い選手は事前分布側の値。
+    """
+    zero_hist = {"avg_last_lap": None, "escape_survival": GLOBAL_TOP3_PRIOR, "leg_change_rate": None}
+    out: dict[int, dict] = {}
+    for e in entries:
+        rf = recent.get(e.car_number)
+        feat = dict(tactics_from_recent_form(rf)) if rf is not None else {
+            "lead_index": None, "lead_index_sb": None, "sikake": None, "kimarite_n": 0}
+        feat.update(current_tac.get(e.rider_name) or zero_hist)
+        out[e.car_number] = feat
+    return out
+
+
 def compute_pre_race_tactics(db_path: str | Path) -> dict[tuple[str, int], dict]:
     """各エントリ (race_id, car_number) の発走前(as-of)展開特徴を統合して返す。
 
@@ -115,82 +224,7 @@ def compute_pre_race_tactics(db_path: str | Path) -> dict[tuple[str, int], dict]
       leg_change_rate  : 脚質変化率（直近≤3走の決まり手の変化割合 0-1）… results履歴 / None(kimarite<2本)
       kimarite_n       : recent_form の決まり手総数（診断用）
     """
-    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-    conn.execute("PRAGMA query_only=1")
-    try:
-        rf_map = _recent_form_map(conn)
-
-        # 全エントリ(車番→氏名) と 全結果(車番→着順/上がり/SB/決まり手) を race_id 別に集約。
-        ent_by_race: dict[str, dict[int, str]] = defaultdict(dict)
-        for race_id, car, name in conn.execute(
-                "SELECT race_id, car_number, rider_name FROM entries"):
-            ent_by_race[race_id][car] = name
-
-        res_by_race: dict[str, dict[int, tuple]] = defaultdict(dict)
-        for race_id, car, pos, lap, sb, kim in conn.execute(
-                "SELECT race_id, car_number, position, last_lap, sb, kimarite FROM results"):
-            res_by_race[race_id][car] = (pos, lap, sb, kim)
-    finally:
-        conn.close()
-
-    # 実施日順にレースを並べる（race_date は初日固定バグのため race_id から実施日を復元）。
-    race_ids = sorted(ent_by_race, key=lambda rid: (_race_date_from_id(rid) or "", rid))
-
-    # 選手(氏名)ごとの as-of アキュムレータ
-    starts = defaultdict(int)          # 着順が付いた走数
-    top3 = defaultdict(int)            # top3 回数（事前分布の母体）
-    lap_sum = defaultdict(float)       # 上がりタイム合計
-    lap_cnt = defaultdict(int)
-    b_runs = defaultdict(int)          # B走(バック先頭≒逃げを打った近似)回数
-    b_top3 = defaultdict(int)          # うち top3 だった回数
-    kim_hist: dict[str, deque] = defaultdict(lambda: deque(maxlen=LEG_CHANGE_WINDOW))
-
-    out: dict[tuple[str, int], dict] = {}
-
-    for rid in race_ids:
-        car_name = ent_by_race[rid]
-        results = res_by_race.get(rid, {})
-
-        # --- 発走前(as-of)特徴を記録（このレースの結果は未反映） ---
-        for car, name in car_name.items():
-            feat = dict(tactics_from_recent_form(rf_map.get((rid, car), {})))
-
-            feat["avg_last_lap"] = (lap_sum[name] / lap_cnt[name]) if lap_cnt[name] else None
-
-            # 逃げ残率: B走での top3 率を、選手通算top3率（無ければ全体事前）へ縮約
-            prior = (top3[name] / starts[name]) if starts[name] else GLOBAL_TOP3_PRIOR
-            feat["escape_survival"] = (
-                (b_top3[name] + ESCAPE_SURVIVAL_K * prior) / (b_runs[name] + ESCAPE_SURVIVAL_K))
-
-            # 脚質変化率: 直近≤3走の非空 kimarite の遷移のうち「変わった」割合
-            hist = list(kim_hist[name])
-            if len(hist) >= 2:
-                changes = sum(1 for a, b in zip(hist, hist[1:]) if a != b)
-                feat["leg_change_rate"] = changes / (len(hist) - 1)
-            else:
-                feat["leg_change_rate"] = None
-
-            out[(rid, car)] = feat
-
-        # --- このレースの結果で履歴を更新（次レース以降のas-of用） ---
-        for car, (pos, lap, sb, kim) in results.items():
-            name = car_name.get(car)
-            if name is None:
-                continue
-            if pos is not None:
-                starts[name] += 1
-                if pos <= 3:
-                    top3[name] += 1
-            if lap is not None:
-                lap_sum[name] += lap
-                lap_cnt[name] += 1
-            if sb and "B" in sb:               # バック先頭 = 先行(逃げ)を打った近似
-                b_runs[name] += 1
-                if pos is not None and pos <= 3:
-                    b_top3[name] += 1
-            if kim:                            # kimarite は 1・2着のみ記録される疎データ
-                kim_hist[name].append(kim)
-
+    out, _, _ = _run_history(db_path, record_pre=True)
     return out
 
 

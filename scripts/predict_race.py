@@ -72,8 +72,14 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             return None
 
     model = load_model()
-    elo_state = load_elo_state() if "rel_elo" in (model.feature_names or []) else None
-    strengths = strengths_from_model(model, entries, recent, elo_state)
+    _mfeats = model.feature_names or []
+    elo_state = load_elo_state() if "rel_elo" in _mfeats else None
+    tactics_ctx = None
+    from src.features.tactics_features import TACTIC_NAMES
+    if any(n in _mfeats for n in TACTIC_NAMES):    # 展開特徴付きモデル: 現時点as-of historyを引く
+        from src.features.rider_tactics import current_tactics
+        tactics_ctx = current_tactics(db_path)
+    strengths = strengths_from_model(model, entries, recent, elo_state, tactics_ctx=tactics_ctx)
     _mtype = "LightGBM" if type(model).__name__ == "GBDTModel" else "PL線形"
     source = (f"学習済みモデル({_mtype}+Elo)" if elo_state is not None
               else f"学習済みモデル({_mtype}拡張20特徴)")
