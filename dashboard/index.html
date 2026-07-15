@@ -153,6 +153,10 @@ table.hm td.l{padding:8px 10px;font-weight:800}
 .pr-name{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;line-height:1.15}
 .pr-name .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pr-name .mt{font-size:.62rem;color:var(--muted);font-weight:600}
+.pr-stats{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 7px;margin-top:2px;font-size:.6rem;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.pr-stats b{color:var(--ink);font-weight:800}
+.pr-stats small{font-size:.86em;opacity:.8;margin-left:1px}
+.pr-stats i{color:var(--border2);font-style:normal}
 .pr-bar{flex:0 1 26%;max-width:120px;height:16px;background:var(--surface2);border:1px solid var(--border2);border-radius:5px;position:relative;overflow:hidden}
 .pr-fill{height:100%;border-radius:4px 0 0 4px;background:var(--accent)}
 .pr-pct{flex:none;width:72px;display:flex;flex-direction:column;align-items:flex-end;line-height:1.12;font-variant-numeric:tabular-nums}
@@ -211,6 +215,35 @@ table.om-t th.om-corner{font-size:.56rem;color:var(--muted);font-weight:700}
 .om-none{font-size:.72rem;font-weight:700;color:var(--muted);padding:2px 0 4px}
 .om-legend{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:.64rem;color:var(--muted);margin-top:9px}
 .om-legend .om-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;background:var(--good-soft);border:1px solid var(--good)}
+/* predictions: 三連単オッズテーブル 常時表示ヘッダ */
+.om-head{display:flex;align-items:center;gap:8px;padding:9px 11px 0;font-size:.74rem;font-weight:800;color:var(--ink)}
+.om-head .om-lab{font-size:.66rem;font-weight:700;color:var(--muted);margin-left:auto}
+/* predictions: 過去対戦成績マトリクス */
+.h2h{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
+.h2h>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:.74rem;font-weight:800;color:var(--ink);user-select:none}
+.h2h>summary::-webkit-details-marker{display:none}
+.h2h>summary .h2h-lab{font-size:.66rem;font-weight:700;color:var(--muted)}
+.h2h>summary .chev{margin-left:auto;color:var(--muted);font-size:.8rem;transition:transform .15s}
+.h2h[open]>summary .chev{transform:rotate(90deg)}
+.h2h>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.h2h-body{padding:0 11px 11px}
+table.h2h-t{border-collapse:separate;border-spacing:2px;font-size:.72rem;min-width:320px;margin:0 auto}
+table.h2h-t th{font-size:.64rem;color:var(--muted);font-weight:800;padding:2px;text-align:center;white-space:nowrap}
+table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
+.h2h-cell{min-width:46px;height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;border-radius:7px;background:var(--surface);border:1px solid var(--border2)}
+.h2h-cell .wl{font-weight:800;font-variant-numeric:tabular-nums;font-size:.8rem}
+.h2h-cell .n{font-size:.54rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.h2h-cell.na,.h2h-cell.dead{color:var(--muted);font-weight:700;background:var(--surface2)}
+.h2h-cell.dead{background:repeating-linear-gradient(45deg,transparent,transparent 5px,var(--border2) 5px,var(--border2) 6px)}
+.h2h-cell.adv{background:rgba(47,158,68,.15);border-color:var(--good)}
+.h2h-cell.adv .wl{color:var(--good)}
+.h2h-cell.dis{background:rgba(224,49,49,.13);border-color:#e03131}
+.h2h-cell.dis .wl{color:#e03131}
+.h2h-legend{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:.62rem;color:var(--muted);margin-top:9px}
+.h2h-legend .h2h-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.h2h-legend .h2h-sw.adv{background:rgba(47,158,68,.15);border:1px solid var(--good)}
+.h2h-legend .h2h-sw.dis{background:rgba(224,49,49,.13);border:1px solid #e03131}
+.h2h-names{font-size:.6rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.6;text-align:center}
 
 /* predictions: 本日のハイライト（妙味サマリ・買い目推奨ではない） */
 .hl-card{margin-bottom:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
@@ -349,6 +382,17 @@ function boot(DB){
     const byVenue = new Map();
     races.forEach(r=>{ const k=r.venue||"—"; if(!byVenue.has(k)) byVenue.set(k,[]); byVenue.get(k).push(r); });
 
+    // 収集済み全履歴からの現時点成績（通算勝率/直近5走平均着順/当地勝率/前走からの間隔）
+    function statLine(rd){
+      const p=[];
+      if(rd.career_win_rate!=null)
+        p.push(`通算<b>${(rd.career_win_rate*100).toFixed(1)}%</b><small>${rd.career_starts||0}走</small>`);
+      if(rd.recent5_finish!=null) p.push(`直近5走<b>${rd.recent5_finish.toFixed(1)}</b>着`);
+      if(rd.venue_win_rate!=null && rd.venue_starts)
+        p.push(`当地<b>${(rd.venue_win_rate*100).toFixed(0)}%</b><small>${rd.venue_starts}走</small>`);
+      if(rd.days_since!=null) p.push(`中<b>${rd.days_since}</b>日`);
+      return p.length ? `<span class="pr-stats">${p.join('<i>·</i>')}</span>` : "";
+    }
     function riderRow(rd, top1){
       const w = top1>0 ? Math.max(3, Math.round((rd.win_prob||0)/top1*100)) : 0;
       // 必要オッズ=モデル勝率の損益分岐(1/勝率)。合成=一着固定の合成オッズ。並べて妥当性を見る。
@@ -360,9 +404,39 @@ function boot(DB){
         ? `<span class="pp-synth" title="一着固定の合成オッズ（この車を1着に固定した三連単を合成した実効オッズ）">合成${(+synth).toFixed(1)}倍</span>`
         : `<span class="pp-synth">合成—</span>`;
       return `<div class="pr-row">${carChip(rd.car)}`
-        +`<span class="pr-name"><span class="nm">${esc(rd.name||"")}</span><span class="mt">${legWr}</span></span>`
+        +`<span class="pr-name"><span class="nm">${esc(rd.name||"")}</span><span class="mt">${legWr}</span>${statLine(rd)}</span>`
         +`<span class="pr-bar"><span class="pr-fill" style="width:${w}%"></span></span>`
         +`<span class="pr-pct"><span class="pp-win">${pct1(rd.win_prob)}</span>${synthLine}</span></div>`;
+    }
+
+    // 出走者同士の過去対戦成績（同一レースでの着順比較）マトリクス。行=当該車の先着 - 相手の先着。
+    function h2hBlock(r){
+      const h = r.h2h;
+      if(!h || !h.cars || h.cars.length<2 || !h.cell || !Object.keys(h.cell).length)
+        return "";
+      const cars = h.cars;
+      const head = `<th class="h2h-corner">先着＼相手</th>`+cars.map(c=>`<th>${carChip(c)}</th>`).join("");
+      const body = cars.map(row=>{
+        const rec = h.cell[row]||{};
+        const tds = cars.map(col=>{
+          if(row===col) return `<td><div class="h2h-cell dead">—</div></td>`;
+          const x = rec[col];
+          if(!x || !x.n) return `<td><div class="h2h-cell na">—</div></td>`;
+          const cls = x.w>x.l ? " adv" : (x.w<x.l ? " dis" : "");
+          return `<td><div class="h2h-cell${cls}">`
+            +`<span class="wl">${x.w}-${x.l}</span><span class="n">${x.n}戦</span></div></td>`;
+        }).join("");
+        return `<tr><th class="h2h-rh">${carChip(row)}</th>${tds}</tr>`;
+      }).join("");
+      const names = cars.map(c=>`${c}=${esc(h.names[c]||"")}`).join("　");
+      return `<details class="h2h"><summary aria-label="過去対戦成績の開閉">`
+        +`<span class="h2h-ttl">🤼 過去の対戦成績</span>`
+        +`<span class="h2h-lab">同一レースでの着順比較</span><span class="chev">▸</span></summary>`
+        +`<div class="h2h-body"><div class="tblwrap"><table class="h2h-t"><thead><tr>${head}</tr></thead>`
+        +`<tbody>${body}</tbody></table></div>`
+        +`<div class="h2h-legend"><span><span class="h2h-sw adv"></span>先着優位</span>`
+        +`<span><span class="h2h-sw dis"></span>劣位</span><span>数字＝当該車の先着-相手の先着（戦=対戦数）</span></div>`
+        +`<div class="h2h-names">${names}</div></div></details>`;
     }
 
     // EV判定（最新オッズ×モデルの参考値。推奨買い目ではない）
@@ -437,10 +511,10 @@ function boot(DB){
       const tabs=firstCars.map(c=>`<button class="om-tab" type="button" role="tab" data-om="${uid}" data-car="${c}"`
         +` aria-selected="${c===initCar?"true":"false"}" tabindex="${c===initCar?0:-1}"`
         +` aria-label="1着 ${c}番を固定">${carChip(c)}</button>`).join("");
-      return `<details class="om"><summary aria-label="三連単オッズテーブルの開閉">`
-        +`<span class="om-ttl">🔢 三連単オッズテーブル</span>`
-        +`<span class="om-lab" id="om-lab-${uid}">1着 ${initCar} 固定</span>`
-        +`<span class="chev">▸</span></summary>`
+      // 毎回参照する情報のため常時表示（アコーディオンにしない）。
+      return `<div class="om">`
+        +`<div class="om-head"><span class="om-ttl">🔢 三連単オッズテーブル</span>`
+        +`<span class="om-lab" id="om-lab-${uid}">1着 ${initCar} 固定</span></div>`
         +`<div class="om-body">`
         +`<div class="om-sel" role="tablist" aria-label="1着車の固定"><span class="om-sellab">1着固定</span>${tabs}</div>`
         +`<div class="tblwrap"><div id="om-grid-${uid}">${renderOmGrid(uid,initCar)}</div></div>`
@@ -448,7 +522,7 @@ function boot(DB){
         +`<span>—＝未発売／不成立</span></div>`
         +`<div class="pred-ev-note">セル＝三連単オッズ（上）＋モデル確率（下）。色付き＝モデル確率に対しオッズが高いセル（EV&gt;1）。`
         +`確率と市場オッズの比較であり、エッジ確立・買い目推奨ではありません。</div>`
-        +`</div></details>`;
+        +`</div></div>`;
     }
 
     function raceBlock(r){
@@ -477,7 +551,7 @@ function boot(DB){
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
         +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
-        +riders + tfBlock + evBlock(r.ev) + omBlock(r)
+        +riders + h2hBlock(r) + tfBlock + evBlock(r.ev) + omBlock(r)
         +`</div>`;
     }
 
