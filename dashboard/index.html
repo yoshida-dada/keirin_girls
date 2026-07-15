@@ -698,6 +698,45 @@ function boot(DB){
     if(!isShown(A.status)){ host.innerHTML = emptyBox("予測実績は未算出です。検証期間でモデル予測を実結果と照合した的中率がここに表示されます。"); return; }
     const kpi=(l,v,n)=>`<div class="kpi"><div class="kl">${l}</div><div class="kv">${v}</div><div class="kn">${n}</div></div>`;
     const tri=(A.trifecta||[]).map(t=>`<tr><td class="l">モデル上位${t.topn}に的中</td><td>${(t.rate*100).toFixed(1)}%</td></tr>`).join("");
+
+    // (d2b) 週次推移ミニチャート: 検証期間を ISO週で区切った 1着的中率/上位3内率 + 週レース数
+    const H2 = DB.accuracy_history||{};
+    const wk = H2.weeks||[];
+    let histHtml = "";
+    if(isShown(H2.status) && wk.length){
+      const W=340,H=200,padL=30,padR=10,padT=14,padB=34;
+      const n=wk.length, plotB=H-padB, plotT=padT;
+      const sx=i=>padL+(n>1?(i/(n-1))*(W-padL-padR):(W-padL-padR)/2);
+      const sy=v=>plotB-(v/100)*(plotB-plotT);        // v は %（0〜100）
+      const maxN=Math.max(...wk.map(w=>w.n_races||0),1);
+      let g="";
+      [0,50,100].forEach(t=>{
+        g+=`<line x1="${padL}" y1="${sy(t)}" x2="${W-padR}" y2="${sy(t)}" stroke="var(--border2)" stroke-width="1"/>`;
+        g+=`<text x="${padL-4}" y="${sy(t)+3}" font-size="9" fill="var(--muted)" text-anchor="end">${t}%</text>`;
+      });
+      // 週レース数を下部バンドの薄い棒で（週ごとのサンプル量＝振れやすさの目安）
+      const volH=(plotB-plotT)*0.22, bw=Math.max(2,Math.min(10,(W-padL-padR)/n*0.6));
+      wk.forEach((w,i)=>{ const h=((w.n_races||0)/maxN)*volH;
+        g+=`<rect x="${(sx(i)-bw/2).toFixed(1)}" y="${(plotB-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="var(--muted)" opacity="0.16"/>`; });
+      const line=(key,col)=>`<polyline points="${wk.map((w,i)=>`${sx(i).toFixed(1)},${sy((w[key]||0)*100).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="1.8"/>`;
+      g+=line("top3_rate","var(--good)");
+      g+=line("top1_rate","var(--accent)");
+      if(n<=26){ wk.forEach((w,i)=>{
+        g+=`<circle cx="${sx(i).toFixed(1)}" cy="${sy((w.top3_rate||0)*100).toFixed(1)}" r="2" fill="var(--good)"/>`;
+        g+=`<circle cx="${sx(i).toFixed(1)}" cy="${sy((w.top1_rate||0)*100).toFixed(1)}" r="2" fill="var(--accent)"/>`; }); }
+      const md=s=>{ const p=(s||"").split("-"); return p.length===3?p[1]+"/"+p[2]:s; };
+      const idxs=n<=1?[0]:[0,Math.floor((n-1)/2),n-1];
+      idxs.forEach(i=>{ g+=`<text x="${sx(i).toFixed(1)}" y="${H-padB+14}" font-size="9" fill="var(--muted)" text-anchor="middle">${esc(md(wk[i].week_start))}</text>`; });
+      const svg=`<svg class="tksvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="週次的中率の推移">${g}</svg>`;
+      const legend=`<div class="note" style="margin-bottom:2px">`
+        +`<span style="color:var(--accent)">●</span> 1着的中率　`
+        +`<span style="color:var(--good)">●</span> 上位3内率　`
+        +`<span style="color:var(--muted)">▮</span> 週レース数</div>`;
+      histHtml = `<div style="margin-top:12px;font-size:.72rem;color:var(--muted);font-weight:700">週次推移（学習に使っていない直近区間）</div>`
+        +legend+svg
+        +`<div class="note">各点＝ISO週（月曜始まり）ごとの検証実績。線が水平に近いほどモデル精度が時間的に安定。棒＝その週のレース数（少ない週は振れやすい）。買い目推奨ではありません。</div>`;
+    }
+
     host.innerHTML =
       `<div class="kpirow">`
       +kpi("1着的中率", (A.top1_rate*100).toFixed(1)+"%", "本命が1着")
@@ -705,7 +744,8 @@ function boot(DB){
       +kpi("Brier", (A.brier!=null?A.brier.toFixed(4):"—"), "低いほど良い")
       +`</div>`
       +`<div class="tblwrap" style="margin-top:8px"><table class="t"><thead><tr><th class="l">三連単の的中（モデル確率順の上位に実着順が入った割合）</th><th>的中率</th></tr></thead><tbody>${tri}</tbody></table></div>`
-      +`<div class="note">${esc(A.period||"")}・${(A.n_races||0).toLocaleString()}レース（学習に使っていない直近区間）でモデル予測を実結果と照合した実績。買い目推奨ではありません。</div>`;
+      +`<div class="note">${esc(A.period||"")}・${(A.n_races||0).toLocaleString()}レース（学習に使っていない直近区間）でモデル予測を実結果と照合した実績。買い目推奨ではありません。</div>`
+      +histHtml;
   })();
 
   // ---------- (e) cumulative ROI ----------
