@@ -35,6 +35,31 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     odds = {k: v for k, v in odds.items() if v and v < 9999}
     deadline = parse_deadline(html)
 
+    # 現時点の選手成績（通算/直近5走/当地/中何日）と対戦成績を氏名で引く（本日レースはDB外＝混ざらない）
+    from config.settings import DATA_DIR
+    from src.features.rider_history import current_stats, head_to_head
+    from datetime import date as _date
+    db_path = str(DATA_DIR / "keirin.sqlite")
+    venue_code = kaisai_code[:2]
+    try:
+        stats = current_stats(db_path)
+    except Exception:
+        stats = {}
+    car_name = {e.car_number: e.rider_name for e in entries}
+    try:
+        h2h = head_to_head(db_path, car_name) if stats else None
+    except Exception:
+        h2h = None
+
+    def _days_since(name: str) -> int | None:
+        ld = (stats.get(name) or {}).get("last_date")
+        if not ld:
+            return None
+        try:
+            return (_date.today() - _date.fromisoformat(ld)).days
+        except ValueError:
+            return None
+
     model = load_model()
     elo_state = load_elo_state() if "rel_elo" in (model.feature_names or []) else None
     strengths = strengths_from_model(model, entries, recent, elo_state)
@@ -59,6 +84,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         f = recent.get(e.car_number)
         wp = round(strengths.get(e.car_number, 0), 4)
         synth = _synth_1st(e.car_number) if odds else None
+        st = stats.get(e.rider_name) or {}
+        cwr = st.get("career_win_rate")
+        r5 = st.get("recent5_avg_finish")
+        vwr = (st.get("venue") or {}).get(venue_code)
+        vst = (st.get("venue_starts") or {}).get(venue_code)
         riders.append({
             "car": e.car_number, "name": e.rider_name,
             "score": e.racing_score, "leg": e.leg_type,
@@ -67,6 +97,13 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             "synth_odds_1st": synth,                         # 一着固定の合成オッズ
             "fair_odds_1st": round(1 / wp, 2) if wp > 0 else None,  # モデル勝率の必要オッズ
             "win_ev": round(wp * synth, 2) if synth else None,     # >1=市場が1着を過小評価
+            # 収集済み全履歴からの現時点成績（as-of最新, 本日レースは含まない）
+            "career_win_rate": round(cwr, 4) if cwr is not None else None,
+            "career_starts": st.get("career_starts"),
+            "recent5_finish": round(r5, 2) if r5 is not None else None,
+            "venue_win_rate": round(vwr, 4) if vwr is not None else None,
+            "venue_starts": vst,
+            "days_since": _days_since(e.rider_name),
         })
     top_tri = [{"combo": format_combo(c), "prob": round(p, 4),
                 "odds": odds.get(c), "need_odds": round(1 / p, 1) if p > 0 else None}
@@ -102,6 +139,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "entropy": round(rt.entropy_norm, 4), "source": source,
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
         "combos": combos,                          # 全210通り（オッズテーブル用）
+        "h2h": h2h,                                # 出走者同士の過去対戦成績マトリクス
         "has_odds": bool(odds),
         "updated_at": datetime.now(jst).strftime("%Y-%m-%d %H:%M"),
     }
