@@ -14,12 +14,15 @@ import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
+
 from src.features.assembler import build_features
 from src.model.training_data import PL_FEATURES, _entries_of, _recent_of
 from src.model.plackett_luce import all_trifecta_probs
 from src.model.race_type import classify_race
 from src.ev.ev_engine import odds_bucket_label
 from src.backtest.calibration import brier_score, expected_calibration_error
+from src.features.tactics_features import TACTIC_NAMES, tactic_columns
 
 _STAKE = 100  # 1点あたり投票額（円）
 
@@ -43,7 +46,25 @@ def _combo(s: str) -> tuple:
 
 def build_records(db_path: str | Path, model, race_ids: list[str],
                   haircut: float = 1.0) -> list[ComboRecord]:
-    """検証期間の各レース×各買い目について ComboRecord を作る（モデルは学習済み）。"""
+    """検証期間の各レース×各買い目について ComboRecord を作る（モデルは学習済み）。
+
+    モデルの feature_names に応じて rel_elo / 展開10列 を **as-of（当該レースを含まない履歴）**で
+    付与する（compute_pre_race_elo / compute_pre_race_tactics のバッチ値。学習と同一の tactic_columns
+    を通すので skew 無し）。検証レースは out-of-sample、特徴はas-of＝リーク無し。
+    """
+    feats = model.feature_names or PL_FEATURES       # モデルの学習特徴に追従
+    need_elo = "rel_elo" in feats
+    need_tac = any(n in feats for n in TACTIC_NAMES)
+    pre_elo = tactics = None
+    if need_elo:
+        from src.model.elo import compute_pre_race_elo, DEFAULT_ELO
+        pre_elo = compute_pre_race_elo(db_path)
+    else:
+        DEFAULT_ELO = 1500.0
+    if need_tac:
+        from src.features.rider_tactics import compute_pre_race_tactics
+        tactics = compute_pre_race_tactics(db_path)
+
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     conn.execute("PRAGMA query_only=1")
     records: list[ComboRecord] = []
@@ -59,7 +80,14 @@ def build_records(db_path: str | Path, model, race_ids: list[str],
             entries = _entries_of(conn, race_id)
             recent = _recent_of(conn, race_id)
             df = build_features(entries, recent)
-            feats = model.feature_names or PL_FEATURES   # モデルの学習特徴に追従
+            if need_elo:                              # レース内相対Elo（as-of）
+                elos = np.array([pre_elo.get((race_id, c), DEFAULT_ELO) for c in df.index])
+                df["rel_elo"] = elos - elos.mean()
+            if need_tac:                              # 展開10列（as-of・学習と同一関数）
+                tac_by_car = {c: tactics.get((race_id, c), {}) for c in df.index}
+                cols = tactic_columns(list(df.index), tac_by_car)
+                for i, name in enumerate(TACTIC_NAMES):
+                    df[name] = [cols[c][i] for c in df.index]
             if df[feats].isna().any().any():
                 continue
             cars = list(df.index)
