@@ -163,6 +163,20 @@ table.rt th.rt-name,table.rt td.rt-name{position:sticky;left:30px;z-index:2;back
 table.rt th.rt-name{z-index:3;background:var(--surface2)}
 table.rt tr.rt-top td{background:var(--accent-soft)}
 table.rt tr.rt-top td.rt-car,table.rt tr.rt-top td.rt-name{background:var(--accent-soft)}
+/* 今場所成績（選手ごと複数行） */
+.ims{margin:12px 0 2px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
+.ims-head{padding:9px 11px 8px;font-size:.74rem;font-weight:800;color:var(--ink)}
+.ims-head .ims-sub{font-size:.62rem;font-weight:700;color:var(--muted);margin-left:4px}
+.ims .tblwrap{border-radius:0;border-left:none;border-right:none;border-bottom:none}
+table.ims-t td.ims-cell{padding:5px 8px;white-space:normal}
+.ims-line{display:inline-flex;align-items:baseline;gap:6px;margin:2px 8px 2px 0;padding:2px 7px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;font-size:.7rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ims-line .ims-d{color:var(--muted);font-size:.66rem}
+.ims-line .ims-r{color:var(--muted);font-size:.66rem}
+.ims-line .ims-p{font-weight:800;color:var(--ink)}
+.ims-line .ims-p.p1{color:#e03131}
+.ims-line .ims-p.p3{color:var(--accent)}
+.ims-line .ims-l{color:var(--muted);font-size:.66rem}
+.ims-none{font-size:.68rem;color:var(--muted);font-weight:700}
 /* 列表示・並び順の設定パネル */
 .cc{margin:0 0 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
 .cc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:.76rem;font-weight:800;user-select:none}
@@ -416,6 +430,12 @@ function boot(DB){
       {key:"r5",    label:"直近5走平均着", th:"直近5走", cls:"", get:rd=> rd.recent5_finish!=null?rd.recent5_finish.toFixed(1)+"着":"—"},
       {key:"venue", label:"当地勝率",  th:"当地",  cls:"", get:rd=> (rd.venue_win_rate!=null&&rd.venue_starts)?`${(rd.venue_win_rate*100).toFixed(0)}%${sub(rd.venue_starts+"走")}`:"—"},
       {key:"days",  label:"出走間隔",  th:"間隔",  cls:"", get:rd=> rd.days_since!=null?rd.days_since+"日":"—"},
+      // 脚質プロファイル（直近1年）。S=スタート先頭 B=バック先頭 / 逃捲差=1着決まり手回数
+      {key:"s",     label:"S回数(直近1年)", th:"S", cls:"", get:rd=> rd.s_cnt!=null?rd.s_cnt:"—"},
+      {key:"b",     label:"B回数(直近1年)", th:"B", cls:"", get:rd=> rd.b_cnt!=null?rd.b_cnt:"—"},
+      {key:"nige",  label:"逃げ1着(直近1年)", th:"逃", cls:"", get:rd=> rd.nige!=null?rd.nige:"—"},
+      {key:"makuri",label:"捲り1着(直近1年)", th:"捲", cls:"", get:rd=> rd.makuri!=null?rd.makuri:"—"},
+      {key:"sashi", label:"差し1着(直近1年)", th:"差", cls:"", get:rd=> rd.sashi!=null?rd.sashi:"—"},
     ];
     const colByKey = Object.fromEntries(COLUMNS.map(c=>[c.key,c]));
     const DEFAULT_ORDER = COLUMNS.map(c=>c.key);
@@ -447,6 +467,31 @@ function boot(DB){
       }).join("");
       return `<div class="tblwrap rt-wrap"><table class="rt"><thead><tr>${head}</tr></thead>`
         +`<tbody>${body}</tbody></table></div>`;
+    }
+
+    // 今場所成績（2日目以降）: 当該開催の前日までの各走を 日付/R/着順/上り で選手ごと複数行表示。
+    const fmtMD = d => { const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||""); return m?`${+m[1]}/${+m[2]}`:esc(d||""); };
+    function imsBlock(r){
+      const any = (r.riders||[]).some(rd=>(rd.meet||[]).length);
+      if(!any) return "";                                   // 初日は今場所成績が無いので非表示
+      const body = (r.riders||[]).map(rd=>{
+        const lines = (rd.meet||[]).map(m=>{
+          const pos=m[2], lap=m[3];
+          const pcls = pos===1?" p1":(pos!=null&&pos<=3?" p3":"");
+          return `<span class="ims-line">`
+            +`<span class="ims-d">${fmtMD(m[0])}</span>`
+            +`<span class="ims-r">${m[1]!=null?m[1]+"R":""}</span>`
+            +`<span class="ims-p${pcls}">${pos!=null?pos+"着":"—"}</span>`
+            +`<span class="ims-l">${lap!=null?"上"+(+lap).toFixed(1):""}</span></span>`;
+        }).join("");
+        return `<tr><td class="rt-car">${carChip(rd.car)}</td>`
+          +`<td class="rt-name l">${esc(rd.name||"")}</td>`
+          +`<td class="ims-cell l">${lines||'<span class="ims-none">出走なし</span>'}</td></tr>`;
+      }).join("");
+      return `<div class="ims"><div class="ims-head">📋 今場所成績 <span class="ims-sub">当該開催・前日まで（日付/R/着順/上り）</span></div>`
+        +`<div class="tblwrap"><table class="rt ims-t"><thead><tr>`
+        +`<th class="rt-car">車</th><th class="rt-name l">選手</th><th class="l">今場所の各走</th>`
+        +`</tr></thead><tbody>${body}</tbody></table></div></div>`;
     }
 
     // 出走者同士の過去対戦成績（同一レースでの着順比較）マトリクス。行=当該車の先着 - 相手の先着。
@@ -591,7 +636,7 @@ function boot(DB){
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
         +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
-        +riders + h2hBlock(r) + tfBlock + evBlock(r.ev) + omBlock(r)
+        +riders + imsBlock(r) + h2hBlock(r) + tfBlock + evBlock(r.ev) + omBlock(r)
         +`</div>`;
     }
 

@@ -37,7 +37,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
 
     # 現時点の選手成績（通算/直近5走/当地/中何日）と対戦成績を氏名で引く（本日レースはDB外＝混ざらない）
     from config.settings import DATA_DIR
-    from src.features.rider_history import current_stats, head_to_head
+    from src.features.rider_history import current_stats, head_to_head, style_counts, meet_results
     from datetime import date as _date
     db_path = str(DATA_DIR / "keirin.sqlite")
     venue_code = kaisai_code[:2]
@@ -50,6 +50,14 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         h2h = head_to_head(db_path, car_name) if stats else None
     except Exception:
         h2h = None
+    try:
+        styles = style_counts(db_path) if stats else {}
+    except Exception:
+        styles = {}
+    try:  # 今場所成績（当該開催の前日までの各走）。初日は空。
+        meets = meet_results(db_path, tuple(car_name.values()), kaisai_code) if stats else {}
+    except Exception:
+        meets = {}
 
     def _days_since(name: str) -> int | None:
         ld = (stats.get(name) or {}).get("last_date")
@@ -89,6 +97,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         r5 = st.get("recent5_avg_finish")
         vwr = (st.get("venue") or {}).get(venue_code)
         vst = (st.get("venue_starts") or {}).get(venue_code)
+        sc = styles.get(e.rider_name) or {}
+        mr = meets.get(e.rider_name) or []
         riders.append({
             "car": e.car_number, "name": e.rider_name,
             "score": e.racing_score, "leg": e.leg_type,
@@ -104,6 +114,12 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             "venue_win_rate": round(vwr, 4) if vwr is not None else None,
             "venue_starts": vst,
             "days_since": _days_since(e.rider_name),
+            # 脚質プロファイル（直近1年）: S/B回数と1着決まり手(逃/捲/差)回数
+            "s_cnt": sc.get("s"), "b_cnt": sc.get("b"),
+            "nige": sc.get("nige"), "makuri": sc.get("makuri"), "sashi": sc.get("sashi"),
+            "style_races": sc.get("races"),
+            # 今場所成績: [日付, R番号, 着順, 上りタイム] の配列（前日までの各走）
+            "meet": [[m["date"], m["race_no"], m["position"], m["last_lap"]] for m in mr],
         })
     top_tri = [{"combo": format_combo(c), "prob": round(p, 4),
                 "odds": odds.get(c), "need_odds": round(1 / p, 1) if p > 0 else None}
