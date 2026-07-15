@@ -137,6 +137,8 @@ def main() -> None:
     doc["prediction_accuracy"] = build_accuracy_section(db_path)   # D13: 予測実績
     from accuracy_history import build_accuracy_history
     doc["accuracy_history"] = build_accuracy_history(db_path)      # D13時系列: 週次推移
+    from results_history import build_results_history
+    doc["results_history"] = build_results_history(db_path)        # 成績: 過去1ヶ月の開催結果
     if args.predict:
         target = date.fromisoformat(args.date) if args.date else date.today()
         print(f"{target} のガールズ予測を生成中…")
