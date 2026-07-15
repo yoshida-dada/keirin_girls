@@ -177,6 +177,24 @@ table.ims-t td.ims-cell{padding:5px 8px;white-space:normal}
 .ims-line .ims-p.p3{color:var(--accent)}
 .ims-line .ims-l{color:var(--muted);font-size:.66rem}
 .ims-none{font-size:.68rem;color:var(--muted);font-weight:700}
+/* 確定結果 */
+.res{margin:6px 0 12px;border:1px solid var(--good);border-radius:11px;background:var(--good-soft);overflow:hidden}
+.res-head{padding:8px 11px;font-size:.78rem;font-weight:800;color:var(--good);display:flex;align-items:center;gap:8px}
+.res-head .res-time{margin-left:auto;font-size:.62rem;font-weight:700;color:var(--muted)}
+.res .tblwrap{border-radius:0;border-left:none;border-right:none;background:var(--surface)}
+table.res-t{font-size:.76rem}
+table.res-t th.res-pos,table.res-t td.res-pos{position:static;width:26px;min-width:26px;text-align:center;font-weight:800}
+table.res-t th.res-car,table.res-t td.res-car{position:static;width:30px;min-width:30px;text-align:center}
+table.res-t tr.res-tr.p1 td{background:var(--accent-soft)}
+table.res-t td.res-pos{color:var(--ink)}
+table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
+.res-sb{font-size:.6rem;font-weight:800;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 3px;margin-left:2px}
+.res-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:9px 11px;font-size:.72rem;font-weight:700;color:var(--ink)}
+.res-foot .res-yen{color:var(--good);font-variant-numeric:tabular-nums}
+.res-foot .res-pop{font-size:.64rem;color:var(--muted);font-weight:700}
+.res-hit{font-size:.64rem;font-weight:800;border-radius:999px;padding:2px 9px}
+.res-hit.ok{background:var(--good-soft);color:var(--good);border:1px solid var(--good)}
+.res-hit.ng{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
 /* 列表示・並び順の設定パネル */
 .cc{margin:0 0 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
 .cc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:.76rem;font-weight:800;user-select:none}
@@ -494,6 +512,40 @@ function boot(DB){
         +`</tr></thead><tbody>${body}</tbody></table></div></div>`;
     }
 
+    // 確定結果（発走後に取得）: 着順・上り・決まり手・払戻＋予測的中を表示。
+    function resultBlock(r){
+      const R = r.result;
+      if(!R || !(R.order||[]).length) return "";
+      const rows = R.order.map(o=>{
+        const pcls = o.pos===1?" p1":(o.pos!=null&&o.pos<=3?" p3":"");
+        return `<tr class="res-tr${pcls}">`
+          +`<td class="res-pos">${o.pos!=null?o.pos:"—"}</td>`
+          +`<td class="res-car">${carChip(o.car)}</td>`
+          +`<td class="l">${esc(o.name||"")}</td>`
+          +`<td>${o.last_lap!=null?(+o.last_lap).toFixed(1):"—"}</td>`
+          +`<td class="l">${esc(o.kimarite||"")}${o.sb?` <span class="res-sb">${esc(o.sb)}</span>`:""}</td></tr>`;
+      }).join("");
+      const p = R.payout;
+      const payTxt = p
+        ? `三連単 <b>${esc(p.combo)}</b> <b class="res-yen">¥${Number(p.yen).toLocaleString()}</b>`
+          +(p.pop!=null?` <span class="res-pop">${p.pop}番人気</span>`:"")
+        : "払戻情報なし";
+      const h = R.hit||{};
+      let hitTxt = "";
+      if(h.win_hit!=null)
+        hitTxt += `<span class="res-hit ${h.win_hit?"ok":"ng"}">本命${h.win_hit?"的中":"不的中"}</span>`;
+      if(h.tri_rank!=null)
+        hitTxt += `<span class="res-hit ${h.tri_rank<=10?"ok":"ng"}">三連単 モデル${h.tri_rank}位</span>`;
+      else if("tri_rank" in h)
+        hitTxt += `<span class="res-hit ng">三連単 モデル圏外</span>`;
+      return `<div class="res"><div class="res-head">🏁 確定結果`
+        +(R.fetched_at?`<span class="res-time">取得 ${esc(String(R.fetched_at).slice(11))}</span>`:"")+`</div>`
+        +`<div class="tblwrap"><table class="rt res-t"><thead><tr>`
+        +`<th class="res-pos">着</th><th class="res-car">車</th><th class="l">選手</th><th>上り</th><th class="l">決まり手</th>`
+        +`</tr></thead><tbody>${rows}</tbody></table></div>`
+        +`<div class="res-foot"><span class="res-pay">${payTxt}</span>${hitTxt}</div></div>`;
+    }
+
     // 出走者同士の過去対戦成績（同一レースでの着順比較）マトリクス。行=当該車の先着 - 相手の先着。
     function h2hBlock(r){
       const h = r.h2h;
@@ -636,7 +688,7 @@ function boot(DB){
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
         +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
-        +riders + imsBlock(r) + h2hBlock(r) + tfBlock + evBlock(r.ev) + omBlock(r)
+        +resultBlock(r) + riders + imsBlock(r) + h2hBlock(r) + tfBlock + evBlock(r.ev) + omBlock(r)
         +`</div>`;
     }
 

@@ -81,6 +81,35 @@ def live_refresh() -> None:
         _log("オッズ更新 失敗: " + out[-300:])
 
 
+def live_results() -> None:
+    rc, out = _run([PY, "scripts/fetch_results.py"])
+    if rc == 0:
+        last = out.strip().splitlines()[-1] if out.strip() else ""
+        _log("結果取得 " + last)
+    else:
+        _log("結果取得 失敗: " + out[-300:])
+
+
+def _pending_results(now: datetime) -> bool:
+    """締切+20分を過ぎたのに結果未取得のレースが data.json にあるか。"""
+    if not DATA_JSON.exists():
+        return False
+    try:
+        races = json.loads(DATA_JSON.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
+    except Exception:
+        return False
+    for r in races:
+        if r.get("result"):
+            continue
+        dl = r.get("deadline")
+        if dl and ":" in str(dl):
+            h, m = (int(x) for x in str(dl).split(":"))
+            d = now.replace(hour=h, minute=m, second=0, microsecond=0)
+            if (now - d).total_seconds() >= 20 * 60:
+                return True
+    return False
+
+
 def _next_deadline_min(now: datetime) -> float | None:
     """data.json の当日レースの締切のうち、まだ来ていない最短の「分」を返す。無ければNone。"""
     if not DATA_JSON.exists():
@@ -144,6 +173,11 @@ def main() -> None:
             morning_build()
             served_date = now.date()
             if not args.no_push:
+                git_push(); last_push = time.time()
+
+        if _pending_results(now):                 # 締切+20分経過レースの結果取得＋反映
+            live_results()
+            if not args.no_push and time.time() - last_push >= PUSH_INTERVAL:
                 git_push(); last_push = time.time()
 
         nd = _next_deadline_min(now)              # 最短の未到来締切（分）
