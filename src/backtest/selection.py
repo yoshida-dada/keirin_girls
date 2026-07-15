@@ -197,6 +197,36 @@ def settle(bought: list[ComboRecord]) -> dict:
     }
 
 
+def settle_full(chosen_by_race: dict[str, list[ComboRecord]], budget: int = 1000) -> dict | None:
+    """{race_id:[ComboRecord]} を均等/ドッチング両方で決済（点数バランス調査の共通関数）。
+
+    均等 = 1点100円。ドッチング = 1レース budget円を stake_i∝1/odds で配分（的中はほぼ budget×合成オッズ）。
+    戻り値: n_races/n_bets/n_hits/hit_rate/pts(点/R)/roi_eq/roi_du。買うレースが無ければ None。
+    """
+    n_races = n_bets = n_hits = 0
+    eq_stake = eq_ret = du_stake = du_ret = 0.0
+    for recs in chosen_by_race.values():
+        if not recs:
+            continue
+        n_races += 1
+        n_bets += len(recs)
+        inv = sum(1.0 / r.odds for r in recs if r.odds > 0)
+        eq_stake += len(recs) * 100
+        du_stake += budget
+        win = next((r for r in recs if r.is_win), None)
+        if win:
+            n_hits += 1
+            eq_ret += win.payout
+            if inv > 0:
+                du_ret += (budget * (1.0 / win.odds) / inv) * (win.payout / 100.0)
+    if n_races == 0:
+        return None
+    return {"n_races": n_races, "n_bets": n_bets, "n_hits": n_hits,
+            "hit_rate": n_hits / n_races, "pts": n_bets / n_races,
+            "roi_eq": eq_ret / eq_stake if eq_stake else 0.0,
+            "roi_du": du_ret / du_stake if du_stake else 0.0}
+
+
 def run_strategy(records: list[ComboRecord],
                  strategy: Callable[..., list[ComboRecord]],
                  race_type: str | None = None, **kwargs) -> dict:
