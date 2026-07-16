@@ -141,6 +141,13 @@ CREATE TABLE IF NOT EXISTS payouts_trifecta (
     popularity INTEGER,
     PRIMARY KEY (race_id, combo)
 );
+CREATE TABLE IF NOT EXISTS narabi (
+    race_id    TEXT NOT NULL,
+    car_number INTEGER NOT NULL,
+    position   INTEGER NOT NULL,   -- 記者の並び予想の隊列位置(0=先頭)
+    leg        TEXT,               -- 脚質(先行/自在/追込/押え先 等)
+    PRIMARY KEY (race_id, car_number)
+);
 """
 
 
@@ -192,6 +199,16 @@ class DatasetRepo:
         self.conn.executemany(
             "INSERT OR REPLACE INTO odds_final_trifecta VALUES (?,?,?)", rows)
         self.conn.commit()
+        return len(rows)
+
+    def save_narabi(self, race_id: str, narabi: dict) -> int:
+        """並び予想 {"order":[車番...(前→後)], "legs":{車番:脚質}} を保存。"""
+        order = (narabi or {}).get("order") or []
+        legs = (narabi or {}).get("legs") or {}
+        rows = [(race_id, car, pos, legs.get(car)) for pos, car in enumerate(order)]
+        if rows:
+            self.conn.executemany("INSERT OR REPLACE INTO narabi VALUES (?,?,?,?)", rows)
+            self.conn.commit()
         return len(rows)
 
     def save_payout(self, race_id: str, payout) -> None:
