@@ -15,9 +15,9 @@ PC起動時に自動起動し:
 from __future__ import annotations
 
 import argparse
-import functools
 import http.server
 import json
+import os
 import socketserver
 import subprocess
 import sys
@@ -27,9 +27,11 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))   # src.notify を import するため
 JST = timezone(timedelta(hours=9))
 DASH = ROOT / "dashboard"
 DATA_JSON = DASH / "data.json"
+NOTIFIED_PATH = ROOT / "data" / "notified.json"
 PY = sys.executable
 
 WINDOW_MIN = 30        # 発走何分前から1分更新を始めるか
@@ -60,10 +62,47 @@ def _log(msg: str) -> None:
         sys.stdout.flush()
 
 
+class DashHandler(http.server.SimpleHTTPRequestHandler):
+    """dashboard を配信しつつ POST /push/subscribe で通知購読を受け付ける。"""
+
+    def __init__(self, *a, **k):
+        super().__init__(*a, directory=str(DASH), **k)
+
+    def log_message(self, *a, **k):  # アクセスログ抑制
+        pass
+
+    def _json(self, code: int, obj: dict) -> None:
+        b = json.dumps(obj).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(b)))
+        self.send_header("Access-Control-Allow-Origin", "*")   # localhost閲覧からの購読POSTを許可
+        self.end_headers()
+        self.wfile.write(b)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def do_POST(self):
+        if self.path.rstrip("/") != "/push/subscribe":
+            self._json(404, {"ok": False}); return
+        try:
+            n = int(self.headers.get("Content-Length", 0) or 0)
+            sub = json.loads(self.rfile.read(n).decode("utf-8"))
+            from src.notify.webpush import add_subscription
+            cnt = add_subscription(sub)
+            self._json(200, {"ok": True, "count": cnt})
+            _log(f"通知購読を登録（計{cnt}件）")
+        except Exception as e:
+            self._json(400, {"ok": False, "error": str(e)})
+
+
 def serve_dashboard() -> None:
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(DASH))
-    handler.log_message = lambda *a, **k: None  # アクセスログ抑制
-    with socketserver.TCPServer(("127.0.0.1", PORT), handler) as httpd:
+    with socketserver.TCPServer(("127.0.0.1", PORT), DashHandler) as httpd:
         httpd.serve_forever()
 
 
@@ -138,6 +177,80 @@ def _next_deadline_min(now: datetime) -> float | None:
     return min(mins) if mins else None
 
 
+def _load_notified(today: str) -> set[str]:
+    try:
+        d = json.loads(NOTIFIED_PATH.read_text(encoding="utf-8"))
+        if d.get("date") == today:
+            return set(d.get("keys", []))
+    except Exception:
+        pass
+    return set()
+
+
+def _save_notified(today: str, keys: set[str]) -> None:
+    try:
+        NOTIFIED_PATH.write_text(json.dumps({"date": today, "keys": sorted(keys)},
+                                            ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _notify_text(r: dict, dl: str) -> tuple[str, str]:
+    venue, rno, rtype = r.get("venue", "?"), r.get("race_no", "?"), r.get("race_type", "")
+    riders = sorted(r.get("riders", []), key=lambda x: -(x.get("win_prob") or 0))
+    top = riders[0] if riders else {}
+    p = int(round(100 * (top.get("win_prob") or 0)))
+    home = "(地元)" if top.get("home") else ""
+    tri = r.get("top_trifecta") or []
+    honmei = tri[0].get("combo") if tri else ""
+    title = f"🚲 {venue} R{rno} まもなく締切{dl}"
+    body = f"[{rtype}] ◎{top.get('car','')} {top.get('name','')}{home} {p}%"
+    if honmei:
+        body += f" / 本命 {honmei}"
+    return title, body
+
+
+def notify_lead(now: datetime) -> None:
+    """締切 NOTIFY_LEAD_MIN 分前になった当日レースを、スマホへ1回だけ通知する（全ガールズレース）。"""
+    try:
+        from src.notify.webpush import send_all, enabled, load_subs
+    except Exception:
+        return
+    if not enabled() or not load_subs():
+        return
+    try:
+        lead = int(os.environ.get("NOTIFY_LEAD_MIN", "10"))
+    except ValueError:
+        lead = 10
+    if not DATA_JSON.exists():
+        return
+    try:
+        races = json.loads(DATA_JSON.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
+    except Exception:
+        return
+    today = now.strftime("%Y-%m-%d")
+    done = _load_notified(today)
+    changed = False
+    for r in races:
+        dl = r.get("deadline")
+        if not (dl and ":" in str(dl)):
+            continue
+        key = f"{r.get('venue')}|{r.get('race_no')}"
+        if key in done:
+            continue
+        h, m = (int(x) for x in str(dl).split(":"))
+        d = now.replace(hour=h, minute=m, second=0, microsecond=0)
+        mins = (d - now).total_seconds() / 60
+        if 0 < mins <= lead:                      # 締切lead分前〜締切まで（過ぎたら通知しない）
+            title, body = _notify_text(r, dl)
+            ok, total = send_all(title, body, url="./", tag=key)
+            _log(f"発走前通知 {key} 締切{dl} → {ok}/{total}件")
+            done.add(key)
+            changed = True
+    if changed:
+        _save_notified(today, done)
+
+
 def git_push() -> None:
     rc, out = _run(["git", "diff", "--quiet", "--", "dashboard/data.json"])
     if rc == 0:
@@ -187,6 +300,8 @@ def main() -> None:
             live_results()
             if not args.no_push and time.time() - last_push >= PUSH_INTERVAL:
                 git_push(); last_push = time.time()
+
+        notify_lead(now)                          # 締切N分前になったレースをスマホへ通知（1回だけ）
 
         nd = _next_deadline_min(now)              # 最短の未到来締切（分）
         if nd is not None and nd <= WINDOW_MIN + 5:

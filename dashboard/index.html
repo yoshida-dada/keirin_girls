@@ -377,6 +377,7 @@ table.t.rh-t td{vertical-align:top}
 
 <header>
   <div class="brand"><span class="dot"></span>ガールズケイリン 期待値AI</div>
+  <button class="theme-btn" id="notifyBtn" aria-label="発走前通知" title="発走前にスマホへ通知">🔔 通知</button>
   <button class="theme-btn" id="themeBtn" aria-label="テーマ切替">🌓 テーマ</button>
   <div class="gen" id="gen"></div>
 </header>
@@ -1418,7 +1419,65 @@ function boot(DB){
 })();
 
 // PWA: サービスワーカー登録（ホーム画面インストール・オフライン対応）
+let _swReg=null;
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{ navigator.serviceWorker.register("./service-worker.js").catch(()=>{}); });
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(r=>{ _swReg=r; refreshNotifyBtn(); }).catch(()=>{});
+  });
 }
+
+// --- 発走前 Web Push 通知（別アプリ不要のスマホOSネイティブ通知）---
+function _b64ToU8(s){
+  const pad="=".repeat((4-s.length%4)%4);
+  const b=(s+pad).replace(/-/g,"+").replace(/_/g,"/");
+  const raw=atob(b); const u=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) u[i]=raw.charCodeAt(i);
+  return u;
+}
+async function refreshNotifyBtn(){
+  const btn=document.getElementById("notifyBtn"); if(!btn) return;
+  if(!("serviceWorker" in navigator) || !("PushManager" in window)){ btn.textContent="🔔 非対応"; btn.disabled=true; return; }
+  try{
+    const reg=_swReg || await navigator.serviceWorker.ready;
+    const sub=await reg.pushManager.getSubscription();
+    btn.textContent = sub ? "🔔 通知ON" : "🔔 通知";
+  }catch(_){}
+}
+async function enableNotify(){
+  if(!("serviceWorker" in navigator) || !("PushManager" in window)){
+    alert("この端末/ブラウザはWeb Push非対応です。iPhoneはSafariで『ホーム画面に追加』したPWAから開いてください（iOS16.4+）。"); return;
+  }
+  let cfg={};
+  try{ cfg=await fetch("./push_config.json?t="+Date.now()).then(r=>r.json()); }catch(_){}
+  if(!cfg.vapidPublicKey){ alert("通知鍵(VAPID)が未設定です。PCで『python scripts/gen_vapid.py』を実行し、push_config.jsonを反映してください。"); return; }
+  const perm=await Notification.requestPermission();
+  if(perm!=="granted"){ alert("通知が許可されませんでした。ブラウザ設定で許可してください。"); return; }
+  const reg=_swReg || await navigator.serviceWorker.ready;
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub){
+    try{ sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:_b64ToU8(cfg.vapidPublicKey)}); }
+    catch(e){ alert("購読の作成に失敗しました: "+e); return; }
+  }
+  // 同一オリジン配信(ローカル常駐)ならサーバへ自動保存。GitHub Pages(静的)ではPOSTが通らずフォールバック。
+  let saved=false;
+  try{
+    const res=await fetch(cfg.subscribeUrl||"./push/subscribe",
+      {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(sub)});
+    saved=res.ok;
+  }catch(_){}
+  await refreshNotifyBtn();
+  if(saved){ alert("発走前通知を有効化しました。以後このPCが起動中、全ガールズレースの発走前にスマホへ通知します。"); return; }
+  // フォールバック: 購読情報をコピー→PCで登録
+  const s=JSON.stringify(sub);
+  try{ await navigator.clipboard.writeText(s); }catch(_){}
+  window.prompt(
+    "通知を許可しました。あと1回だけPC側に登録が必要です（コピー済み）:\n"+
+    "この文字列をPCに送り、プロジェクトで\n  python scripts/add_sub.py \"貼り付け\"\nを実行してください。",
+    s);
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const btn=document.getElementById("notifyBtn");
+  if(btn){ btn.addEventListener("click", enableNotify); refreshNotifyBtn(); }
+});
 </script>
