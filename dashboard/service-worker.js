@@ -2,7 +2,7 @@
    - HTML(index.html/ナビゲーション) と data.json は network-first（更新を確実に反映、オフライン時はキャッシュ）
    - アイコン/マニフェスト等の静的アセットは cache-first
    キャッシュ名を上げると旧キャッシュを破棄して確実に更新できる。 */
-const CACHE = "girls-keirin-ev-v1";
+const CACHE = "girls-keirin-ev-v2";
 const SHELL = [
   "./",
   "./index.html",
@@ -56,4 +56,32 @@ self.addEventListener("fetch", (e) => {
   }
   // その他アセット（アイコン/マニフェスト）は cache-first
   e.respondWith(caches.match(e.request).then((r) => r || fetch(e.request)));
+});
+
+// --- Web Push（発走前のスマホ通知）---
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : "" }; }
+  const title = d.title || "ガールズケイリンAI";
+  const opts = {
+    body: d.body || "",
+    tag: d.tag || "keirin",
+    renotify: true,
+    icon: "./icon-192.png",
+    badge: "./icon-192.png",
+    data: { url: d.url || "./" },
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
+// 通知タップでダッシュボードを前面化（既存タブがあれば再利用）
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "./";
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((cs) => {
+      for (const c of cs) { if ("focus" in c) return c.focus(); }
+      return self.clients.openWindow ? self.clients.openWindow(url) : null;
+    })
+  );
 });
