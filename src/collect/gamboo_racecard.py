@@ -175,3 +175,40 @@ def fetch_race_card(kaisai_code: str, kaisai_day_code: str, race_no: int) -> lis
     """出走表を取得しパースする（オッズページ同梱。ネットワークアクセスあり）。"""
     res = fetch(build_odds_url(kaisai_code, kaisai_day_code, race_no))
     return parse_race_card(res.text)
+
+
+def parse_narabi(html: str) -> dict:
+    """オッズページの「並び予想」(dl.line_position)から予想隊列と各車の脚質を抽出する。
+
+    記者の事前予想。並び順（← が前）の車番リストと、各車の脚質(先行/自在/追込/押え先 等)を返す。
+    ガールズはラインが無いため隊列は流動的（＝あくまで予想）だが、「誰が先頭(先行)を打つ予定か・
+    誰が番手(マーク)につく予定か」を数値化する土台になる。実際に誰が主導権を取ったかは結果の
+    S/B マーカー(results.sb)で分かるので、事前(並び予想)×事後(S/B)を突き合わせられる。
+
+    返り値: {"order": [車番...(前→後)], "legs": {車番: 脚質}}。無ければ空。
+    """
+    import re
+    soup = BeautifulSoup(html, "html.parser")
+    dt = soup.find("dt", string=re.compile("並び予想"))
+    if dt is None:
+        return {"order": [], "legs": {}}
+    dl = dt.find_parent("dl")
+    dd = dl.find("dd") if dl else None
+    if dd is None:
+        return {"order": [], "legs": {}}
+    order: list[int] = []
+    legs: dict[int, str] = {}
+    for grp in dd.find_all("span", class_="icon_p"):
+        num = None
+        leg = None
+        for sp in grp.find_all("span"):
+            t = sp.get_text(strip=True)
+            if t.isdigit():
+                num = int(t)
+            elif t and t not in ("←", "→"):
+                leg = t
+        if num is not None:
+            order.append(num)
+            if leg:
+                legs[num] = leg
+    return {"order": order, "legs": legs}
