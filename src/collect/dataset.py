@@ -11,7 +11,8 @@ from dataclasses import dataclass, field
 
 from src.collect.base import fetch, detect_missing_trifecta
 from src.collect.gamboo_odds import build_odds_url, parse_trifecta_odds, parse_deadline
-from src.collect.gamboo_racecard import parse_race_card, parse_recent_form, is_girls_race, Entry
+from src.collect.gamboo_racecard import (
+    parse_race_card, parse_recent_form, is_girls_race, parse_narabi, Entry)
 from src.collect.gamboo_result import build_result_url, parse_results, parse_trifecta_payout
 from src.collect.gamboo_schedule import Kaisai
 from src.collect.snapshot import build_race_id
@@ -32,6 +33,7 @@ class RaceDataset:
     missing_odds: list             # 欠損している組合せ
     has_result: bool
     recent: dict = field(default_factory=dict)   # {車番: RecentForm} 直近4ヶ月as-osスタッツ
+    narabi: dict = field(default_factory=dict)   # 記者の並び予想 {"order":[車番], "legs":{車番:脚質}}
 
 
 def collect_race_dataset(kaisai: Kaisai, race_no: int,
@@ -46,6 +48,7 @@ def collect_race_dataset(kaisai: Kaisai, race_no: int,
     odds = parse_trifecta_odds(odds_html)
     deadline = parse_deadline(odds_html)
     recent = parse_recent_form(odds_html)          # 直近4ヶ月as-osスタッツ（同梱）
+    narabi = parse_narabi(odds_html)               # 記者の並び予想（同梱・事前の位置取り予想）
     field_size = max((max(c) for c in odds), default=len(entries))
     missing = detect_missing_trifecta(odds, field_size) if field_size else []
     girls = is_girls_race(entries)
@@ -57,7 +60,7 @@ def collect_race_dataset(kaisai: Kaisai, race_no: int,
             venue_code=kaisai.venue_code, race_no=race_no, is_girls=False,
             deadline=deadline, field_size=field_size, entries=entries, results=[],
             payout=None, odds_final=odds, missing_odds=missing, has_result=False,
-            recent=recent)
+            recent=recent, narabi=narabi)
 
     # 結果ページ（着順＋三連単払戻）。未確定なら空。
     try:
@@ -73,5 +76,5 @@ def collect_race_dataset(kaisai: Kaisai, race_no: int,
         is_girls=girls, deadline=deadline, field_size=field_size,
         entries=entries, results=results, payout=payout,
         odds_final=odds, missing_odds=missing, has_result=bool(results),
-        recent=recent,
+        recent=recent, narabi=narabi,
     )

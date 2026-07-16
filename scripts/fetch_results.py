@@ -137,6 +137,8 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
                     repo.save_recent_form(race_id, ds.recent)
                 if ds.odds_final:
                     repo.save_odds_final(race_id, ds.odds_final)
+                if ds.narabi and ds.narabi.get("order"):
+                    repo.save_narabi(race_id, ds.narabi)
                 repo.save_results(race_id, ds.results)
                 repo.save_payout(race_id, ds.payout)
                 if drace is not None:
