@@ -2,7 +2,7 @@
    - HTML(index.html/ナビゲーション) と data.json は network-first（更新を確実に反映、オフライン時はキャッシュ）
    - アイコン/マニフェスト等の静的アセットは cache-first
    キャッシュ名を上げると旧キャッシュを破棄して確実に更新できる。 */
-const CACHE = "girls-keirin-ev-v2";
+const CACHE = "girls-keirin-ev-v3";
 const SHELL = [
   "./",
   "./index.html",
