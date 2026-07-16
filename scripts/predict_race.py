@@ -79,7 +79,13 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     if any(n in _mfeats for n in TACTIC_NAMES):    # 展開特徴付きモデル: 現時点as-of historyを引く
         from src.features.rider_tactics import current_tactics
         tactics_ctx = current_tactics(db_path)
-    strengths = strengths_from_model(model, entries, recent, elo_state, tactics_ctx=tactics_ctx)
+    narabi_ctx = None
+    from src.features.rider_narabi import NARABI_KEYS
+    if any(n in _mfeats for n in NARABI_KEYS):     # 並び予想付きモデル: 出走表ページから即取得
+        from src.collect.gamboo_racecard import parse_narabi
+        narabi_ctx = parse_narabi(html)
+    strengths = strengths_from_model(model, entries, recent, elo_state,
+                                     tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx)
     _mtype = "LightGBM" if type(model).__name__ == "GBDTModel" else "PL線形"
     source = (f"学習済みモデル({_mtype}+Elo)" if elo_state is not None
               else f"学習済みモデル({_mtype}拡張20特徴)")
@@ -110,9 +116,13 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         vst = (st.get("venue_starts") or {}).get(venue_code)
         sc = styles.get(e.rider_name) or {}
         mr = meets.get(e.rider_name) or []
+        from src.features.venue_region import is_home_pref, is_home_district
         riders.append({
             "car": e.car_number, "name": e.rider_name,
             "score": e.racing_score, "leg": e.leg_type,
+            "pref": (e.prefecture or "").strip() or None,        # 登録府県
+            "home": is_home_pref(e.prefecture, venue_code),      # 地元(同県)開催か
+            "home_dist": is_home_district(e.prefecture, venue_code),  # 同地区開催か
             "win_rate": (f.win_rate if f else None),
             "win_prob": wp,
             "synth_odds_1st": synth,                         # 一着固定の合成オッズ

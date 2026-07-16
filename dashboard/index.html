@@ -164,6 +164,8 @@ table.rt td.rt-name{padding-top:6px}
 table.rt th.rt-name{z-index:3;background:var(--surface2)}
 /* 出走表に統合した今場所成績（選手名の下） */
 .rt .rn-nm{display:block;white-space:nowrap;font-weight:800}
+.rt .rn-home{display:inline-block;margin-left:6px;font-size:.56rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:1px 5px;vertical-align:middle;letter-spacing:.03em}
+.rt .rn-home.dist{background:var(--muted)}
 .rt .rn-meet{display:flex;gap:5px;align-items:baseline;margin-top:2px;font-size:.6rem;font-weight:700;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .rt .rn-meet .rn-md{color:var(--muted)}
 .rt .rn-meet .rn-mr{color:var(--muted)}
@@ -561,7 +563,9 @@ function boot(DB){
         }).join("");
         return `<tr${i===0?' class="rt-top"':''}>`
           +`<td class="rt-car">${carChip(rd.car)}</td>`
-          +`<td class="rt-name l"><span class="rn-nm">${esc(rd.name||"")}</span>${meetHtml}</td>${tds}</tr>`;
+          +`<td class="rt-name l"><span class="rn-nm">${esc(rd.name||"")}`
+          +`${rd.home?`<span class="rn-home" title="地元(同県)開催">地元</span>`:(rd.home_dist?`<span class="rn-home dist" title="同地区開催">地区</span>`:"")}`
+          +`</span>${meetHtml}</td>${tds}</tr>`;
       }).join("");
       return `<div class="tblwrap rt-wrap"><table class="rt"><thead><tr>${head}</tr></thead>`
         +`<tbody>${body}</tbody></table></div>`;

@@ -16,14 +16,16 @@ import numpy as np
 
 from src.model.elo import compute_pre_race_elo, DEFAULT_ELO
 from src.features.tactics_features import TACTIC_NAMES, tactic_columns
+from src.features.rider_narabi import NARABI_KEYS, narabi_columns
 
 
 def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
-    """feature_names に応じて rel_elo / 展開10列 を as-of 付与した samples を返す。"""
+    """feature_names に応じて rel_elo / 展開10列 / 並び予想3列 を as-of 付与した samples を返す。"""
     names = feature_names or []
     need_elo = "rel_elo" in names
     need_tac = any(n in names for n in TACTIC_NAMES)
-    if not (need_elo or need_tac):
+    need_nb = any(n in names for n in NARABI_KEYS)
+    if not (need_elo or need_tac or need_nb):
         return samples
 
     pre_elo = compute_pre_race_elo(db_path) if need_elo else None
@@ -31,6 +33,10 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     if need_tac:
         from src.features.rider_tactics import compute_pre_race_tactics
         tactics = compute_pre_race_tactics(db_path)   # 各(race_id,car)の as-of raw 展開特徴
+    narabi = None
+    if need_nb:
+        from src.features.rider_narabi import compute_narabi_features
+        narabi = compute_narabi_features(db_path)      # 各(race_id,car)の並び予想 生特徴
 
     out = []
     for s in samples:
@@ -47,6 +53,12 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
             mat = np.array([cols[c] for c in s.car_numbers], dtype=float)
             X = np.hstack([X, mat])
             fn = fn + list(TACTIC_NAMES)
+        if need_nb:
+            nb_by_car = {c: narabi.get((s.race_id, c), {}) for c in s.car_numbers}
+            ncols = narabi_columns(list(s.car_numbers), nb_by_car)   # 推論と同一関数
+            nmat = np.array([ncols[c] for c in s.car_numbers], dtype=float)
+            X = np.hstack([X, nmat])
+            fn = fn + list(NARABI_KEYS)
         s2.X = X
         s2.feature_names = fn
         out.append(s2)

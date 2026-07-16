@@ -40,3 +40,35 @@ def compute_narabi_features(db_path: str | Path) -> dict[tuple[str, int], dict]:
 
 
 NARABI_KEYS = ["narabi_pos", "narabi_lead", "narabi_leg"]
+
+
+def narabi_from_order(order: list, legs: dict) -> dict[int, dict]:
+    """parse_narabi の {order:[車番...], legs:{車番:脚質}} → {車番: 生特徴}（推論時に使う）。"""
+    out: dict[int, dict] = {}
+    for pos, car in enumerate(order or []):
+        out[car] = {
+            "narabi_pos": float(pos),
+            "narabi_lead": 1.0 if pos == 0 else 0.0,
+            "narabi_leg": float(LEG_AGGR.get((legs or {}).get(car), 1)),
+        }
+    return out
+
+
+def narabi_columns(cars: list[int], per_car: dict[int, dict]) -> dict[int, list]:
+    """出走車 cars と各車の生narabi特徴 → モデル入力3列を車番キーで返す（学習・推論で同一）。
+
+    narabi_pos / narabi_leg はレース内相対化（value − present平均, 欠損0）、narabi_lead は0/1のまま。
+    順序は NARABI_KEYS。analyze_narabi の add_narabi と同型（train/inference skew防止）。
+    """
+    def rel(key):
+        vals = [per_car.get(c, {}).get(key) for c in cars]
+        present = [v for v in vals if v is not None]
+        m = sum(present) / len(present) if present else 0.0
+        return [(v - m) if v is not None else 0.0 for v in vals]
+
+    pos_rel, leg_rel = rel("narabi_pos"), rel("narabi_leg")
+    out: dict[int, list] = {}
+    for i, c in enumerate(cars):
+        lead = per_car.get(c, {}).get("narabi_lead")
+        out[c] = [pos_rel[i], float(lead) if lead is not None else 0.0, leg_rel[i]]
+    return out

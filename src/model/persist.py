@@ -74,7 +74,8 @@ def load_model(path: str | Path = DEFAULT_MODEL_PATH):
 def strengths_from_model(model: PLModel, entries: list[Entry],
                          recent: dict | None = None,
                          elo_state: dict | None = None,
-                         tactics_ctx: dict | None = None) -> dict[int, float]:
+                         tactics_ctx: dict | None = None,
+                         narabi_ctx: dict | None = None) -> dict[int, float]:
     """出走選手 → {車番: 1着確率}(Σ=1)。特徴量を組み立てて学習済みモデルで推論する。
 
     モデルの学習特徴（model.feature_names）に追従。拡張モデルは直近4ヶ月(recent)を、
@@ -97,6 +98,14 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         cols = tactic_columns(list(df.index), tac)          # {car: [A(6)...B(4)]}
         for i, name in enumerate(TACTIC_NAMES):
             df[name] = [cols[c][i] for c in df.index]
+    from src.features.rider_narabi import NARABI_KEYS
+    if any(n in feats for n in NARABI_KEYS):    # 並び予想付きモデル: 3列を推論と同一関数で付与
+        from src.features.rider_narabi import narabi_from_order, narabi_columns
+        nb = narabi_ctx or {}
+        per_car = narabi_from_order(nb.get("order") or [], nb.get("legs") or {})
+        ncols = narabi_columns(list(df.index), per_car)
+        for i, name in enumerate(NARABI_KEYS):
+            df[name] = [ncols[c][i] for c in df.index]
     if df[feats].isna().any().any():
         return {}
     cars = list(df.index)
