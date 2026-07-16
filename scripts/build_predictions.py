@@ -82,7 +82,7 @@ def build_predictions_section(target: date) -> dict:
     return {
         "status": "ok" if races else "pending",
         "date": target.isoformat(),
-        "model": "LightGBM lambdarank(拡張20+Elo+展開10+並び3)",
+        "model": "LightGBM lambdarank(拡張20+Elo+展開10+並び5:中団込)",
         "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
         "last_updated": datetime.now(jst).strftime("%Y-%m-%d %H:%M JST"),
         "races": races,

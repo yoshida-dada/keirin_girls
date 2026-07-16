@@ -55,10 +55,12 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
             fn = fn + list(TACTIC_NAMES)
         if need_nb:
             nb_by_car = {c: narabi.get((s.race_id, c), {}) for c in s.car_numbers}
-            ncols = narabi_columns(list(s.car_numbers), nb_by_car)   # 推論と同一関数
-            nmat = np.array([ncols[c] for c in s.car_numbers], dtype=float)
+            ncols = narabi_columns(list(s.car_numbers), nb_by_car)   # 推論と同一関数(NARABI_KEYS順)
+            # モデルが持つ並び列だけを追加（34特徴↔36特徴の移行でも不整合を出さない）
+            keep = [(i, name) for i, name in enumerate(NARABI_KEYS) if name in names]
+            nmat = np.array([[ncols[c][i] for i, _ in keep] for c in s.car_numbers], dtype=float)
             X = np.hstack([X, nmat])
-            fn = fn + list(NARABI_KEYS)
+            fn = fn + [name for _, name in keep]
         s2.X = X
         s2.feature_names = fn
         out.append(s2)
