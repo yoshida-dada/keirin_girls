@@ -18,6 +18,7 @@ from src.collect.gamboo_odds import build_odds_url, parse_trifecta_odds, parse_d
 from src.collect.gamboo_racecard import parse_race_card, parse_recent_form, is_girls_race
 from src.model.persist import load_model, strengths_from_model, load_elo_state
 from src.model.plackett_luce import all_trifecta_probs
+from src.model.himo_adjust import corrected_trifecta_probs
 from src.model.race_type import classify_race
 from src.ev.market import implied_trifecta_probs, blend_loglinear
 from src.ev.ev_engine import build_trifecta_ev_table, format_combo
@@ -94,7 +95,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         strengths = strengths_from_entries(entries)
         source = "ベースライン(競走得点)"
     rt = classify_race(strengths)
-    probs = all_trifecta_probs(strengths)
+    # 条件付き紐補正: 2着分布を平坦化(PLの○過大評価是正)＋◎の並び番手を加点（精度改善, himo_adjust）。
+    # 並び予想があれば {車番: 隊列位置} を渡す。無ければ温度平坦化のみ適用。
+    narabi_pos = ({car: i for i, car in enumerate(narabi_ctx["order"])}
+                  if narabi_ctx and narabi_ctx.get("order") else None)
+    probs = corrected_trifecta_probs(strengths, narabi_pos)
 
     # 一着固定の合成オッズ: 車cを1着に固定した三連単(c,*,*)全通りを合成した実効オッズ
     #   合成オッズ_c = 1 / Σ(1/オッズ)   … cを1着で買い切ったときの実効配当倍率
@@ -167,6 +172,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                  "odds": r.odds, "ev": round(r.ev_gross, 2)} for r in table["buy"][:8]]
         ev.update(status="ok", n_buy=len(table["buy"]), buys=buys)
 
+    # 参考フォーメーション（◎頭固定・補正確率top-K）。実弾非推奨・回収率<100%（黒字ゾーンは無い）。
+    from src.betting.reference_formation import build_reference
+    reference = build_reference(strengths, narabi_pos, venue_code,
+                               bool(riders and riders[0].get("home")))
+
     from datetime import datetime, timezone, timedelta
     jst = timezone(timedelta(hours=9))
     return {
@@ -176,6 +186,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "entropy": round(rt.entropy_norm, 4), "source": source,
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
         "combos": combos,                          # 全210通り（オッズテーブル用）
+        "reference": reference,                    # 参考フォーメーション（実弾非推奨・回収率<100%）
         "h2h": h2h,                                # 出走者同士の過去対戦成績マトリクス
         "has_odds": bool(odds),
         "updated_at": datetime.now(jst).strftime("%Y-%m-%d %H:%M"),

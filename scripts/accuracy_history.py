@@ -27,7 +27,7 @@ from src.model.training_data import load_samples, PL_FEATURES_FULL
 from src.model.persist import load_model
 from src.model.evaluate import time_split
 from src.model.elo import compute_pre_race_elo, DEFAULT_ELO
-from src.model.plackett_luce import all_trifecta_probs
+from src.model.himo_adjust import corrected_trifecta_probs
 
 
 def _augment_if_elo(db_path, model, samples):
@@ -51,6 +51,8 @@ def build_accuracy_history(db_path, test_frac: float = 0.25, weeks: int | None =
     model = load_model()
     samples = load_samples(db_path, features=PL_FEATURES_FULL)
     samples = _augment_if_elo(db_path, model, samples)
+    from src.features.rider_narabi import compute_narabi_features
+    narabi = compute_narabi_features(db_path)
     _, test = time_split(samples, test_frac)
 
     # week_start ごとに集計（samples は date 昇順なので週も昇順に並ぶ）
@@ -69,7 +71,8 @@ def build_accuracy_history(db_path, test_frac: float = 0.25, weeks: int | None =
         ranked = sorted(st, key=lambda c: -st[c])
         b["top1"] += int(ranked[0] == winner)
         b["top3"] += int(winner in ranked[:3])
-        probs = all_trifecta_probs(st)
+        npos = {car: narabi.get((s.race_id, car), {}).get("narabi_pos") for car in s.car_numbers}
+        probs = corrected_trifecta_probs(st, npos)
         tri_rank = [c for c, _ in sorted(probs.items(), key=lambda kv: -kv[1])]
         actual = tuple(s.order[:3])
         pos = tri_rank.index(actual) + 1 if actual in tri_rank else 9999
