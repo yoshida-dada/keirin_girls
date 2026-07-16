@@ -28,7 +28,7 @@ from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_schedule import (
     build_kaisai_list_url, parse_kaisai_list, fetch_girls_race_numbers, kaisai_race_date,
 )
-from src.collect.gamboo_result import fetch_result
+from src.collect.dataset import collect_race_dataset
 from src.collect.snapshot import build_race_id
 from db.repository import DatasetRepo, combo_to_str
 
@@ -119,21 +119,31 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
                     if (now - dl).total_seconds() < min_after * 60:
                         continue                              # 締切+min_after分に未達
                 try:
-                    rows, payout = fetch_result(k.kaisai_code, k.kaisai_day_code, rno)
+                    # 完全収集: オッズページ(出走表/直近成績/確定オッズ)＋結果ページ(着順/払戻)を一括取得
+                    ds = collect_race_dataset(k, rno, require_girls=True)
                 except Exception as e:
-                    print(f"  {venue} R{rno} 結果取得失敗: {e}")
+                    print(f"  {venue} R{rno} 収集失敗: {e}")
                     continue
-                if not rows:
+                if not ds.results:
                     continue                                  # 未確定
-                race_id = build_race_id(k.kaisai_day_code, rno)
+                race_id = ds.race_id
                 race_date = kaisai_race_date(k.kaisai_day_code).isoformat()
-                repo.save_race(race_id, race_date, k.venue_code, rno, True, deadline, len(rows))
-                repo.save_results(race_id, rows)
-                repo.save_payout(race_id, payout)
+                # 出走表/直近成績/確定オッズ/着順/払戻 を保存（リアルタイムvs最終の検証土台）
+                repo.save_race(race_id, race_date, k.venue_code, rno,
+                               ds.is_girls, ds.deadline, ds.field_size)
+                if ds.entries:
+                    repo.save_entries(race_id, ds.entries)
+                if ds.recent:
+                    repo.save_recent_form(race_id, ds.recent)
+                if ds.odds_final:
+                    repo.save_odds_final(race_id, ds.odds_final)
+                repo.save_results(race_id, ds.results)
+                repo.save_payout(race_id, ds.payout)
                 if drace is not None:
-                    drace["result"] = _result_section(rows, payout, drace)
+                    drace["result"] = _result_section(ds.results, ds.payout, drace)
                     updated += 1
-                print(f"  {venue} R{rno} 結果格納: 1着{rows[0].car_number}車")
+                print(f"  {venue} R{rno} 完全収集: 1着{ds.results[0].car_number}車"
+                      f"（出走{len(ds.entries)}/直近{len(ds.recent)}/確定オッズ{len(ds.odds_final)}）")
     finally:
         repo.close()
 
