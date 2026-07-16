@@ -34,17 +34,18 @@ def main() -> None:
     elo_path = (Path(args.out_dir) / "elo_state.json") if args.out_dir else DEFAULT_ELO_STATE_PATH
 
     base = load_samples(args.db, features=PL_FEATURES_FULL)
-    feats31 = list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES)
-    feats34 = feats31 + list(NARABI_KEYS)
-    s31 = augment_samples(base, args.db, feats31)
-    s34 = augment_samples(base, args.db, feats34)
-    print(f"サンプル {len(base)}レース / 31→{len(s31[0].feature_names)}列 / 34→{len(s34[0].feature_names)}列")
+    feats_base = list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES)
+    feats_nb = feats_base + list(NARABI_KEYS)
+    s31 = augment_samples(base, args.db, feats_base)
+    s34 = augment_samples(base, args.db, feats_nb)
+    nb, nn = len(s31[0].feature_names), len(s34[0].feature_names)
+    print(f"サンプル {len(base)}レース / 並び無し{nb}列 / 並び込み{nn}列")
 
     tr31, te31 = time_split(s31, 0.25)
     tr34, te34 = time_split(s34, 0.25)
     r31 = evaluate(train_gbdt(tr31).strengths, te31)
     r34 = evaluate(train_gbdt(tr34).strengths, te34)
-    print(f"\n{'指標':<10}{'31特徴':>12}{'34(+並び)':>12}")
+    print(f"\n{'指標':<10}{f'{nb}特徴':>12}{f'{nn}(+並び)':>12}")
     for k in ("top1_acc", "logloss", "brier", "ece"):
         print(f"{k:<10}{r31[k]:>12}{r34[k]:>12}")
 

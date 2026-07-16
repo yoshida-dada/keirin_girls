@@ -31,44 +31,52 @@ def compute_narabi_features(db_path: str | Path) -> dict[tuple[str, int], dict]:
         conn.close()
     out: dict[tuple[str, int], dict] = {}
     for rid, car, pos, leg in rows:
-        out[(rid, car)] = {
-            "narabi_pos": float(pos),
-            "narabi_lead": 1.0 if pos == 0 else 0.0,
-            "narabi_leg": float(LEG_AGGR.get(leg, 1)),
-        }
+        out[(rid, car)] = _raw_feats(pos, leg)
     return out
 
 
-NARABI_KEYS = ["narabi_pos", "narabi_lead", "narabi_leg"]
+def _raw_feats(pos: int, leg) -> dict:
+    """隊列位置(0=先頭)と脚質から生特徴を作る（学習・推論で共通）。
+
+    記事知見: 中団(3〜5番手=位置index 2..4)が最勝率で、そこに自力型(捲り想定)が入ると強い。
+    """
+    leg_a = float(LEG_AGGR.get(leg, 1))
+    mid = 1.0 if 2 <= pos <= 4 else 0.0          # 中団(3〜5番手)
+    return {
+        "narabi_pos": float(pos),
+        "narabi_lead": 1.0 if pos == 0 else 0.0,
+        "narabi_leg": leg_a,
+        "narabi_mid": mid,                        # 中団フラグ
+        "narabi_midleg": mid * leg_a,             # 中団×前がかり度(中団の自力型)
+    }
+
+
+NARABI_KEYS = ["narabi_pos", "narabi_lead", "narabi_leg", "narabi_mid", "narabi_midleg"]
+# レース内相対化する列（他は0/1・生値のまま）
+_REL_KEYS = {"narabi_pos", "narabi_leg"}
 
 
 def narabi_from_order(order: list, legs: dict) -> dict[int, dict]:
     """parse_narabi の {order:[車番...], legs:{車番:脚質}} → {車番: 生特徴}（推論時に使う）。"""
     out: dict[int, dict] = {}
     for pos, car in enumerate(order or []):
-        out[car] = {
-            "narabi_pos": float(pos),
-            "narabi_lead": 1.0 if pos == 0 else 0.0,
-            "narabi_leg": float(LEG_AGGR.get((legs or {}).get(car), 1)),
-        }
+        out[car] = _raw_feats(pos, (legs or {}).get(car))
     return out
 
 
 def narabi_columns(cars: list[int], per_car: dict[int, dict]) -> dict[int, list]:
-    """出走車 cars と各車の生narabi特徴 → モデル入力3列を車番キーで返す（学習・推論で同一）。
+    """出走車 cars と各車の生narabi特徴 → モデル入力5列を車番キーで返す（学習・推論で同一）。
 
-    narabi_pos / narabi_leg はレース内相対化（value − present平均, 欠損0）、narabi_lead は0/1のまま。
-    順序は NARABI_KEYS。analyze_narabi の add_narabi と同型（train/inference skew防止）。
+    _REL_KEYS(narabi_pos/leg)はレース内相対化（value − present平均, 欠損0）、他(lead/mid/midleg)は
+    0/1・生値のまま。順序は NARABI_KEYS（train/inference skew防止）。
     """
-    def rel(key):
+    def col(key):
         vals = [per_car.get(c, {}).get(key) for c in cars]
-        present = [v for v in vals if v is not None]
-        m = sum(present) / len(present) if present else 0.0
-        return [(v - m) if v is not None else 0.0 for v in vals]
+        if key in _REL_KEYS:
+            present = [v for v in vals if v is not None]
+            m = sum(present) / len(present) if present else 0.0
+            return [(v - m) if v is not None else 0.0 for v in vals]
+        return [float(v) if v is not None else 0.0 for v in vals]
 
-    pos_rel, leg_rel = rel("narabi_pos"), rel("narabi_leg")
-    out: dict[int, list] = {}
-    for i, c in enumerate(cars):
-        lead = per_car.get(c, {}).get("narabi_lead")
-        out[c] = [pos_rel[i], float(lead) if lead is not None else 0.0, leg_rel[i]]
-    return out
+    per_key = {k: col(k) for k in NARABI_KEYS}
+    return {c: [per_key[k][i] for k in NARABI_KEYS] for i, c in enumerate(cars)}
