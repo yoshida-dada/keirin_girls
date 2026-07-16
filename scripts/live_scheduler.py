@@ -33,8 +33,9 @@ DATA_JSON = DASH / "data.json"
 PY = sys.executable
 
 WINDOW_MIN = 30        # 発走何分前から1分更新を始めるか
+EARLY_WINDOW = 120     # 締切何分前から粗い間隔でオッズ時系列を取り始めるか（ソフトなオッズ捕捉）
 LIVE_SLEEP = 60        # 更新窓内のループ間隔(秒)=1分
-IDLE_SLEEP = 300       # 更新対象が無いときのループ間隔(秒)
+IDLE_SLEEP = 300       # 更新対象が無いときのループ間隔(秒)=5分（早期スナップショットにも使う）
 PUSH_INTERVAL = 420    # Pagesへpushする最短間隔(秒)。Pagesビルド上限(約10回/時)を守る
 PORT = 8787
 
@@ -79,6 +80,13 @@ def live_refresh() -> None:
         _log("オッズ更新 " + last)
     else:
         _log("オッズ更新 失敗: " + out[-300:])
+
+
+def live_snapshot() -> None:
+    """締切 EARLY_WINDOW 分前〜の三連単オッズを軽量取得して時系列蓄積（予測はしない）。"""
+    rc, out = _run([PY, "scripts/snapshot_odds.py", "--within", str(EARLY_WINDOW)])
+    last = out.strip().splitlines()[-1] if out.strip() else ""
+    _log(("オッズ時系列 " + last) if rc == 0 else "オッズ時系列 失敗: " + out[-200:])
 
 
 def live_results() -> None:
@@ -182,10 +190,13 @@ def main() -> None:
 
         nd = _next_deadline_min(now)              # 最短の未到来締切（分）
         if nd is not None and nd <= WINDOW_MIN + 5:
-            live_refresh()                        # 更新窓内→1分更新
+            live_refresh()                        # 締切30分前〜→1分更新（予測+オッズ、時系列も保存）
             if not args.no_push and time.time() - last_push >= PUSH_INTERVAL:
                 git_push(); last_push = time.time()
             time.sleep(LIVE_SLEEP)
+        elif nd is not None and nd <= EARLY_WINDOW:
+            live_snapshot()                       # 締切120分前〜30分→5分間隔でオッズ時系列を軽量取得
+            time.sleep(IDLE_SLEEP)
         else:
             time.sleep(IDLE_SLEEP)                # 窓外→ゆっくり待機
 
