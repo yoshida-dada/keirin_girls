@@ -247,6 +247,13 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .dev-pat-l{font-weight:700;min-width:9.5em}
 .dev-pat-p{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent);min-width:2.8em;text-align:right}
 .dev-pat-c{color:var(--muted);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.dev-bs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.74rem;font-weight:700}
+.dev-bs b{color:var(--accent)}
+.dev-bs-2{color:var(--muted);font-weight:600}
+.dev-bs-hit{font-size:.58rem;color:var(--muted);font-weight:700;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+.dev-bs-div{margin-top:4px}
+.dev-div{font-size:.62rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:2px 7px}
+.dev-agree{font-size:.62rem;font-weight:700;color:var(--muted)}
 .dev-note{font-size:.7rem;font-weight:600;line-height:1.55;color:var(--ink);margin-top:8px}
 .dev-caveat{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
 /* 参考フォーメーション（実弾非推奨） */
@@ -830,9 +837,23 @@ function boot(DB){
       }).join("");
       const patBlock = pats
         ? `<div class="dev-pat-h">展開パターン（勝者の隊列位置で1着確率を分解）</div><div class="dev-pats">${pats}</div>` : "";
+      // 推定主導権（展開AI＝最終バック先頭B。記者予想より当たる）
+      const B = D.backstretch;
+      let bsBlock = "";
+      if(B && B.lead_car!=null){
+        const sec = (B.second_car!=null)
+          ? ` <span class="dev-bs-2">2番手候補 ${carChip(B.second_car)} ${(B.second_p*100).toFixed(0)}%</span>` : "";
+        const div = B.diverges
+          ? `<span class="dev-div">⚠ 記者予想先頭(${B.reporter_front}番)と相違</span>`
+          : `<span class="dev-agree">✓ 記者予想先頭と一致</span>`;
+        bsBlock = `<div class="dev-pat-h">推定主導権（展開AI・最終バック先頭B）</div>`
+          +`<div class="dev-bs">主導権 ${carChip(B.lead_car)} <b>${(B.lead_p*100).toFixed(0)}%</b>${sec}`
+          +` <span class="dev-bs-hit">過去実測${(B.hit_rate*100).toFixed(0)}%的中（記者22%）</span></div>`
+          +`<div class="dev-bs-div">${div}</div>`;
+      }
       return `<div class="dev">`
         +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`
-        +narabi + patBlock
+        +narabi + bsBlock + patBlock
         +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
         +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
         +`</div>`;
