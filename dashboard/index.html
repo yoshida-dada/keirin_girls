@@ -232,18 +232,22 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .cc-note{font-size:.62rem;color:var(--muted);font-weight:600;margin:8px 0 0;line-height:1.5}
 .pred-tfhead{font-size:.64rem;letter-spacing:.04em;color:var(--muted);font-weight:800;margin:12px 2px 5px;text-transform:uppercase}
 .oddson{color:var(--good);font-weight:800}
-/* 展開予想（並び予想の隊列） */
+/* 展開予想（並び予想＝車番のみ1行 ＋ 展開パターン） */
 .dev{margin:10px 2px 4px;padding:10px 12px;border:1px solid var(--border2);border-radius:10px;background:var(--surface2)}
 .dev-head{font-size:.72rem;font-weight:800;display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--ink)}
 .dev-src{font-size:.6rem;color:var(--muted);font-weight:600}
-.dev-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:9px 0 7px}
-.dev-node{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 8px}
-.dev-arrow{color:var(--muted);font-size:.66rem;margin:0 1px}
+.dev-narabi-h,.dev-pat-h{font-size:.6rem;letter-spacing:.03em;color:var(--muted);font-weight:800;margin:9px 2px 4px;text-transform:uppercase}
+.dev-line{display:flex;flex-wrap:nowrap;align-items:center;gap:3px;overflow-x:auto;padding-bottom:2px}
+.dev-node{display:inline-flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:2px 6px;flex:none}
+.dev-arrow{color:var(--muted);font-size:.62rem;flex:none}
 .dev-fav{color:#e8590c;font-weight:800}
-.dev-nm{font-size:.72rem;font-weight:700}
-.dev-leg{font-size:.58rem;color:var(--muted);font-weight:800;background:var(--surface2);border-radius:4px;padding:1px 5px}
-.dev-mk{font-size:.56rem;color:#fff;background:var(--muted);border-radius:4px;padding:1px 5px;font-weight:800}
-.dev-note{font-size:.7rem;font-weight:600;line-height:1.55;color:var(--ink)}
+.dev-pats{display:flex;flex-direction:column;gap:5px}
+.dev-pat{display:flex;align-items:center;gap:8px;font-size:.72rem}
+.dev-pat-i{width:1.3em;text-align:center;flex:none}
+.dev-pat-l{font-weight:700;min-width:9.5em}
+.dev-pat-p{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent);min-width:2.8em;text-align:right}
+.dev-pat-c{color:var(--muted);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.dev-note{font-size:.7rem;font-weight:600;line-height:1.55;color:var(--ink);margin-top:8px}
 .dev-caveat{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
 /* 参考フォーメーション（実弾非推奨） */
 .rf{margin:12px 2px 4px;padding:10px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface2)}
@@ -804,21 +808,31 @@ function boot(DB){
           +`</tr></thead><tbody>${tf}</tbody></table></div>` : "";
       return riderTable(r) + devBlock(r) + h2hBlock(r) + tfBlock + refBlock(r) + evBlock(r) + omBlock(r);
     }
-    // 展開予想（記者の並び予想の隊列＋モデルの一言読み）。出走表と対戦成績の間に表示。
+    // 展開予想（記者の並び予想=車番のみ1行 ＋ 明示的な展開パターン複数）。出走表と対戦成績の間。
     function devBlock(r){
       const D = r.development;
-      if(!D || !(D.line||[]).length) return "";
-      const nm = {}; (r.riders||[]).forEach(x=>{ nm[x.car] = x.name; });
+      if(!D) return "";
+      // 並び予想: 車番のみ・1行（スペース節約。選手名/脚質は出走表参照）
       const chips = (D.line||[]).map((s,i)=>{
         const arrow = i>0 ? `<span class="dev-arrow">▶</span>` : "";
         const favB = s.is_fav ? `<span class="dev-fav">◎</span>` : "";
-        const mk = (D.marker!=null && s.car===D.marker) ? `<span class="dev-mk">番手</span>` : "";
-        const leg = s.leg ? `<span class="dev-leg">${esc(s.leg)}</span>` : "";
-        return `${arrow}<span class="dev-node">${favB}${carChip(s.car)}<span class="dev-nm">${esc(nm[s.car]||"")}</span>${leg}${mk}</span>`;
+        return `${arrow}<span class="dev-node">${favB}${carChip(s.car)}</span>`;
       }).join("");
+      const narabi = (D.line||[]).length
+        ? `<div class="dev-narabi-h">並び予想（左=先頭・車番のみ）</div><div class="dev-line">${chips}</div>` : "";
+      // 明示的な展開パターン（複数・確率付き）
+      const pats = (D.patterns||[]).map(p=>{
+        const favB = p.has_fav ? `<span class="dev-fav">◎</span>` : "";
+        return `<div class="dev-pat"><span class="dev-pat-i">${esc(p.icon||"")}</span>`
+          +`<span class="dev-pat-l">${esc(p.label)}</span>`
+          +`<span class="dev-pat-p">${(p.prob*100).toFixed(0)}%</span>`
+          +`<span class="dev-pat-c">主役 ${carChip(p.lead_car)}${favB}</span></div>`;
+      }).join("");
+      const patBlock = pats
+        ? `<div class="dev-pat-h">展開パターン（勝者の隊列位置で1着確率を分解）</div><div class="dev-pats">${pats}</div>` : "";
       return `<div class="dev">`
-        +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}・左=先頭</span></div>`
-        +`<div class="dev-line">${chips}</div>`
+        +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`
+        +narabi + patBlock
         +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
         +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
         +`</div>`;

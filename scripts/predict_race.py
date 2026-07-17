@@ -192,6 +192,32 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                     break
         line = [{"car": c, "leg": _legs.get(c), "is_fav": (c == _fav), "pos": i}
                 for i, c in enumerate(_order)]
+        # 明示的な展開パターン（複数）: 勝者の隊列位置でモデルの1着確率を分解。P合計=1。
+        _defs = [("先行・主導権型", "🚴", lambda p: p == 0),
+                 ("番手抜け出し型", "🔗", lambda p: p == 1),
+                 ("中団抜け出し型(捲り)", "🌀", lambda p: p is not None and 2 <= p <= 4),
+                 ("後方一気型", "⚡", lambda p: p is not None and p >= 5)]
+        patterns = []
+        _assigned = set()
+        for _lbl, _ic, _cond in _defs:
+            _cars = [(c, strengths[c]) for c in strengths
+                     if _cond((narabi_pos or {}).get(c))]
+            if not _cars:
+                continue
+            _cars.sort(key=lambda cp: -cp[1])
+            patterns.append({"label": _lbl, "icon": _ic,
+                             "prob": round(sum(p for _, p in _cars), 4),
+                             "lead_car": _cars[0][0], "cars": [c for c, _ in _cars],
+                             "has_fav": any(c == _fav for c, _ in _cars)})
+            _assigned |= {c for c, _ in _cars}
+        _rest = [(c, strengths[c]) for c in strengths if c not in _assigned]
+        if _rest:
+            _rest.sort(key=lambda cp: -cp[1])
+            patterns.append({"label": "位置不明", "icon": "・",
+                             "prob": round(sum(p for _, p in _rest), 4),
+                             "lead_car": _rest[0][0], "cars": [c for c, _ in _rest],
+                             "has_fav": any(c == _fav for c, _ in _rest)})
+        patterns.sort(key=lambda x: -x["prob"])
         # モデルの一言展開読み（himo知見: ◎主導権→番手が連れる／◎飛び→中団の自力型）
         if _fpos == 0:
             read = f"◎{_fav}番が予想先頭＝主導権を握る展開が本線。"
@@ -205,8 +231,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         development = {
             "source": "並び予想（記者予想の隊列, 発走前確定情報）",
             "line": line, "fav": _fav, "marker": _marker,
+            "patterns": patterns,                  # 明示的な展開パターン（複数・確率付き）
             "note": read,
-            "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。",
+            "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。",
         }
 
     from datetime import datetime, timezone, timedelta
