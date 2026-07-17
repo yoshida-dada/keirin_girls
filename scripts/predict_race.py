@@ -247,11 +247,24 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                     "hit_rate": 0.552,             # walk-forward out-of-sample 実測
                     "probs": {int(c): round(p, 4) for c, p in _rk},
                 }
+        # ペース読み（先行型=レース内でb_countが最多の40%以上の人数。スケール非依存で analyze_pace_composition と同一定義）。
+        # 先行型が多いほどハイペース化し逃げが飛び捲り・差しが台頭（±5pt程度）。表示専用・着順には非影響。
+        _bvals = [((recent.get(e.car_number).b_count or 0) if recent.get(e.car_number) else 0) for e in entries]
+        _mx = max(_bvals) if _bvals else 0
+        _nfront = sum(1 for v in _bvals if _mx >= 2 and v >= 0.4 * _mx)
+        if _nfront >= 4:
+            _plv, _pnote, _pkm = "ハイ", "逃げが飛びやすく捲り・差しが台頭", {"逃": 17, "捲": 49, "差": 34}
+        elif _nfront == 3:
+            _plv, _pnote, _pkm = "ミドル〜ハイ", "捲り・差しがやや優勢", {"逃": 18, "捲": 49, "差": 34}
+        else:
+            _plv, _pnote, _pkm = "スロー〜ミドル", "逃げ・番手が残りやすい", {"逃": 23, "捲": 46, "差": 31}
+        pace = {"n_front": _nfront, "level": _plv, "note": _pnote, "kimarite_hint": _pkm}
         development = {
             "source": "並び予想（記者予想の隊列, 発走前確定情報）",
             "line": line, "fav": _fav, "marker": _marker,
             "patterns": patterns,                  # 明示的な展開パターン（複数・確率付き）
             "backstretch": _backstretch,           # 推定主導権(展開AI・最終バック先頭B)
+            "pace": pace,                          # ペース読み(先行型の数→ペース→決まり手傾向)
             "note": read,
             "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。",
         }

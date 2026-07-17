@@ -46,7 +46,9 @@ def main():
         cars = bc.get(rid, {})
         if len(cars) != 7:
             continue
-        n_front = sum(1 for v in cars.values() if v >= args.thr)
+        # 先行型=レース内相対（最多b_countの40%以上・スケール/ドリフトに頑健）。着順推論と同一定義。
+        mx = max(cars.values()) if cars else 0
+        n_front = sum(1 for v in cars.values() if mx >= 2 and v >= 0.4 * mx)
         by_n[n_front][km] += 1
 
     print(f"先行型(b_count>={args.thr})の人数 → 勝ち決まり手の割合\n")

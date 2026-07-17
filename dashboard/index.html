@@ -254,6 +254,12 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .dev-bs-div{margin-top:4px}
 .dev-div{font-size:.62rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:2px 7px}
 .dev-agree{font-size:.62rem;font-weight:700;color:var(--muted)}
+.dev-pace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.72rem;font-weight:700}
+.dev-pace-lv{font-size:.62rem;font-weight:800;color:#fff;border-radius:5px;padding:2px 7px}
+.dev-pace-lv.lv-hi{background:#e8590c}.dev-pace-lv.lv-mid{background:var(--accent)}.dev-pace-lv.lv-lo{background:var(--muted)}
+.dev-pace-n{color:var(--ink)}
+.dev-pace-note{color:var(--muted);font-weight:600}
+.dev-pace-km{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
 .dev-note{font-size:.7rem;font-weight:600;line-height:1.55;color:var(--ink);margin-top:8px}
 .dev-caveat{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
 /* 参考フォーメーション（実弾非推奨） */
@@ -851,9 +857,21 @@ function boot(DB){
           +` <span class="dev-bs-hit">過去実測${(B.hit_rate*100).toFixed(0)}%的中（記者22%）</span></div>`
           +`<div class="dev-bs-div">${div}</div>`;
       }
+      // ペース読み（先行型の数→ペース→決まり手傾向。表示専用）
+      const P = D.pace;
+      let paceBlock = "";
+      if(P && P.level){
+        const km = P.kimarite_hint||{};
+        const lv = P.level==="ハイ" ? "hi" : (P.level==="ミドル" ? "mid" : "lo");
+        paceBlock = `<div class="dev-pat-h">ペース読み</div>`
+          +`<div class="dev-pace"><span class="dev-pace-lv lv-${lv}">${esc(P.level)}ペース</span>`
+          +` <span class="dev-pace-n">先行型 ${P.n_front}人</span>`
+          +` <span class="dev-pace-note">${esc(P.note||"")}</span></div>`
+          +`<div class="dev-pace-km">決まり手の目安　逃 ${km["逃"]}%／捲 ${km["捲"]}%／差 ${km["差"]}%</div>`;
+      }
       return `<div class="dev">`
         +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`
-        +narabi + bsBlock + patBlock
+        +narabi + bsBlock + paceBlock + patBlock
         +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
         +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
         +`</div>`;
