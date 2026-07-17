@@ -232,6 +232,19 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .cc-note{font-size:.62rem;color:var(--muted);font-weight:600;margin:8px 0 0;line-height:1.5}
 .pred-tfhead{font-size:.64rem;letter-spacing:.04em;color:var(--muted);font-weight:800;margin:12px 2px 5px;text-transform:uppercase}
 .oddson{color:var(--good);font-weight:800}
+/* 展開予想（並び予想の隊列） */
+.dev{margin:10px 2px 4px;padding:10px 12px;border:1px solid var(--border2);border-radius:10px;background:var(--surface2)}
+.dev-head{font-size:.72rem;font-weight:800;display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--ink)}
+.dev-src{font-size:.6rem;color:var(--muted);font-weight:600}
+.dev-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:9px 0 7px}
+.dev-node{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 8px}
+.dev-arrow{color:var(--muted);font-size:.66rem;margin:0 1px}
+.dev-fav{color:#e8590c;font-weight:800}
+.dev-nm{font-size:.72rem;font-weight:700}
+.dev-leg{font-size:.58rem;color:var(--muted);font-weight:800;background:var(--surface2);border-radius:4px;padding:1px 5px}
+.dev-mk{font-size:.56rem;color:#fff;background:var(--muted);border-radius:4px;padding:1px 5px;font-weight:800}
+.dev-note{font-size:.7rem;font-weight:600;line-height:1.55;color:var(--ink)}
+.dev-caveat{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
 /* 参考フォーメーション（実弾非推奨） */
 .rf{margin:12px 2px 4px;padding:10px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface2)}
 .rf-head{font-size:.72rem;font-weight:800;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
@@ -789,7 +802,26 @@ function boot(DB){
           +`<div class="tblwrap"><table class="t"><thead><tr>`
           +`<th class="l">着順</th><th>モデル確率</th><th>必要オッズ</th><th>市場オッズ</th>`
           +`</tr></thead><tbody>${tf}</tbody></table></div>` : "";
-      return riderTable(r) + h2hBlock(r) + tfBlock + refBlock(r) + evBlock(r) + omBlock(r);
+      return riderTable(r) + devBlock(r) + h2hBlock(r) + tfBlock + refBlock(r) + evBlock(r) + omBlock(r);
+    }
+    // 展開予想（記者の並び予想の隊列＋モデルの一言読み）。出走表と対戦成績の間に表示。
+    function devBlock(r){
+      const D = r.development;
+      if(!D || !(D.line||[]).length) return "";
+      const nm = {}; (r.riders||[]).forEach(x=>{ nm[x.car] = x.name; });
+      const chips = (D.line||[]).map((s,i)=>{
+        const arrow = i>0 ? `<span class="dev-arrow">▶</span>` : "";
+        const favB = s.is_fav ? `<span class="dev-fav">◎</span>` : "";
+        const mk = (D.marker!=null && s.car===D.marker) ? `<span class="dev-mk">番手</span>` : "";
+        const leg = s.leg ? `<span class="dev-leg">${esc(s.leg)}</span>` : "";
+        return `${arrow}<span class="dev-node">${favB}${carChip(s.car)}<span class="dev-nm">${esc(nm[s.car]||"")}</span>${leg}${mk}</span>`;
+      }).join("");
+      return `<div class="dev">`
+        +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}・左=先頭</span></div>`
+        +`<div class="dev-line">${chips}</div>`
+        +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
+        +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
+        +`</div>`;
     }
     // 参考フォーメーション（◎頭固定・補正確率top-K）。実弾非推奨・回収率<100%。
     function refBlock(r){

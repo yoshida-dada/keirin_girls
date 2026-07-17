@@ -177,6 +177,38 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     reference = build_reference(strengths, narabi_pos, venue_code,
                                bool(riders and riders[0].get("home")))
 
+    # 展開予想（記者の並び予想の隊列＋モデルの一言読み）。ガールズは並び通りになるとは限らない。
+    development = None
+    if narabi_ctx and narabi_ctx.get("order"):
+        _order = narabi_ctx["order"]
+        _legs = narabi_ctx.get("legs") or {}
+        _fav = max(strengths, key=strengths.get) if strengths else None
+        _fpos = narabi_pos.get(_fav) if narabi_pos else None
+        _marker = None
+        if _fpos is not None:
+            for _c, _pp in (narabi_pos or {}).items():
+                if _c != _fav and _pp == _fpos + 1:
+                    _marker = _c
+                    break
+        line = [{"car": c, "leg": _legs.get(c), "is_fav": (c == _fav), "pos": i}
+                for i, c in enumerate(_order)]
+        # モデルの一言展開読み（himo知見: ◎主導権→番手が連れる／◎飛び→中団の自力型）
+        if _fpos == 0:
+            read = f"◎{_fav}番が予想先頭＝主導権を握る展開が本線。"
+            if _marker:
+                read += f"番手{_marker}番が連れて2着有力。"
+        elif _fpos is not None:
+            read = f"◎{_fav}番は隊列{_fpos+1}番手。前の{_order[0]}番の主導権をどう捉えるかがカギ。"
+        else:
+            read = f"◎{_fav}番の並び位置は不明。"
+        read += "◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。"
+        development = {
+            "source": "並び予想（記者予想の隊列, 発走前確定情報）",
+            "line": line, "fav": _fav, "marker": _marker,
+            "note": read,
+            "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。",
+        }
+
     from datetime import datetime, timezone, timedelta
     jst = timezone(timedelta(hours=9))
     return {
@@ -185,6 +217,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
+        "development": development,                 # 展開予想（並び予想の隊列＋モデル読み）
         "combos": combos,                          # 全210通り（オッズテーブル用）
         "reference": reference,                    # 参考フォーメーション（実弾非推奨・回収率<100%）
         "h2h": h2h,                                # 出走者同士の過去対戦成績マトリクス
