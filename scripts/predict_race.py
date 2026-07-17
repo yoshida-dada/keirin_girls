@@ -228,10 +228,30 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         else:
             read = f"◎{_fav}番の並び位置は不明。"
         read += "◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。"
+        # 推定主導権（展開AI=最終バック先頭B予測。過去実測55%的中で記者予想22%を上回る）
+        _backstretch = None
+        from src.model.backstretch import load_backstretch
+        _bs = load_backstretch()
+        if _bs is not None:
+            pB = strengths_from_model(_bs, entries, recent, elo_state,
+                                      tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx)
+            if pB:
+                _rk = sorted(pB.items(), key=lambda kv: -kv[1])
+                _rfront = _order[0] if _order else None
+                _backstretch = {
+                    "lead_car": _rk[0][0], "lead_p": round(_rk[0][1], 4),
+                    "second_car": _rk[1][0] if len(_rk) > 1 else None,
+                    "second_p": round(_rk[1][1], 4) if len(_rk) > 1 else None,
+                    "reporter_front": _rfront,
+                    "diverges": bool(_rfront is not None and _rk[0][0] != _rfront),
+                    "hit_rate": 0.552,             # walk-forward out-of-sample 実測
+                    "probs": {int(c): round(p, 4) for c, p in _rk},
+                }
         development = {
             "source": "並び予想（記者予想の隊列, 発走前確定情報）",
             "line": line, "fav": _fav, "marker": _marker,
             "patterns": patterns,                  # 明示的な展開パターン（複数・確率付き）
+            "backstretch": _backstretch,           # 推定主導権(展開AI・最終バック先頭B)
             "note": read,
             "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。",
         }
