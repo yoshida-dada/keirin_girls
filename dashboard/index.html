@@ -852,10 +852,11 @@ function boot(DB){
         const div = B.diverges
           ? `<span class="dev-div">⚠ 記者予想先頭(${B.reporter_front}番)と相違</span>`
           : `<span class="dev-agree">✓ 記者予想先頭と一致</span>`;
+        const fade = (D.pace && D.pace.level==="ハイ") ? ` <span class="dev-div">⚠ ハイペースで垂れ注意</span>` : "";
         bsBlock = `<div class="dev-pat-h">推定主導権（展開AI・最終バック先頭B）</div>`
           +`<div class="dev-bs">主導権 ${carChip(B.lead_car)} <b>${(B.lead_p*100).toFixed(0)}%</b>${sec}`
           +` <span class="dev-bs-hit">過去実測${(B.hit_rate*100).toFixed(0)}%的中（記者22%）</span></div>`
-          +`<div class="dev-bs-div">${div}</div>`;
+          +`<div class="dev-bs-div">${div}${fade}</div>`;
       }
       // ペース読み（先行型の数→ペース→決まり手傾向。表示専用）
       const P = D.pace;
@@ -867,7 +868,8 @@ function boot(DB){
           +`<div class="dev-pace"><span class="dev-pace-lv lv-${lv}">${esc(P.level)}ペース</span>`
           +` <span class="dev-pace-n">先行型 ${P.n_front}人</span>`
           +` <span class="dev-pace-note">${esc(P.note||"")}</span></div>`
-          +`<div class="dev-pace-km">決まり手の目安　逃 ${km["逃"]}%／捲 ${km["捲"]}%／差 ${km["差"]}%</div>`;
+          +`<div class="dev-pace-km">決まり手の目安　逃 ${km["逃"]}%／捲 ${km["捲"]}%／差 ${km["差"]}%</div>`
+          +(P.b_reliability?`<div class="dev-pace-km">主導権の信頼度　連対 ${P.b_reliability.rentai}%・着外 ${P.b_reliability.gaiji}% — ${esc(P.b_reliability.note||"")}</div>`:"");
       }
       return `<div class="dev">`
         +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`

@@ -252,13 +252,18 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         _bvals = [((recent.get(e.car_number).b_count or 0) if recent.get(e.car_number) else 0) for e in entries]
         _mx = max(_bvals) if _bvals else 0
         _nfront = sum(1 for v in _bvals if _mx >= 2 and v >= 0.4 * _mx)
+        # 主導権(B)取得者の連対/着外率もペース帯別（analyze_backstretch_outcome の実測）を付す。
         if _nfront >= 4:
             _plv, _pnote, _pkm = "ハイ", "逃げが飛びやすく捲り・差しが台頭", {"逃": 17, "捲": 49, "差": 34}
+            _brel = {"rentai": 55, "gaiji": 35, "note": "主導権を取っても垂れやすい（差し・捲りを評価）"}
         elif _nfront == 3:
             _plv, _pnote, _pkm = "ミドル〜ハイ", "捲り・差しがやや優勢", {"逃": 18, "捲": 49, "差": 34}
+            _brel = {"rentai": 55, "gaiji": 30, "note": "主導権はやや不安定"}
         else:
             _plv, _pnote, _pkm = "スロー〜ミドル", "逃げ・番手が残りやすい", {"逃": 23, "捲": 46, "差": 31}
-        pace = {"n_front": _nfront, "level": _plv, "note": _pnote, "kimarite_hint": _pkm}
+            _brel = {"rentai": 64, "gaiji": 23, "note": "主導権はそのまま残りやすい"}
+        pace = {"n_front": _nfront, "level": _plv, "note": _pnote,
+                "kimarite_hint": _pkm, "b_reliability": _brel}
         development = {
             "source": "並び予想（記者予想の隊列, 発走前確定情報）",
             "line": line, "fav": _fav, "marker": _marker,
