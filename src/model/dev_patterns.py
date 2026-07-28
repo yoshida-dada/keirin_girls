@@ -179,9 +179,15 @@ def build_dev_patterns(top1_prob: float | None, pace_level: str,
     rows.sort(key=lambda r: -r["prob"])
     top = rows[:top_k]
     insights = build_insights(top, rows, cars)
-    for r in top:                      # 生分布は読みの合成にだけ使う（出力には載せない）
+    # 円グラフ用: 全6形を①〜⑥の定義順で（上位3だけでは全体像が見えないため）。
+    order = {k: i for i, k in enumerate(
+        ["①◎逃げ切り", "②◎捲り", "③◎差し", "④別の逃げ残り", "⑤捲り台頭", "⑥差し/マーク"])}
+    allrows = sorted(rows, key=lambda r: order.get(r["key"], 99))
+    for r in rows:                     # 生分布は読みの合成にだけ使う（出力には載せない）
         r.pop("_raw", None)
     return {"top": top, "insights": insights,
+            "all": [{"key": r["key"], "prob": r["prob"], "fav_wins": r["fav_wins"]}
+                    for r in allrows],
             "n_races": st.get("n_races"), "pace": _pace_key(pace_level),
             "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。"
                     "紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、"

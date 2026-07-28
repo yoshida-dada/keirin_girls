@@ -295,6 +295,24 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
   font-size:.65rem;font-weight:600;line-height:1.6;color:var(--ink)}
 .sc-ins li{margin:3px 0 3px 1.1em}
 .sc-ins .h{font-weight:800;font-size:.68rem;display:block;margin-bottom:3px}
+/* 展開6パターンの円グラフ。dataviz検証済みカテゴリカル配色（6スロット固定順）。
+   light/darkとも 明度帯・彩度・CVD分離・通常視力フロアを通過（輪の折返しペア含む）。
+   lightでは magenta/yellow/aqua が3:1未満のため、全スライスに直接ラベルを必須とする。 */
+.pie{--s1:#2a78d6;--s2:#008300;--s3:#e87ba4;--s4:#eda100;--s5:#1baf7a;--s6:#eb6834;
+  margin-top:10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .pie{
+  --s1:#3987e5;--s2:#008300;--s3:#d55181;--s4:#c98500;--s5:#199e70;--s6:#d95926}}
+:root[data-theme="dark"] .pie{--s1:#3987e5;--s2:#008300;--s3:#d55181;--s4:#c98500;--s5:#199e70;--s6:#d95926}
+.pie-svg{flex:none}
+.pie-svg path{stroke:var(--surface);stroke-width:2}   /* スライス間2pxのサーフェス間隙 */
+.pie-c1{font-size:.58rem;font-weight:700;fill:var(--muted)}
+.pie-c2{font-size:1.05rem;font-weight:800;fill:var(--ink)}
+.pie-lg{flex:1;min-width:190px;display:grid;grid-template-columns:auto 1fr auto;gap:3px 8px;align-items:center}
+.pie-sw{width:11px;height:11px;border-radius:3px}
+.pie-nm{font-size:.66rem;font-weight:700;color:var(--ink)}
+.pie-nm em{font-style:normal;color:var(--muted);font-weight:600;font-size:.92em}
+.pie-v{font-size:.68rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pie-note{font-size:.62rem;color:var(--muted);font-weight:600;line-height:1.5;margin-top:6px}
 /* 参考フォーメーション（実弾非推奨） */
 .rf{margin:12px 2px 4px;padding:10px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface2)}
 .rf-head{font-size:.72rem;font-weight:800;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
@@ -968,6 +986,44 @@ function boot(DB){
         +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
         +`</div>`;
     }
+    // 展開6パターンの構成比（ドーナツ）。上位3だけでは全体像が見えないので全形を出す。
+    // 配色は dataviz 検証済みの6スロット固定順。lightで3:1未満の色があるため
+    // 全スライスに凡例＋数値を直接ラベルとして必ず添える（relief条件）。
+    function pieBlock(S){
+      const all = (S.all||[]).filter(x=>x && x.prob>0);
+      if(all.length<2) return "";
+      const tot = all.reduce((s,x)=>s+x.prob,0);
+      if(!(tot>0)) return "";
+      const R=52, r0=30, CX=60, CY=60;
+      const pt=(deg,rad)=>{ const a=(deg-90)*Math.PI/180;
+        return [(CX+rad*Math.cos(a)).toFixed(2),(CY+rad*Math.sin(a)).toFixed(2)]; };
+      let acc=0;
+      const paths = all.map((x,i)=>{
+        const frac = x.prob/tot;                 // 角度は正規化（端数で輪が閉じないのを防ぐ）
+        const a0=acc*360, a1=(acc+frac)*360; acc+=frac;
+        const large = (a1-a0)>180 ? 1 : 0;
+        const [x0,y0]=pt(a0,R), [x1,y1]=pt(a1,R), [x2,y2]=pt(a1,r0), [x3,y3]=pt(a0,r0);
+        const d = `M${x0},${y0}A${R},${R} 0 ${large} 1 ${x1},${y1}`
+                + `L${x2},${y2}A${r0},${r0} 0 ${large} 0 ${x3},${y3}Z`;
+        return `<path d="${d}" fill="var(--s${i+1})"><title>${esc(x.key)} ${(x.prob*100).toFixed(1)}%</title></path>`;
+      }).join("");
+      const favWin = all.filter(x=>x.fav_wins).reduce((s,x)=>s+x.prob,0);
+      const lg = all.map((x,i)=>
+        `<span class="pie-sw" style="background:var(--s${i+1})"></span>`
+        +`<span class="pie-nm">${esc(x.key)} <em>${x.fav_wins?"◎勝ち":"◎負け"}</em></span>`
+        +`<span class="pie-v">${(x.prob*100).toFixed(1)}%</span>`).join("");
+      return `<div class="dev-pat-h" style="margin-top:12px">展開6パターンの構成比</div>`
+        +`<div class="pie">`
+        +`<svg class="pie-svg" viewBox="0 0 120 120" width="132" height="132" role="img"`
+        +` aria-label="展開6パターンの構成比">${paths}`
+        +`<text class="pie-c1" x="60" y="54" text-anchor="middle">◎が勝つ</text>`
+        +`<text class="pie-c2" x="60" y="70" text-anchor="middle">${Math.round(favWin*100)}%</text>`
+        +`</svg><div class="pie-lg">${lg}</div></div>`
+        +`<div class="pie-note">①〜③が◎の勝ち方、④〜⑥が◎の負け方。`
+        +`各形の割合＝このレースの1着確率×履歴の分岐比。`
+        +`合計は${(tot*100).toFixed(1)}%で、残りは標本が少なく統計を出せない稀な形`
+        +`（◎が主導権を取らずに逃げ切る等）。</div>`;
+    }
     // 展開シナリオ上位3（◎勝ち/負け×決まり手の6分類。確率=1着確率×履歴の分岐比）
     function scenarioBlock(r){
       const S = r.dev_patterns;
@@ -1002,6 +1058,7 @@ function boot(DB){
       return `<div class="sc">`
         +`<div class="dev-pat-h">展開シナリオ 上位3（過去${(S.n_races||0).toLocaleString()}レースの実測分岐比 × このレースの1着確率）</div>`
         +items
+        +pieBlock(S)
         +(ins?`<div class="sc-ins"><span class="h">📌 展開から紐を選ぶときの読み</span><ul>${ins}</ul></div>`:"")
         +(S.note?`<div class="dev-caveat">※ ${esc(S.note)}</div>`:"")
         +`</div>`;
