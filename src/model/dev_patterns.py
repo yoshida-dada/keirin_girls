@@ -20,16 +20,73 @@ from pathlib import Path
 STATS_PATH = Path(__file__).with_name("dev_pattern_stats.json")
 MARKS = ["◎", "○", "▲", "△", "×"]
 
-# 表示する構造的な読み（実測に基づく。穴を拾う判断で最も効くのは3着の割れ）。
-INSIGHTS = [
-    "◎-○の1-2着ペアが全パターンの軸。◎が勝てば2着は○が42〜54%、"
-    "◎が負ければ勝つのは○が5〜7割で、その時◎は2着に残りやすい。",
-    "◎を切る理由がない。◎が負けても3着以内に残るのが約8割（④71% / ⑤81% / ⑥82%）。"
-    "◎フェードが成立しないという過去検証と一致する。",
-    "最も割れるのは3着（▲約30% / ○約27% / 人気薄23〜26%）。"
-    "点数を割くならここ＝穴を拾うなら3着候補を広げるのが筋。",
-    "①◎逃げ切りだけは2着に人気薄が16%と他パターンより荒れる（他は11〜13%）。",
-]
+def _pct(x: float) -> str:
+    return f"{round(x * 100)}%"
+
+
+def _w_avg(rows: list, get) -> float:
+    """表示中シナリオの発生確率で加重平均する。"""
+    tot = sum(r["prob"] for r in rows)
+    if not tot:
+        return 0.0
+    return sum(r["prob"] * (get(r) or 0) for r in rows) / tot
+
+
+def _w_dist(rows: list, key: str) -> dict[str, float]:
+    """表示中シナリオの確率加重で {印: 割合} を合成する（未フィルタの生分布を使う）。"""
+    tot = sum(r["prob"] for r in rows)
+    if not tot:
+        return {}
+    out = {m: 0.0 for m in MARKS}
+    for r in rows:
+        w = r["prob"] / tot
+        for m, p in (r["_raw"][key] or {}).items():
+            if m in out:
+                out[m] += w * (p or 0)
+    return out
+
+
+def build_insights(top: list, allrows: list, cars: dict[str, str]) -> list[str]:
+    """「紐選びの読み」をレースごとに組み立てる。
+
+    top     : 画面に出す上位シナリオ。①の注意書きや3着加重はこれに即して書く
+              （画面に無い形の話をしない＝表示との齟齬を防ぐ）。
+    allrows : 全6形。「◎が負ける形では〜」のように一般化する文はこちらで加重する
+              （上位だけで平均すると④を落として楽観側に振れるため）。
+    """
+    win = [r for r in top if r["fav_wins"]]
+    lose_all = [r for r in allrows if not r["fav_wins"]]
+    ins: list[str] = []
+    maru, marum, ana_car = cars.get("◎", "◎"), cars.get("○", "○"), cars.get("×", "")
+
+    if win:
+        vals = [(r["_raw"]["second"] or {}).get("○", 0) for r in win]
+        rng = (f"{_pct(min(vals))}〜{_pct(max(vals))}" if len(vals) > 1 and
+               round(min(vals) * 100) != round(max(vals) * 100) else _pct(vals[0]))
+        ins.append(f"◎{maru}が勝つ形（上位{len(win)}つ）では、2着は○{marum}が{rng}で最有力。"
+                   f"◎-○の1-2着が軸になる。")
+    if lose_all:
+        wm = _w_avg(lose_all, lambda r: (r["_raw"].get("winner") or {}).get("○", 0))
+        ft = _w_avg(lose_all, lambda r: r.get("fav_top3", 0))
+        ins.append(f"◎{maru}が負ける形では勝ち頭は○{marum}が{_pct(wm)}。"
+                   f"ただしその時も◎は3着以内に{_pct(ft)}残る＝◎を切る根拠にならない"
+                   f"（◎フェードは過去検証でも不成立）。")
+
+    # 最も割れる3着＝穴を拾う場所。表示中シナリオの加重で具体名を出す。
+    d3 = _w_dist(top, "third")
+    if d3:
+        best = sorted(d3.items(), key=lambda kv: -kv[1])[:3]
+        names = " / ".join(f"{m}{cars.get(m,'')} {_pct(p)}" for m, p in best if p >= 0.05)
+        ins.append(f"最も割れるのは3着。上位3形の加重では {names}。"
+                   f"穴を拾うならここで、{ana_car}が{_pct(d3.get('×', 0))}を占める。")
+
+    # ①が上位に入っている時だけ触れる
+    esc = next((r for r in top if r["key"].startswith("①") and not r["key"].startswith("①'")), None)
+    if esc:
+        x2 = (esc["_raw"]["second"] or {}).get("×", 0)
+        ins.append(f"①◎逃げ切り（{_pct(esc['prob'])}）は2着に人気薄が{_pct(x2)}と"
+                   f"他の形（11〜13%）より荒れる。ここだけは3着だけでなく2着も広げたい。")
+    return ins
 
 
 @lru_cache(maxsize=1)
@@ -101,7 +158,10 @@ def build_dev_patterns(top1_prob: float | None, pace_level: str,
             continue
         row = {"key": key, "prob": round(prob, 4), "fav_wins": is_win, "n": s.get("n"),
                "second": _dist_list(s.get("second"), cars),
-               "third": _dist_list(s.get("third"), cars)}
+               "third": _dist_list(s.get("third"), cars),
+               # 読みの合成に使う未フィルタの生分布（出力前に落とす）
+               "_raw": {"second": s.get("second"), "third": s.get("third"),
+                        "winner": s.get("winner")}}
         if is_win:
             row["winner"] = [{"mark": "◎", "car": cars.get("◎", ""), "p": 1.0}]
             if s.get("b_second"):
@@ -117,7 +177,11 @@ def build_dev_patterns(top1_prob: float | None, pace_level: str,
         rows.append(row)
 
     rows.sort(key=lambda r: -r["prob"])
-    return {"top": rows[:top_k], "insights": INSIGHTS,
+    top = rows[:top_k]
+    insights = build_insights(top, rows, cars)
+    for r in top:                      # 生分布は読みの合成にだけ使う（出力には載せない）
+        r.pop("_raw", None)
+    return {"top": top, "insights": insights,
             "n_races": st.get("n_races"), "pace": _pace_key(pace_level),
             "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。"
                     "紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、"
