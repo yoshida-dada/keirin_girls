@@ -86,7 +86,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         from src.collect.gamboo_racecard import parse_narabi
         narabi_ctx = parse_narabi(html)
     strengths = strengths_from_model(model, entries, recent, elo_state,
-                                     tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx)
+                                     tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
+                                     venue_code=venue_code)
     _mtype = "LightGBM" if type(model).__name__ == "GBDTModel" else "PL線形"
     source = (f"学習済みモデル({_mtype}+Elo)" if elo_state is not None
               else f"学習済みモデル({_mtype}拡張20特徴)")
@@ -234,7 +235,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         _bs = load_backstretch()
         if _bs is not None:
             pB = strengths_from_model(_bs, entries, recent, elo_state,
-                                      tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx)
+                                      tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
+                                      venue_code=venue_code)
             if pB:
                 _rk = sorted(pB.items(), key=lambda kv: -kv[1])
                 _rfront = _order[0] if _order else None

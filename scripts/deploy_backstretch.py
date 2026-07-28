@@ -20,6 +20,7 @@ from src.features.tactics_features import TACTIC_NAMES
 from src.features.rider_narabi import NARABI_KEYS
 from src.model.persist import save_model, load_model
 from src.model.backstretch import b_taker, as_border, BACKSTRETCH_PATH
+from src.features.bank_features import BANK_KEYS
 
 
 def main():
@@ -28,7 +29,17 @@ def main():
     args = ap.parse_args()
 
     base = load_samples(args.db, features=PL_FEATURES_FULL)
-    feats = list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES) + list(NARABI_KEYS)
+    # 着順モデルと同一の特徴セットにする。persist.strengths_from_model を共有しており、
+    # 列がずれると predict_race の推定主導権が shape 不整合で落ちるため必ず追従させる。
+    # 実運用では load_model().feature_names に合わせるのが最も確実。
+    from src.model.persist import load_model as _load_prod
+    try:
+        feats = list(_load_prod().feature_names)
+        print(f"着順モデルの特徴に追従: {len(feats)}列")
+    except Exception:
+        feats = [f for f in (list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES)
+                             + list(NARABI_KEYS) + list(BANK_KEYS)) if f != "t_escwin_rel"]
+        print(f"着順モデルを読めないため既定構成を使用: {len(feats)}列")
     samples = augment_samples(base, args.db, feats)
     btk = b_taker(args.db)
     bsamples = as_border(samples, btk)
