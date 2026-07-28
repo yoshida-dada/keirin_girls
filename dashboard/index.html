@@ -273,6 +273,28 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .dev-pace-km{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
 .dev-note{font-size:.7rem;font-weight:600;line-height:1.55;color:var(--ink);margin-top:8px}
 .dev-caveat{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
+/* 展開シナリオ上位3（実測分岐比）。◎勝ち=緑系・◎負け=アクセント系で地色を分ける */
+.sc{margin-top:9px}
+.sc-item{border:1px solid var(--border2);border-radius:9px;padding:7px 9px;margin-top:6px;background:var(--surface)}
+.sc-item.lose{border-color:var(--accent-soft);background:var(--accent-soft)}
+.sc-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.sc-rank{font-size:.6rem;font-weight:800;color:var(--muted);min-width:1.2em}
+.sc-key{font-size:.72rem;font-weight:800;color:var(--ink)}
+.sc-prob{margin-left:auto;font-size:.8rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--good)}
+.sc-item.lose .sc-prob{color:var(--accent)}
+.sc-bar{height:4px;border-radius:999px;background:var(--surface2);margin-top:5px;overflow:hidden}
+.sc-bar>span{display:block;height:100%;background:var(--good)}
+.sc-item.lose .sc-bar>span{background:var(--accent)}
+.sc-line{display:flex;gap:6px;margin-top:5px;font-size:.63rem;font-weight:600;line-height:1.5}
+.sc-lbl{flex:none;width:4.6em;color:var(--muted);font-weight:700}
+.sc-dist{color:var(--ink);font-variant-numeric:tabular-nums}
+.sc-dist b{font-weight:800}
+.sc-fav{margin-top:5px;font-size:.63rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+.sc-fav em{font-style:normal;color:var(--good);font-weight:800}
+.sc-ins{margin-top:9px;padding:8px 10px;border-radius:9px;background:var(--surface2);
+  font-size:.65rem;font-weight:600;line-height:1.6;color:var(--ink)}
+.sc-ins li{margin:3px 0 3px 1.1em}
+.sc-ins .h{font-weight:800;font-size:.68rem;display:block;margin-bottom:3px}
 /* 参考フォーメーション（実弾非推奨） */
 .rf{margin:12px 2px 4px;padding:10px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface2)}
 .rf-head{font-size:.72rem;font-weight:800;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
@@ -915,9 +937,47 @@ function boot(DB){
       }
       return `<div class="dev">`
         +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`
-        +narabi + bsBlock + paceBlock + patBlock
+        +narabi + bsBlock + paceBlock + patBlock + scenarioBlock(r)
         +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
         +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
+        +`</div>`;
+    }
+    // 展開シナリオ上位3（◎勝ち/負け×決まり手の6分類。確率=1着確率×履歴の分岐比）
+    function scenarioBlock(r){
+      const S = r.dev_patterns;
+      if(!S || !(S.top||[]).length) return "";
+      const dist = arr => (arr||[]).map(d =>
+        `${esc(d.mark)}${esc(d.car||"")} <b>${Math.round(d.p*100)}%</b>`).join(" / ");
+      const items = S.top.map((t,i)=>{
+        const lose = !t.fav_wins;
+        const w = Math.round(t.prob*100);
+        // ◎が勝つ形では勝者は自明なので出さず、負ける形だけ「勝つのは」を見せる
+        const winLine = lose
+          ? `<div class="sc-line"><span class="sc-lbl">勝つのは</span><span class="sc-dist">${dist(t.winner)}</span></div>` : "";
+        const bLine = (lose && t.b_win!=null && t.b_win>=0.3)
+          ? `<div class="sc-line"><span class="sc-lbl">うち主導権</span><span class="sc-dist">その車が勝つ <b>${Math.round(t.b_win*100)}%</b></span></div>`
+          : ((!lose && t.b_second!=null && t.b_second>=0.2)
+            ? `<div class="sc-line"><span class="sc-lbl">主導権</span><span class="sc-dist">2着に <b>${Math.round(t.b_second*100)}%</b></span></div>` : "");
+        const favLine = (lose && t.fav_pos)
+          ? `<div class="sc-fav">◎の着順　2着 ${Math.round(t.fav_pos["2"]*100)}% ／ 3着 ${Math.round(t.fav_pos["3"]*100)}% ／ 着外 ${Math.round(t.fav_pos.out*100)}%`
+            +`　→ <em>3着以内 ${Math.round((t.fav_top3||0)*100)}%</em></div>` : "";
+        return `<div class="sc-item${lose?" lose":""}">`
+          +`<div class="sc-top"><span class="sc-rank">${i+1}位</span>`
+          +`<span class="sc-key">${esc(t.key)}</span>`
+          +`<span class="sc-prob">${w}%</span></div>`
+          +`<div class="sc-bar"><span style="width:${Math.min(100,w)}%"></span></div>`
+          +winLine + bLine
+          +`<div class="sc-line"><span class="sc-lbl">2着</span><span class="sc-dist">${dist(t.second)}</span></div>`
+          +`<div class="sc-line"><span class="sc-lbl">3着</span><span class="sc-dist">${dist(t.third)}</span></div>`
+          +favLine
+          +`</div>`;
+      }).join("");
+      const ins = (S.insights||[]).map(s=>`<li>${esc(s)}</li>`).join("");
+      return `<div class="sc">`
+        +`<div class="dev-pat-h">展開シナリオ 上位3（過去${(S.n_races||0).toLocaleString()}レースの実測分岐比 × このレースの1着確率）</div>`
+        +items
+        +(ins?`<div class="sc-ins"><span class="h">📌 展開から紐を選ぶときの読み</span><ul>${ins}</ul></div>`:"")
+        +(S.note?`<div class="dev-caveat">※ ${esc(S.note)}</div>`:"")
         +`</div>`;
     }
     // 参考フォーメーション（◎頭固定・補正確率top-K）。実弾非推奨・回収率<100%。
