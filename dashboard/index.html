@@ -71,11 +71,22 @@ table.t tr:last-child td{border-bottom:none}
 .rtag.axis{background:var(--good-soft);color:var(--good)}
 .rtag.std{background:var(--edge-soft);color:var(--edge)}
 .rtag.chaos{background:var(--accent-soft);color:var(--accent)}
+/* 波乱確率バッジ。しきい値は実測波乱率（軸堅16.4%/標準43.9%/混戦63.9%）に合わせた */
+.upt{display:inline-block;font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.upt.lo{background:var(--good-soft);color:var(--good)}
+.upt.mid{background:var(--edge-soft);color:var(--edge)}
+.upt.hi{background:var(--accent-soft);color:var(--accent)}
+.upt.na{background:var(--surface2);color:var(--muted)}
 .tfoot-row td{background:var(--surface2);font-weight:800;border-top:2px solid var(--border)}
 
 /* toggle */
 .secthead{display:flex;align-items:center;gap:8px;margin:24px 2px 4px;flex-wrap:wrap}
 .secthead .sect{margin:0}
+.sec-upd{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:600;white-space:nowrap;flex:none;display:none}
+.sec-upd.on{display:inline-flex;align-items:center;gap:3px}
+.sec-upd b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.secthead .vtoggle+.sec-upd,.secthead .sec-upd+.vtoggle{margin-left:8px}
 .vtoggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:none;margin-left:auto}
 .vtoggle button{background:var(--surface);border:none;color:var(--muted);font-family:inherit;font-size:.72rem;
   font-weight:800;padding:5px 12px;cursor:pointer}
@@ -431,18 +442,19 @@ table.t.rh-t td{vertical-align:top}
   </div>
   <div id="tab-main" class="tabpane" role="tabpanel">
   <!-- 本日のレース予測（着順確率・買い目ではない） -->
-  <div class="secthead"><span class="sect" id="predTitle">本日のレース予測</span></div>
+  <div class="secthead"><span class="sect" id="predTitle">本日のレース予測</span><span class="sec-upd" id="predUpd"></span></div>
   <div class="sub" id="predSub"></div>
   <div id="predBody"></div>
 
   <!-- (a) 本日の推奨買い目 -->
-  <div class="secthead"><span class="sect" id="recTitle">本日の推奨買い目</span></div>
+  <div class="secthead"><span class="sect" id="recTitle">本日の推奨買い目</span><span class="sec-upd" id="recUpd"></span></div>
   <div class="sub" id="recSub"></div>
   <div id="recBody"></div>
 
   <!-- (b) バケット別 累積ROI -->
   <div class="secthead">
     <span class="sect" id="bktTitle">バケット別 累積ROI（レースタイプ×オッズ帯）</span>
+    <span class="sec-upd" id="bktUpd"></span>
     <div class="vtoggle" id="bktToggle">
       <button data-v="heat" aria-pressed="true">ヒートマップ</button>
       <button data-v="table" aria-pressed="false">表</button>
@@ -452,27 +464,27 @@ table.t.rh-t td{vertical-align:top}
   <div id="bktBody"></div>
 
   <!-- (c) レースタイプ分布 -->
-  <div class="secthead"><span class="sect" id="distTitle">レースタイプ分布</span></div>
+  <div class="secthead"><span class="sect" id="distTitle">レースタイプ分布</span><span class="sec-upd" id="distUpd"></span></div>
   <div class="sub" id="distSub"></div>
   <div id="distBody"></div>
 
   <!-- (d) キャリブレーション -->
-  <div class="secthead"><span class="sect" id="calTitle">キャリブレーション（予測 vs 実現）</span></div>
+  <div class="secthead"><span class="sect" id="calTitle">キャリブレーション（予測 vs 実現）</span><span class="sec-upd" id="calUpd"></span></div>
   <div class="sub" id="calSub"></div>
   <div id="calBody"></div>
 
   <!-- (d2) 予測実績 -->
-  <div class="secthead"><span class="sect" id="accTitle">予測実績（検証期間）</span></div>
+  <div class="secthead"><span class="sect" id="accTitle">予測実績（検証期間）</span><span class="sec-upd" id="accUpd"></span></div>
   <div class="sub" id="accSub"></div>
   <div id="accBody"></div>
 
   <!-- (e) 全体累積ROI推移 -->
-  <div class="secthead"><span class="sect" id="pnlTitle">全体 累積ROI 推移</span></div>
+  <div class="secthead"><span class="sect" id="pnlTitle">全体 累積ROI 推移</span><span class="sec-upd" id="pnlUpd"></span></div>
   <div class="sub" id="pnlSub"></div>
   <div id="pnlBody"></div>
 
   <!-- データ収集状況 -->
-  <div class="secthead"><span class="sect" id="dsTitle">データ収集状況</span></div>
+  <div class="secthead"><span class="sect" id="dsTitle">データ収集状況</span><span class="sec-upd" id="dsUpd"></span></div>
   <div class="sub" id="dsSub"></div>
   <div id="dsBody"></div>
 
@@ -480,7 +492,7 @@ table.t.rh-t td{vertical-align:top}
 
   <div id="tab-results" class="tabpane" role="tabpanel" hidden>
     <!-- 成績（過去1ヶ月の開催結果） -->
-    <div class="secthead"><span class="sect" id="rhTitle">成績（過去半年の開催結果）</span></div>
+    <div class="secthead"><span class="sect" id="rhTitle">成績（過去半年の開催結果）</span><span class="sec-upd" id="rhUpd"></span></div>
     <div class="sub" id="rhSub"></div>
     <div id="rhBody"></div>
   </div><!-- /tab-results -->
@@ -500,6 +512,22 @@ function boot(DB){
 
   document.getElementById("gen").textContent = "生成 " + (DB.generated||"").replace("T"," ").slice(0,16);
 
+  // 各セクションの更新時刻チップ。ライブ更新される予測/推奨は last_updated（1分ごと）、
+  // 集計系（バケット/分布/較正/実績/ROI/収集）は data.json 生成時刻 generated を表示。
+  (function(){
+    const P = DB.predictions||{};
+    const hhmm = ts => { const m=String(ts||"").match(/(\d{1,2}):(\d{2})/); return m?m[1].padStart(2,"0")+":"+m[2]:""; };
+    const setUpd = (id, ts) => { const el=document.getElementById(id); if(!el) return;
+      const t=hhmm(ts); if(t){ el.innerHTML="🕐 更新 <b>"+t+"</b>"; el.classList.add("on"); } };
+    const gen = DB.generated;                 // 朝の集計ビルド時刻
+    const live = P.last_updated || gen;       // オッズ/予測のライブ更新時刻
+    setUpd("predUpd", live);                  // 予測はライブ（1分ごとにオッズ再取得）
+    setUpd("recUpd", gen);                    // 推奨買い目は朝ビルドのまま（ライブ再計算しない）
+    setUpd("bktUpd", gen);  setUpd("distUpd", gen); setUpd("calUpd", gen);
+    setUpd("accUpd", gen);  setUpd("pnlUpd", gen);  setUpd("dsUpd", gen);
+    setUpd("rhUpd", P.results_updated || gen);
+  })();
+
   // notice
   if(DB.notice){
     document.getElementById("notice").innerHTML =
@@ -513,6 +541,17 @@ function boot(DB){
     return `<span class="badge ${b[0]}">${b[1]}</span>`; }
   function isShown(st){ return st==="sample"||st==="ready"||st==="ok"; }
   const rtagCls = t => t==="軸堅"?"axis":(t==="混戦"?"chaos":"std");
+  // 波乱確率＝1−P(◎1着)。◎＝1着確率トップの選手。out-of-sample 3477レース/5foldで
+  // 単調較正を確認済み（予測35.3% vs 実33.1%）＝実勢は表示値より約2pt低い。
+  const upsetOf = r => { const t = (r.top1_prob!=null) ? r.top1_prob
+      : ((r.riders && r.riders[0] && r.riders[0].win_prob) != null ? r.riders[0].win_prob : null);
+    return t==null ? null : 1-t; };
+  const uptCls = u => u==null ? "na" : (u<0.30 ? "lo" : (u<0.55 ? "mid" : "hi"));
+  const UPT_TIP = "波乱確率＝◎（1着確率トップ）が1着を外す確率。"
+    + "過去3477レースの検証で較正済み（実勢は表示値より約2pt低め）。"
+    + "高い＝荒れやすいが、その荒れはオッズにも織り込み済みで穴狙いの根拠にはならない。";
+  const uptTag = u => u==null ? `<span class="upt na">—</span>`
+    : `<span class="upt ${uptCls(u)}" title="${UPT_TIP}">${pct1(u)}</span>`;
   function emptyBox(msg){ return `<div class="empty">${esc(msg)}</div>`; }
 
   // ROI diverging color: gray midpoint at 1.0, green above, red below
@@ -793,7 +832,9 @@ function boot(DB){
     }
 
     function raceHead(r){
-      const top1 = (r.riders&&r.riders.length)?(r.riders[0].win_prob||0):0;
+      // upsetOf と同じ優先順で取る（1着確率と波乱確率が必ず足して100%になるように）
+      const up = upsetOf(r);
+      const top1 = up!=null ? 1-up : 0;
       return `<div class="pred-rhead">`
         +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
         +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
@@ -803,7 +844,8 @@ function boot(DB){
         +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
-        +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`;
+        +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　波乱確率 ${uptTag(up)}`
+        +`　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`;
     }
     // 予測タブの中身（出走表・対戦・三連単モデル確率・EV買い目・オッズテーブル）
     function predContent(r){
@@ -940,6 +982,7 @@ function boot(DB){
           +`<td>${r.deadline?esc(r.deadline):"—"}</td>`
           +`<td class="l"><span class="hl-honmei">${carChip(rd0.car)}<span class="nm">${esc(rd0.name||"")}</span></span></td>`
           +`<td>${pct1(top1)}</td>`
+          +`<td>${uptTag(upsetOf(r))}</td>`
           +`<td class="l"><span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span></td>`
           +`<td>${spiceTag}</td>`
           +`<td>${evTxt}</td></tr>`;
@@ -949,10 +992,13 @@ function boot(DB){
         +`<div class="hl-head"><span class="hl-title">✨ 本日のハイライト</span>`
         +`<span class="hl-count">${races.length}レース ／ 妙味シグナル ${nSpice}レース</span></div>`
         +`<p class="hl-note">合成オッズ&gt;必要オッズ（各車の勝ち）・EV&gt;1（三連単）は「モデル確率＞市場」の乖離を示す<b>参考値</b>で、`
-        +`エッジ未確立・買い目推奨ではありません（上の免責を参照）。</p>`
+        +`エッジ未確立・買い目推奨ではありません（上の免責を参照）。<br>`
+        +`<b>波乱確率</b>＝◎が1着を外す確率。過去3477レースで較正済み（実勢は表示値より約2pt低め）。`
+        +`高い＝荒れやすいが<b>その荒れは市場も織り込み済み</b>（混戦の実測ズレ+0.5pt）なので、`
+        +`穴狙いの根拠にはなりません。軸堅（実波乱率16.4%）で◎を信頼する判断に使ってください。</p>`
         +`<div class="tblwrap"><table class="t"><thead><tr>`
         +`<th class="l">会場</th><th>R</th><th>締切</th><th class="l">本命</th><th>1着確率</th>`
-        +`<th class="l">タイプ</th><th>妙味</th><th>最大三連単EV</th>`
+        +`<th>波乱確率</th><th class="l">タイプ</th><th>妙味</th><th>最大三連単EV</th>`
         +`</tr></thead><tbody>${rows}</tbody></table></div></div>`;
     }
 
