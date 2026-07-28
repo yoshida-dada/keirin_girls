@@ -4,6 +4,12 @@ compare_tactics.py の検証と同一の構成:
   A(6列) = rider_tactics の絶対値をレース内相対化（value − レース内present平均, 欠損=0）
   B(4列) = race_dynamics のレース内変動列（既に相対量。欠損=0）
 順序は TACTIC_NAMES（= A_NAMES + B_NAMES）で固定。学習(deploy)も推論(persist)も本関数を通す。
+
+t_escwin_rel（逃げ切り率）は 2026-07-28 に一度追加したが、バンク交互作用の投入後に
+再検証したところ効果がほぼ消えたため**不採用としてここから外した**（詳細は
+scripts/validate_escape_win.py の冒頭）。ここに残すと deploy_narabi 等の
+「TACTIC_NAMES から特徴を組む」スクリプトで再学習時に黙って混入するため。
+算出自体（rider_tactics.escape_win_rate）は再検証できるよう残してある。
 """
 from __future__ import annotations
 
