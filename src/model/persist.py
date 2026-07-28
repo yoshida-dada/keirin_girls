@@ -106,8 +106,15 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         ncols = narabi_columns(list(df.index), per_car)
         for i, name in enumerate(NARABI_KEYS):
             df[name] = [ncols[c][i] for c in df.index]
-    if df[feats].isna().any().any():
+    # 欠損はレース内平均で補完する。1名の gear_ratio 欠け等だけで全車の推論を捨てて
+    # 競走得点ベースラインへ落ちるのを防ぐ（2026-07-28 実測: 本日8R中2Rが該当）。
+    # ある列が全車欠損＝そのレースでは情報ゼロなので、従来どおり推論を諦める。
+    sub = df[feats]
+    if sub.isna().all().any():
         return {}
+    if sub.isna().any().any():
+        df = df.copy()
+        df[feats] = sub.fillna(sub.mean())
     cars = list(df.index)
     X = df.loc[cars, feats].to_numpy(dtype=float)
     return model.strengths(X, cars)
