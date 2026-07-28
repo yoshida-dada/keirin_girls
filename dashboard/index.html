@@ -950,7 +950,15 @@ function boot(DB){
           +`<span class="dev-pat-c">主役 ${carChip(p.lead_car)}${favB}</span></div>`;
       }).join("");
       const patBlock = pats
-        ? `<div class="dev-pat-h">展開パターン（勝者の隊列位置で1着確率を分解）</div><div class="dev-pats">${pats}</div>` : "";
+        ? `<div class="dev-pat-h">隊列位置別の1着確率（記者の並び予想による分解）</div>`
+          +`<div class="dev-pats">${pats}</div>`
+          +`<div class="dev-caveat">※ これは<b>展開の予測ではありません</b>。記者の並び予想で`
+          +`「先頭/番手/中団(3〜5番手)/後方(6番手以降)」に分け、各グループの1着確率を合計した値です。`
+          +`「後方一気型60%」は<b>後方に置かれた選手が合計60%の確率で勝つ</b>という意味で、`
+          +`後方から一気に来る展開が60%起きるという意味ではありません。`
+          +`主役＝そのグループで最も1着確率が高い車。`
+          +`並び予想自体の的中は弱く（予想先頭が実際にバックを取る率≒20%）、`
+          +`実測に基づく展開は下の「展開シナリオ」を参照してください。</div>` : "";
       // 推定主導権（展開AI＝最終バック先頭B。記者予想より当たる）
       const B = D.backstretch;
       let bsBlock = "";
