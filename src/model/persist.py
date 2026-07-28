@@ -71,16 +71,26 @@ def load_model(path: str | Path = DEFAULT_MODEL_PATH):
                    feature_names=d["feature_names"])
 
 
+# これが欠けたら平均補完せず推論を諦める特徴（強さの主信号）。周辺特徴（gear_ratio 等）の
+# 欠損は補完してよいが、競走得点が無い選手を「平均的な選手」として扱うのは実力を偽装する。
+CORE_FEATURES = ("racing_score",)
+
+
 def strengths_from_model(model: PLModel, entries: list[Entry],
                          recent: dict | None = None,
                          elo_state: dict | None = None,
                          tactics_ctx: dict | None = None,
-                         narabi_ctx: dict | None = None) -> dict[int, float]:
+                         narabi_ctx: dict | None = None,
+                         venue_code: str | None = None) -> dict[int, float]:
     """出走選手 → {車番: 1着確率}(Σ=1)。特徴量を組み立てて学習済みモデルで推論する。
 
     モデルの学習特徴（model.feature_names）に追従。拡張モデルは直近4ヶ月(recent)を、
     Elo付きモデルは elo_state({氏名: Elo}) を、展開特徴付きモデルは tactics_ctx（current_tactics
     の氏名別 as-of history）を必要とする。特徴量が揃わなければ {} を返す。
+
+    venue_code はバンク交互作用列（BANK_KEYS）に使う。**渡されなくても列は必ず作る**
+    （重み0＝交互作用なし）。列を作らないと model.feature_names に在る列が df に無く
+    KeyError で落ちるため。venue を持たない呼び出し元（api/model.py）がある前提の設計。
     """
     import pandas as pd
     feats = model.feature_names or PL_FEATURES
@@ -91,13 +101,20 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         elos = pd.Series({e.car_number: state.get(e.rider_name, DEFAULT_ELO) for e in entries})
         df["rel_elo"] = elos - elos.mean()
     from src.features.tactics_features import TACTIC_NAMES
-    if any(n in feats for n in TACTIC_NAMES):   # 展開特徴付きモデル: 10列を推論と同一関数で付与
+    from src.features.bank_features import BANK_KEYS, bank_columns
+    tac = None
+    need_bank = any(n in feats for n in BANK_KEYS)
+    if any(n in feats for n in TACTIC_NAMES) or need_bank:   # 展開特徴を推論と同一関数で付与
         from src.features.rider_tactics import tactics_for_entries
         from src.features.tactics_features import tactic_columns
         tac = tactics_for_entries(entries, recent or {}, tactics_ctx or {})
-        cols = tactic_columns(list(df.index), tac)          # {car: [A(6)...B(4)]}
+        cols = tactic_columns(list(df.index), tac)          # {car: [A...B]}
         for i, name in enumerate(TACTIC_NAMES):
             df[name] = [cols[c][i] for c in df.index]
+    if need_bank:                               # バンク交互作用（venue不明なら重み0で全て0）
+        bcols = bank_columns(list(df.index), tac or {}, venue_code)
+        for i, name in enumerate(BANK_KEYS):
+            df[name] = [bcols[c][i] for c in df.index]
     from src.features.rider_narabi import NARABI_KEYS
     if any(n in feats for n in NARABI_KEYS):    # 並び予想付きモデル: 3列を推論と同一関数で付与
         from src.features.rider_narabi import narabi_from_order, narabi_columns
@@ -108,9 +125,12 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
             df[name] = [ncols[c][i] for c in df.index]
     # 欠損はレース内平均で補完する。1名の gear_ratio 欠け等だけで全車の推論を捨てて
     # 競走得点ベースラインへ落ちるのを防ぐ（2026-07-28 実測: 本日8R中2Rが該当）。
-    # ある列が全車欠損＝そのレースでは情報ゼロなので、従来どおり推論を諦める。
+    # ただし CORE_FEATURES（強さの主信号）が欠けた選手がいる場合と、列が全車欠損の場合は
+    # 従来どおり推論を諦める。racing_score 欠損は rel_score_max/score_rank にも波及し
+    # 3列がNaNになる＝その選手の実力が全く分からないため、平均で埋めるのは危険。
     sub = df[feats]
-    if sub.isna().all().any():
+    core_missing = [c for c in CORE_FEATURES if c in feats and sub[c].isna().any()]
+    if core_missing or sub.isna().all().any():
         return {}
     if sub.isna().any().any():
         df = df.copy()
@@ -121,7 +141,8 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
 
 
 def trifecta_from_model(model: PLModel, entries: list[Entry],
-                        recent: dict | None = None, elo_state: dict | None = None) -> dict[tuple, float]:
+                        recent: dict | None = None, elo_state: dict | None = None,
+                        venue_code: str | None = None) -> dict[tuple, float]:
     """出走選手 → 三連単210通り確率 {(a,b,c): p}。強さが出せなければ {}。"""
-    strengths = strengths_from_model(model, entries, recent, elo_state)
+    strengths = strengths_from_model(model, entries, recent, elo_state, venue_code=venue_code)
     return all_trifecta_probs(strengths) if strengths else {}
