@@ -274,6 +274,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。",
         }
 
+    # 展開6パターンの上位3つ（発生確率＋紐の内訳）。履歴統計JSONのみ参照＝DB非依存。
+    from src.model.dev_patterns import build_dev_patterns
+    _pace_lv = ((development or {}).get("pace") or {}).get("level", "")
+    dev_patterns = build_dev_patterns(rt.top1_win_prob, _pace_lv, riders)
+
     from datetime import datetime, timezone, timedelta
     jst = timezone(timedelta(hours=9))
     return {
@@ -283,6 +288,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "entropy": round(rt.entropy_norm, 4), "source": source,
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
         "development": development,                 # 展開予想（並び予想の隊列＋モデル読み）
+        "dev_patterns": dev_patterns,               # 展開6パターンの上位3つ（実測分岐比）
         "combos": combos,                          # 全210通り（オッズテーブル用）
         "reference": reference,                    # 参考フォーメーション（実弾非推奨・回収率<100%）
         "h2h": h2h,                                # 出走者同士の過去対戦成績マトリクス
