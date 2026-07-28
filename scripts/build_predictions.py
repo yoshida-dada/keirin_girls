@@ -160,8 +160,10 @@ def main() -> None:
     if args.predict:
         target = date.fromisoformat(args.date) if args.date else date.today()
         print(f"{target} を起点に前後{args.window}日のガールズ予測を生成中…")
-        # 既存 data.json の確定結果を退避しておく。予測は毎回作り直すが result は
-        # fetch_results が別途付けたものなので、再生成で消すと過去日の結果が空になる。
+        # 確定済みレース（result あり）は**予測ごと丸ごと据え置く**。
+        # 発走後にモデルが変わると「事前に出した予測」が書き換わり、的中実績が遡って
+        # 良く見えてしまう。result だけ引き継いで予測を作り直すと、表示中の予測と
+        # fetch_results が記録した hit の整合も崩れる。
         prev = {}
         out_path = Path(args.out)
         if out_path.exists():
@@ -169,18 +171,21 @@ def main() -> None:
                 old = json.loads(out_path.read_text(encoding="utf-8"))
                 for r in (old.get("predictions") or {}).get("races") or []:
                     if r.get("result"):
-                        prev[(r.get("date"), r.get("venue"), r.get("race_no"))] = r["result"]
+                        prev[(r.get("date"), r.get("venue"), r.get("race_no"))] = r
             except Exception:
                 pass
         doc["predictions"] = build_predictions_section(target, window=args.window)
-        kept = 0
+        races, kept = [], 0
         for r in doc["predictions"]["races"]:
-            res = prev.get((r.get("date"), r.get("venue"), r.get("race_no")))
-            if res and not r.get("result"):
-                r["result"] = res
+            old_r = prev.get((r.get("date"), r.get("venue"), r.get("race_no")))
+            if old_r:                       # 確定済み→当時の予測をそのまま残す
+                races.append(old_r)
                 kept += 1
+            else:
+                races.append(r)
+        doc["predictions"]["races"] = races
         if kept:
-            print(f"  既存の確定結果を引き継ぎ: {kept}レース")
+            print(f"  確定済みレースは当時の予測を据え置き: {kept}レース")
         print(f"  予測レース数: {len(doc['predictions']['races'])}")
 
     out = Path(args.out)
