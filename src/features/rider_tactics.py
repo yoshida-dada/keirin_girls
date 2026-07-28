@@ -9,7 +9,8 @@
         parse_recent_form() の RecentForm からも同じ関数で作れる。
 
   B) results履歴（自前で実施日順にas-of集計。当該レースは含めない＝「記録→更新」）
-     → as-of平均上がり(avg_last_lap) / 逃げ残率(escape_survival) / 脚質変化率(leg_change_rate)。
+     → as-of平均上がり(avg_last_lap) / 逃げ残率(escape_survival) / 逃げ切り率(escape_win_rate)
+       / 脚質変化率(leg_change_rate)。
 
 リーク防止:
   * recent_form は元々「発走前に確定していた集計値」なので当該レースを含まない（安全）。
@@ -38,6 +39,10 @@ from src.features.rider_history import _race_date_from_id
 ESCAPE_SURVIVAL_K = 10.0
 # 7車立てで着順がランダムなら top3 に入る確率 = 3/7。履歴ゼロ選手の最終フォールバック。
 GLOBAL_TOP3_PRIOR = 3.0 / 7.0
+# 逃げ切り率(escape_win_rate)の最終フォールバック。実測 P(逃げ切り勝ち|B取得)=0.209
+# （B取得走6482本/209名, 2026-07-28計測）。escape_survival が上位選手で1.0に飽和し
+# 「逃げ切る選手」と「捕まっても粘る選手」を区別できない問題への対処として追加。
+GLOBAL_ESCAPE_WIN_PRIOR = 0.209
 # 脚質変化率で見る直近走数（非空 kimarite のみ）。
 LEG_CHANGE_WINDOW = 3
 
@@ -104,23 +109,31 @@ def _recent_form_map(conn) -> dict[tuple[str, int], dict]:
     return out
 
 
-def _history_feats(name, starts, top3, lap_sum, lap_cnt, b_runs, b_top3, kim_hist) -> dict:
-    """results履歴アキュムレータ（as-of時点）から avg_last_lap/escape_survival/leg_change_rate を作る。
+def _history_feats(name, acc) -> dict:
+    """results履歴アキュムレータ（as-of時点）から history 系の展開特徴を作る。
 
     学習ループ（compute_pre_race_tactics）と推論（current_tactics 最終状態）で**同一式**を共有し
-    train/inference skew を防ぐ。引数は各 defaultdict と kim_hist[name] の deque。
+    train/inference skew を防ぐ。acc は _run_history が保持する defaultdict 群。
     """
-    avg_last_lap = (lap_sum[name] / lap_cnt[name]) if lap_cnt[name] else None
-    prior = (top3[name] / starts[name]) if starts[name] else GLOBAL_TOP3_PRIOR
-    escape_survival = (b_top3[name] + ESCAPE_SURVIVAL_K * prior) / (b_runs[name] + ESCAPE_SURVIVAL_K)
-    hist = list(kim_hist[name])
+    starts, b_runs = acc["starts"], acc["b_runs"]
+    avg_last_lap = (acc["lap_sum"][name] / acc["lap_cnt"][name]) if acc["lap_cnt"][name] else None
+    prior = (acc["top3"][name] / starts[name]) if starts[name] else GLOBAL_TOP3_PRIOR
+    escape_survival = ((acc["b_top3"][name] + ESCAPE_SURVIVAL_K * prior)
+                       / (b_runs[name] + ESCAPE_SURVIVAL_K))
+    # 逃げ切り率: 分母は escape_survival と同じB取得走だが、分子を「逃げ決まり手で1着」に絞る。
+    # escape_survival(分子=3着以内)は上位選手で1.0に飽和し「逃げ切る本命」と「捕まっても粘る
+    # 本命」を区別できない（例: B66本でtop3率1.00・逃切率0.12）。縮約先は本人の通算勝率。
+    prior_w = (acc["wins"][name] / starts[name]) if starts[name] else GLOBAL_ESCAPE_WIN_PRIOR
+    escape_win_rate = ((acc["b_esc_win"][name] + ESCAPE_SURVIVAL_K * prior_w)
+                       / (b_runs[name] + ESCAPE_SURVIVAL_K))
+    hist = list(acc["kim_hist"][name])
     if len(hist) >= 2:
         changes = sum(1 for a, b in zip(hist, hist[1:]) if a != b)
         leg_change_rate = changes / (len(hist) - 1)
     else:
         leg_change_rate = None
     return {"avg_last_lap": avg_last_lap, "escape_survival": escape_survival,
-            "leg_change_rate": leg_change_rate}
+            "escape_win_rate": escape_win_rate, "leg_change_rate": leg_change_rate}
 
 
 def _run_history(db_path, record_pre: bool):
@@ -145,8 +158,9 @@ def _run_history(db_path, record_pre: bool):
         conn.close()
 
     race_ids = sorted(ent_by_race, key=lambda rid: (_race_date_from_id(rid) or "", rid))
-    acc = dict(starts=defaultdict(int), top3=defaultdict(int), lap_sum=defaultdict(float),
-               lap_cnt=defaultdict(int), b_runs=defaultdict(int), b_top3=defaultdict(int),
+    acc = dict(starts=defaultdict(int), top3=defaultdict(int), wins=defaultdict(int),
+               lap_sum=defaultdict(float), lap_cnt=defaultdict(int),
+               b_runs=defaultdict(int), b_top3=defaultdict(int), b_esc_win=defaultdict(int),
                kim_hist=defaultdict(lambda: deque(maxlen=LEG_CHANGE_WINDOW)))
     names: set[str] = set()
     out: dict[tuple[str, int], dict] = {}
@@ -158,8 +172,7 @@ def _run_history(db_path, record_pre: bool):
         if record_pre:
             for car, name in car_name.items():
                 feat = dict(tactics_from_recent_form(rf_map.get((rid, car), {})))
-                feat.update(_history_feats(name, acc["starts"], acc["top3"], acc["lap_sum"],
-                                           acc["lap_cnt"], acc["b_runs"], acc["b_top3"], acc["kim_hist"]))
+                feat.update(_history_feats(name, acc))
                 out[(rid, car)] = feat
         for car, (pos, lap, sb, kim) in res_by_race.get(rid, {}).items():
             name = car_name.get(car)
@@ -169,6 +182,8 @@ def _run_history(db_path, record_pre: bool):
                 acc["starts"][name] += 1
                 if pos <= 3:
                     acc["top3"][name] += 1
+                if pos == 1:
+                    acc["wins"][name] += 1
             if lap is not None:
                 acc["lap_sum"][name] += lap
                 acc["lap_cnt"][name] += 1
@@ -176,6 +191,9 @@ def _run_history(db_path, record_pre: bool):
                 acc["b_runs"][name] += 1
                 if pos is not None and pos <= 3:
                     acc["b_top3"][name] += 1
+                # 逃げ切り＝主導権を取ったまま1着（決まり手は1・2着のみ記録される疎データ）
+                if pos == 1 and kim and "逃" in kim:
+                    acc["b_esc_win"][name] += 1
             if kim:
                 acc["kim_hist"][name].append(kim)
     return out, acc, names
@@ -190,9 +208,7 @@ def current_tactics(db_path: str | Path) -> dict[str, dict]:
     履歴ゼロの選手も含む（escape_survival は事前3/7へ縮約された値）。
     """
     _, acc, names = _run_history(db_path, record_pre=False)
-    return {name: _history_feats(name, acc["starts"], acc["top3"], acc["lap_sum"],
-                                 acc["lap_cnt"], acc["b_runs"], acc["b_top3"], acc["kim_hist"])
-            for name in names}
+    return {name: _history_feats(name, acc) for name in names}
 
 
 def tactics_for_entries(entries, recent: dict, current_tac: dict) -> dict[int, dict]:
@@ -201,7 +217,8 @@ def tactics_for_entries(entries, recent: dict, current_tac: dict) -> dict[int, d
     compute_pre_race_tactics が返すのと同じキー構成（lead_index/lead_index_sb/sikake/kimarite_n
     + avg_last_lap/escape_survival/leg_change_rate）。履歴が無い選手は事前分布側の値。
     """
-    zero_hist = {"avg_last_lap": None, "escape_survival": GLOBAL_TOP3_PRIOR, "leg_change_rate": None}
+    zero_hist = {"avg_last_lap": None, "escape_survival": GLOBAL_TOP3_PRIOR,
+                 "escape_win_rate": GLOBAL_ESCAPE_WIN_PRIOR, "leg_change_rate": None}
     out: dict[int, dict] = {}
     for e in entries:
         rf = recent.get(e.car_number)
