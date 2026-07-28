@@ -45,12 +45,22 @@ def _store_snapshot(repo, race_id: str, race: dict, now: datetime) -> None:
             pass
 
 
-def _minutes_to_deadline(deadline: str, now: datetime) -> float | None:
-    """締切(HH:MM, JST)までの分。過ぎていれば負。"""
+def _minutes_to_deadline(deadline: str, now: datetime, race_date: str | None = None) -> float | None:
+    """締切(HH:MM, JST)までの分。過ぎていれば負。
+
+    前後1日を同時に持つため、レースの日付を必ず加味する（日付を無視すると昨日/明日の
+    レースが「今日の同時刻」と誤判定され、締切直前のライブ更新対象に紛れ込む）。
+    """
     if not deadline or ":" not in deadline:
         return None
     h, m = (int(x) for x in deadline.split(":"))
     dl = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    if race_date:
+        try:
+            d = date.fromisoformat(str(race_date))
+            dl = dl.replace(year=d.year, month=d.month, day=d.day)
+        except ValueError:
+            return None
     return (dl - now).total_seconds() / 60.0
 
 
@@ -77,7 +87,9 @@ def main() -> None:
     venues = _venue_map(res.text)
 
     # 既存data.jsonの締切をキャッシュし、窓外レースは取得自体をスキップ（1分ループを軽くする）
-    dl_cache = {(r.get("venue"), r.get("race_no")): r.get("deadline")
+    # キーは (date, venue, race_no)。日付を外すと同一会場のR番号が日をまたいで衝突する。
+    tstr = target.isoformat()
+    dl_cache = {(r.get("date") or tstr, r.get("venue"), r.get("race_no")): r.get("deadline")
                 for r in doc.get("predictions", {}).get("races", [])}
 
     races = []
@@ -85,9 +97,9 @@ def main() -> None:
         venue = venues.get(k.kaisai_code, k.venue_code)
         for rno in fetch_girls_race_numbers(k):
             if args.only_near is not None:
-                dl = dl_cache.get((venue, rno))
+                dl = dl_cache.get((tstr, venue, rno))
                 if dl:                                   # 締切既知→窓外なら取得しない
-                    m = _minutes_to_deadline(dl, now)
+                    m = _minutes_to_deadline(dl, now, tstr)
                     if m is None or m < -5 or m > args.only_near:
                         continue
             try:
@@ -96,24 +108,32 @@ def main() -> None:
                 print(f"  {venue} R{rno} 失敗: {e}")
                 continue
             if args.only_near is not None:               # 取得後の締切で最終判定
-                mins = _minutes_to_deadline(d.get("deadline", ""), now)
+                mins = _minutes_to_deadline(d.get("deadline", ""), now, d.get("date"))
                 if mins is None or mins < -5 or mins > args.only_near:
                     continue
             _store_snapshot(snap_repo, build_race_id(k.kaisai_day_code, rno), d, now)
             races.append(d)
 
-    if args.only_near is not None and doc.get("predictions", {}).get("races"):
-        # 既存レースに、近接レースだけ差し替えマージ
-        merged = {(r["venue"], r["race_no"]): r for r in doc["predictions"]["races"]}
+    def _key(r: dict) -> tuple:
+        return (r.get("date") or tstr, r.get("venue") or "", r.get("race_no") or 0)
+
+    if doc.get("predictions", {}).get("races"):
+        # 既存レース（前後1日を含む）を保持し、今回取得したぶんだけ差し替えマージ。
+        # only_near 指定の有無にかかわらず、他日のレースを消さない。
+        merged = {_key(r): r for r in doc["predictions"]["races"]}
         for r in races:
-            merged[(r["venue"], r["race_no"])] = r
-        races = sorted(merged.values(), key=lambda r: (r["venue"], r["race_no"]))
+            merged[_key(r)] = r
+        races = sorted(merged.values(), key=_key)
 
     doc.setdefault("predictions", {})
+    # 表示対象日（前後1日）。日付が変わっても morning build を待たずに追従させる。
+    dates = [(target + timedelta(days=i)).isoformat() for i in (-1, 0, 1)]
     doc["predictions"].update({
         "status": "ok" if races else doc["predictions"].get("status", "pending"),
         "date": target.isoformat(),
-        "model": "PL線形(拡張20特徴)",
+        "dates": dates,
+        # model は build_predictions が入れた正しい値を尊重する（ここで上書きしない）
+        "model": doc["predictions"].get("model") or "LightGBM lambdarank",
         "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
         "last_updated": now.strftime("%Y-%m-%d %H:%M JST"),
         "races": races if races else doc["predictions"].get("races", []),

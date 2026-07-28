@@ -68,13 +68,17 @@ def main() -> None:
     now = datetime.now(JST)
     target = now.date()
 
-    # data.json の締切キャッシュ（窓外レースの無駄フェッチ回避）
+    # data.json の締切キャッシュ（窓外レースの無駄フェッチ回避）。
+    # data.json は前後1日を持つため当日のレースだけを拾う。(venue, race_no) だけを鍵にすると
+    # 同一会場のR番号が日をまたいで衝突し、別日の締切で当日レースを誤ってスキップする。
+    tstr = target.isoformat()
     dl_cache = {}
     if DATA_JSON.exists():
         try:
             doc = json.loads(DATA_JSON.read_text(encoding="utf-8"))
             dl_cache = {(r.get("venue"), r.get("race_no")): r.get("deadline")
-                        for r in doc.get("predictions", {}).get("races", [])}
+                        for r in doc.get("predictions", {}).get("races", [])
+                        if (r.get("date") or tstr) == tstr}
         except Exception:
             pass
 

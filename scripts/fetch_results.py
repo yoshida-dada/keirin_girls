@@ -101,7 +101,10 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
 
     doc = json.loads(DATA_JSON.read_text(encoding="utf-8")) if DATA_JSON.exists() else {}
     races = (doc.get("predictions") or {}).get("races") or []
-    by_key = {(r.get("venue"), r.get("race_no")): r for r in races}
+    # data.json は前後1日を持つため (date, venue, race_no) で引く。日付を外すと
+    # 同一会場のR番号が日をまたいで衝突し、別日のレースへ結果を書き込んでしまう。
+    tstr = target.isoformat()
+    by_key = {(r.get("date") or tstr, r.get("venue"), r.get("race_no")): r for r in races}
 
     repo = DatasetRepo(str(db_path))
     updated = 0
@@ -109,13 +112,14 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
         for k in kaisai_list:
             venue = venues.get(k.kaisai_code, k.venue_code)
             for rno in fetch_girls_race_numbers(k):
-                drace = by_key.get((venue, rno))
+                drace = by_key.get((tstr, venue, rno))
                 if drace and drace.get("result"):
                     continue                                  # 取得済み
                 deadline = drace.get("deadline") if drace else None
                 if min_after > 0 and deadline and ":" in str(deadline):
                     h, m = (int(x) for x in str(deadline).split(":"))
                     dl = now.replace(hour=h, minute=m, second=0, microsecond=0)
+                    dl = dl.replace(year=target.year, month=target.month, day=target.day)
                     if (now - dl).total_seconds() < min_after * 60:
                         continue                              # 締切+min_after分に未達
                 try:
@@ -160,10 +164,15 @@ def main() -> None:
     ap.add_argument("--db", default=str(DEFAULT_DB))
     ap.add_argument("--date", help="対象日 YYYY-MM-DD（既定=今日）")
     ap.add_argument("--min-after", type=int, default=20, help="締切から何分後以降を取得対象にするか")
+    ap.add_argument("--window", type=int, default=0,
+                    help="対象日の前後何日も取得するか（既定=0。1で昨日ぶんの取りこぼしも回収）")
     args = ap.parse_args()
     target = date.fromisoformat(args.date) if args.date else datetime.now(JST).date()
-    n = fetch_and_store(target, Path(args.db), min_after=args.min_after)
-    print(f"結果反映: {n}レース")
+    total = 0
+    for i in range(-args.window, 1):          # 過去側のみ（未来のレースに結果は無い）
+        d = target + timedelta(days=i)
+        total += fetch_and_store(d, Path(args.db), min_after=args.min_after)
+    print(f"結果反映: {total}レース")
 
 
 if __name__ == "__main__":

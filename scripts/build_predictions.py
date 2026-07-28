@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -58,12 +58,11 @@ def _venue_map(html: str) -> dict[str, str]:
     return out
 
 
-def build_predictions_section(target: date) -> dict:
+def build_races_for_date(target: date) -> list:
     """指定日のガールズ各レースをモデル予測して返す（ネットワークアクセスあり）。"""
-    set_default_interval(0.5)
     res = fetch(build_kaisai_list_url(target.year, target.month, target.day))
     # 開催一覧は初日〜最終日の全日程を含むため、実施日が target と一致する開催日のみに絞る
-    # （初日=昨日/2日目=今日 の混在を防ぐ。過去レースへの予測を出さない）。
+    # （初日=昨日/2日目=今日 の混在を防ぐ）。
     kaisai_list = [k for k in parse_kaisai_list(res.text)
                    if k.is_girls and kaisai_race_date(k.kaisai_day_code) == target]
     venues = _venue_map(res.text)
@@ -77,11 +76,28 @@ def build_predictions_section(target: date) -> dict:
                 print(f"  {venue} R{rno} 予測失敗: {e}")
                 continue
             races.append(d)
-    from datetime import datetime, timezone, timedelta
+    return races
+
+
+def build_predictions_section(target: date, window: int = 1) -> dict:
+    """target を起点に前後 window 日ぶんのガールズ予測を返す（既定=前後1日＝計3日）。
+
+    レースは (date, venue, race_no) で一意。同一会場でも日をまたぐと R番号が重複するため、
+    以降の突き合わせ（refresh/fetch_results/ダッシュボード）は必ず date を含めて行う。
+    """
+    set_default_interval(0.5)
+    days = [target + timedelta(days=i) for i in range(-window, window + 1)]
+    races = []
+    for d in days:
+        got = build_races_for_date(d)
+        print(f"  {d}: {len(got)}レース")
+        races.extend(got)
+    races.sort(key=lambda r: (r.get("date", ""), r.get("venue", ""), r.get("race_no") or 0))
     jst = timezone(timedelta(hours=9))
     return {
         "status": "ok" if races else "pending",
-        "date": target.isoformat(),
+        "date": target.isoformat(),                     # 起点日（＝「今日」）
+        "dates": [d.isoformat() for d in days],         # 表示対象日（昨日/今日/明日）
         "model": "LightGBM lambdarank(拡張20+Elo+展開10+並び5:中団込)",
         "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
         "last_updated": datetime.now(jst).strftime("%Y-%m-%d %H:%M JST"),
@@ -125,8 +141,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="予測AIのdata.json生成")
     ap.add_argument("--db", default=str(bdd.DEFAULT_DB))
     ap.add_argument("--out", default=str(DEFAULT_OUT))
-    ap.add_argument("--date", help="予測日 YYYY-MM-DD（既定=今日）")
-    ap.add_argument("--predict", action="store_true", help="本日のガールズ予測を生成（ネットワーク）")
+    ap.add_argument("--date", help="起点日 YYYY-MM-DD（既定=今日）")
+    ap.add_argument("--predict", action="store_true", help="ガールズ予測を生成（ネットワーク）")
+    ap.add_argument("--window", type=int, default=1,
+                    help="起点日の前後何日を含めるか（既定=1＝昨日/今日/明日の3日）")
     args = ap.parse_args()
 
     db_path = Path(args.db)
@@ -141,8 +159,28 @@ def main() -> None:
     doc["results_history"] = build_results_history(db_path, days=180)   # 成績: 過去約半年の開催結果
     if args.predict:
         target = date.fromisoformat(args.date) if args.date else date.today()
-        print(f"{target} のガールズ予測を生成中…")
-        doc["predictions"] = build_predictions_section(target)
+        print(f"{target} を起点に前後{args.window}日のガールズ予測を生成中…")
+        # 既存 data.json の確定結果を退避しておく。予測は毎回作り直すが result は
+        # fetch_results が別途付けたものなので、再生成で消すと過去日の結果が空になる。
+        prev = {}
+        out_path = Path(args.out)
+        if out_path.exists():
+            try:
+                old = json.loads(out_path.read_text(encoding="utf-8"))
+                for r in (old.get("predictions") or {}).get("races") or []:
+                    if r.get("result"):
+                        prev[(r.get("date"), r.get("venue"), r.get("race_no"))] = r["result"]
+            except Exception:
+                pass
+        doc["predictions"] = build_predictions_section(target, window=args.window)
+        kept = 0
+        for r in doc["predictions"]["races"]:
+            res = prev.get((r.get("date"), r.get("venue"), r.get("race_no")))
+            if res and not r.get("result"):
+                r["result"] = res
+                kept += 1
+        if kept:
+            print(f"  既存の確定結果を引き継ぎ: {kept}レース")
         print(f"  予測レース数: {len(doc['predictions']['races'])}")
 
     out = Path(args.out)
