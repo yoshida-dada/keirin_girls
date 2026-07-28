@@ -252,18 +252,24 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         _bvals = [((recent.get(e.car_number).b_count or 0) if recent.get(e.car_number) else 0) for e in entries]
         _mx = max(_bvals) if _bvals else 0
         _nfront = sum(1 for v in _bvals if _mx >= 2 and v >= 0.4 * _mx)
-        # 主導権(B)取得者の連対/着外率もペース帯別（analyze_backstretch_outcome の実測）を付す。
-        if _nfront >= 4:
-            _plv, _pnote, _pkm = "ハイ", "逃げが飛びやすく捲り・差しが台頭", {"逃": 17, "捲": 49, "差": 34}
-            _brel = {"rentai": 55, "gaiji": 35, "note": "主導権を取っても垂れやすい（差し・捲りを評価）"}
-        elif _nfront == 3:
-            _plv, _pnote, _pkm = "ミドル〜ハイ", "捲り・差しがやや優勢", {"逃": 18, "捲": 49, "差": 34}
-            _brel = {"rentai": 55, "gaiji": 30, "note": "主導権はやや不安定"}
-        else:
-            _plv, _pnote, _pkm = "スロー〜ミドル", "逃げ・番手が残りやすい", {"逃": 23, "捲": 46, "差": 31}
-            _brel = {"rentai": 64, "gaiji": 23, "note": "主導権はそのまま残りやすい"}
+        # 決まり手と主導権の信頼度は「ペース×バンク」の実測から引く。バンクの影響は
+        # ペースの3〜4倍あり（逃げ率 333m 35.3% vs 500m 12.8% に対しペース差は6.8pt）、
+        # 無視すると短走路で逃げを過小評価する。標本の薄いセルはバンク→ペース→全体へ後退。
+        _plv = "ハイ" if _nfront >= 4 else ("ミドル〜ハイ" if _nfront == 3 else "スロー〜ミドル")
+        from src.model.kimarite_hint import hint as _khint, pace_note as _knote
+        _h = _khint(_nfront, venue_code)
+        if _h:
+            _pkm, _brel = _h["kimarite_hint"], _h.get("b_reliability")
+            _pnote = _knote(_nfront, _pkm)
+            _basis, _bank = _h.get("basis"), _h.get("bank")
+        else:                      # 統計JSONが無い場合の従来値（ペースのみ）
+            _pkm = {"逃": 17, "捲": 49, "差": 34} if _nfront >= 4 else (
+                {"逃": 18, "捲": 49, "差": 34} if _nfront == 3 else {"逃": 23, "捲": 46, "差": 31})
+            _brel = {"rentai": 55, "gaiji": 35, "note": "主導権はやや不安定"}
+            _pnote, _basis, _bank = "捲り・差しがやや優勢", None, None
         pace = {"n_front": _nfront, "level": _plv, "note": _pnote,
-                "kimarite_hint": _pkm, "b_reliability": _brel}
+                "kimarite_hint": _pkm, "b_reliability": _brel,
+                "basis": _basis, "bank": _bank}
         development = {
             "source": "並び予想（記者予想の隊列, 発走前確定情報）",
             "line": line, "fav": _fav, "marker": _marker,
@@ -286,7 +292,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         # date は開催日コードから引く（前後1日を同時表示するため全レースに必須。
         # (date, venue, race_no) が一意キー＝同一会場で日をまたぐと R番号が重複するため）
         "date": _krd(day_code).isoformat(),
-        "venue": venue, "race_no": race_no, "deadline": deadline,
+        # venue_code も持たせる（会場名は「伊東競輪」表記でテーブルの「伊東温泉」と一致せず、
+        # 名前からバンク長を引くと取りこぼす。後段は必ずこのコードを使う）
+        "venue": venue, "venue_code": venue_code, "race_no": race_no, "deadline": deadline,
         "is_girls": is_girls_race(entries), "field_size": len(entries),
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
