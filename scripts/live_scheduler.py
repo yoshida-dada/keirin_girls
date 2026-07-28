@@ -23,7 +23,7 @@ import subprocess
 import sys
 import threading
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -38,7 +38,12 @@ WINDOW_MIN = 30        # 発走何分前から1分更新を始めるか
 EARLY_WINDOW = 120     # 締切何分前から粗い間隔でオッズ時系列を取り始めるか（ソフトなオッズ捕捉）
 LIVE_SLEEP = 60        # 更新窓内のループ間隔(秒)=1分
 IDLE_SLEEP = 300       # 更新対象が無いときのループ間隔(秒)=5分（早期スナップショットにも使う）
-PUSH_INTERVAL = 420    # Pagesへpushする最短間隔(秒)。Pagesビルド上限(約10回/時)を守る
+# Pagesへpushする最短間隔(秒)。
+# デプロイは actions/deploy-pages（カスタムActionsワークフロー）なので「10ビルド/時」の
+# Pagesビルド上限は適用されない（公式ドキュメント確認済み）。public リポは Actions 無料。
+# → ライブ窓では毎ループ(=1分)push＝最短。デプロイ完了+CDN反映で実効は約1〜2分遅れが下限。
+PUSH_INTERVAL_LIVE = LIVE_SLEEP   # 締切間際(ライブ窓)は1分ごとにpush
+PUSH_INTERVAL = 420               # 結果反映など非緊急な更新のpush最短間隔(秒)
 PORT = 8787
 
 
@@ -107,8 +112,9 @@ def serve_dashboard() -> None:
 
 
 def morning_build() -> None:
-    _log("当日の予測を算出中（build_predictions --predict）…")
-    rc, out = _run([PY, "scripts/build_predictions.py", "--db", "data/keirin.sqlite", "--predict"])
+    _log("前後1日（昨日/今日/明日）の予測を算出中（build_predictions --predict）…")
+    rc, out = _run([PY, "scripts/build_predictions.py", "--db", "data/keirin.sqlite",
+                    "--predict", "--window", "1"], timeout=1800)
     _log(("朝の予測生成 完了" if rc == 0 else "朝の予測生成 失敗\n" + out[-500:]))
 
 
@@ -129,7 +135,8 @@ def live_snapshot() -> None:
 
 
 def live_results() -> None:
-    rc, out = _run([PY, "scripts/fetch_results.py"])
+    # --window 1 で前日ぶんの取りこぼしも回収する（前後1日を表示するため）
+    rc, out = _run([PY, "scripts/fetch_results.py", "--window", "1"])
     if rc == 0:
         last = out.strip().splitlines()[-1] if out.strip() else ""
         _log("結果取得 " + last)
@@ -137,43 +144,63 @@ def live_results() -> None:
         _log("結果取得 失敗: " + out[-300:])
 
 
-def _pending_results(now: datetime) -> bool:
-    """締切+20分を過ぎたのに結果未取得のレースが data.json にあるか。"""
+def _races() -> list:
     if not DATA_JSON.exists():
-        return False
+        return []
     try:
-        races = json.loads(DATA_JSON.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
+        return json.loads(DATA_JSON.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
     except Exception:
-        return False
-    for r in races:
+        return []
+
+
+def _deadline_dt(r: dict, now: datetime) -> datetime | None:
+    """レースの締切を「日付込み」の datetime で返す。
+
+    data.json は前後1日を持つので、日付を無視して now の時刻に当てると昨日/明日のレースが
+    今日の締切と誤判定される（ライブ更新・結果取得・通知が全て誤作動する）。
+    """
+    dl = r.get("deadline")
+    if not (dl and ":" in str(dl)):
+        return None
+    try:
+        h, m = (int(x) for x in str(dl).split(":"))
+    except ValueError:
+        return None
+    d = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    rd = r.get("date")
+    if rd:
+        try:
+            y = date.fromisoformat(str(rd))
+        except ValueError:
+            return None
+        d = d.replace(year=y.year, month=y.month, day=y.day)
+    return d
+
+
+def _pending_results(now: datetime) -> bool:
+    """締切+20分を過ぎたのに結果未取得のレースが data.json にあるか（当日・前日を対象）。"""
+    for r in _races():
         if r.get("result"):
             continue
-        dl = r.get("deadline")
-        if dl and ":" in str(dl):
-            h, m = (int(x) for x in str(dl).split(":"))
-            d = now.replace(hour=h, minute=m, second=0, microsecond=0)
-            if (now - d).total_seconds() >= 20 * 60:
-                return True
+        d = _deadline_dt(r, now)
+        if d is None:
+            continue
+        gap = (now - d).total_seconds()
+        if 20 * 60 <= gap <= 36 * 3600:      # 古すぎる取りこぼしは追わない（前日ぶんまで）
+            return True
     return False
 
 
 def _next_deadline_min(now: datetime) -> float | None:
-    """data.json の当日レースの締切のうち、まだ来ていない最短の「分」を返す。無ければNone。"""
-    if not DATA_JSON.exists():
-        return None
-    try:
-        races = json.loads(DATA_JSON.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
-    except Exception:
-        return None
+    """まだ来ていない締切のうち最短の「分」を返す（日付込みで判定）。無ければNone。"""
     mins = []
-    for r in races:
-        dl = r.get("deadline")
-        if dl and ":" in dl:
-            h, m = (int(x) for x in dl.split(":"))
-            d = now.replace(hour=h, minute=m, second=0, microsecond=0)
-            mm = (d - now).total_seconds() / 60
-            if mm > -5:
-                mins.append(mm)
+    for r in _races():
+        d = _deadline_dt(r, now)
+        if d is None:
+            continue
+        mm = (d - now).total_seconds() / 60
+        if mm > -5:
+            mins.append(mm)
     return min(mins) if mins else None
 
 
@@ -222,24 +249,20 @@ def notify_lead(now: datetime) -> None:
         lead = int(os.environ.get("NOTIFY_LEAD_MIN", "10"))
     except ValueError:
         lead = 10
-    if not DATA_JSON.exists():
-        return
-    try:
-        races = json.loads(DATA_JSON.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
-    except Exception:
-        return
     today = now.strftime("%Y-%m-%d")
     done = _load_notified(today)
     changed = False
-    for r in races:
+    for r in _races():
         dl = r.get("deadline")
         if not (dl and ":" in str(dl)):
             continue
-        key = f"{r.get('venue')}|{r.get('race_no')}"
+        # 前後1日を持つので通知キーにも日付を入れる（別日の同会場・同R番号と混同しない）
+        key = f"{r.get('date') or today}|{r.get('venue')}|{r.get('race_no')}"
         if key in done:
             continue
-        h, m = (int(x) for x in str(dl).split(":"))
-        d = now.replace(hour=h, minute=m, second=0, microsecond=0)
+        d = _deadline_dt(r, now)
+        if d is None:
+            continue
         mins = (d - now).total_seconds() / 60
         if 0 < mins <= lead:                      # 締切lead分前〜締切まで（過ぎたら通知しない）
             title, body = _notify_text(r, dl)
@@ -306,7 +329,7 @@ def main() -> None:
         nd = _next_deadline_min(now)              # 最短の未到来締切（分）
         if nd is not None and nd <= WINDOW_MIN + 5:
             live_refresh()                        # 締切30分前〜→1分更新（予測+オッズ、時系列も保存）
-            if not args.no_push and time.time() - last_push >= PUSH_INTERVAL:
+            if not args.no_push and time.time() - last_push >= PUSH_INTERVAL_LIVE:
                 git_push(); last_push = time.time()
             time.sleep(LIVE_SLEEP)
         elif nd is not None and nd <= EARLY_WINDOW:

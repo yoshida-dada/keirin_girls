@@ -280,8 +280,12 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     dev_patterns = build_dev_patterns(rt.top1_win_prob, _pace_lv, riders)
 
     from datetime import datetime, timezone, timedelta
+    from src.collect.gamboo_schedule import kaisai_race_date as _krd
     jst = timezone(timedelta(hours=9))
     return {
+        # date は開催日コードから引く（前後1日を同時表示するため全レースに必須。
+        # (date, venue, race_no) が一意キー＝同一会場で日をまたぐと R番号が重複するため）
+        "date": _krd(day_code).isoformat(),
         "venue": venue, "race_no": race_no, "deadline": deadline,
         "is_girls": is_girls_race(entries), "field_size": len(entries),
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
