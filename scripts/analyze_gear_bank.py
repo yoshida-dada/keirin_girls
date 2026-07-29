@@ -102,6 +102,13 @@ def emit_stats(wins: list, brows: list, out: Path, n_races: int) -> None:
             doc["cells"][f"{pace}|{bank}"] = _cell(sel(wins, pace, bank), sel(brows, pace, bank))
     for bank in (333, 400, 500):
         doc["bank"][str(bank)] = _cell(sel(wins, bank=bank), sel(brows, bank=bank))
+    # 会場別（表示用の参考値）。標本が薄い（n=67〜292）ため予測の重みには使わない
+    # ＝会場別重みは検証で不採用（scripts/validate_venue_interaction.py）。表示のみ。
+    doc["venue"] = {}
+    for v in sorted({r["venue_code"] for r in wins if r.get("venue_code")}):
+        w = [r for r in wins if r.get("venue_code") == v]
+        if len(w) >= 40:
+            doc["venue"][v] = _cell(w, [r for r in brows if r.get("venue_code") == v])
     out.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n統計を書き出し: {out}  (勝者{len(wins)} / B取得{len(brows)})")
 
@@ -134,6 +141,7 @@ def main() -> None:
             pos, sb, kim = rmap[c]
             r = {"rid": rid, "car": c, "gear": gmap[c], "grel": gmap[c] - gmean,
                  "grank": grank[c], "brank": brank[c], "bank": bank, "pace": pace,
+                 "venue_code": venue.get(rid),
                  "S": "S" in sb, "B": "B" in sb, "win": pos == 1, "kim": kim,
                  "uniq_gear": len(set(gs)) > 1}
             rows.append(r)
