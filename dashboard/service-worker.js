@@ -2,7 +2,7 @@
    - HTML(index.html/ナビゲーション) と data.json は network-first（更新を確実に反映、オフライン時はキャッシュ）
    - アイコン/マニフェスト等の静的アセットは cache-first
    キャッシュ名を上げると旧キャッシュを破棄して確実に更新できる。 */
-const CACHE = "girls-keirin-ev-v3";
+const CACHE = "girls-keirin-ev-v4";
 const SHELL = [
   "./",
   "./index.html",
@@ -28,7 +28,19 @@ self.addEventListener("activate", (e) => {
 });
 
 function networkFirst(request, cacheKey) {
-  return fetch(request)
+  // 既定の fetch はブラウザのHTTPキャッシュを見るため、Pages が返す max-age の間は
+  // network-first でも古い index.html が配信され続ける（実際に日付タブが出ない不具合が発生）。
+  // cache:"reload" でHTTPキャッシュを迂回し必ずサーバへ問い合わせる。
+  // init 併用が使えない環境向けに素の fetch へフォールバックする。
+  const fresh = () => {
+    try {
+      return fetch(request, { cache: "reload" });
+    } catch (_) {
+      return fetch(request);
+    }
+  };
+  return fresh()
+    .catch(() => fetch(request))
     .then((res) => {
       const copy = res.clone();
       caches.open(CACHE).then((c) => c.put(cacheKey, copy));
