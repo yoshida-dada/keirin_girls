@@ -295,6 +295,24 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
   font-size:.65rem;font-weight:600;line-height:1.6;color:var(--ink)}
 .sc-ins li{margin:3px 0 3px 1.1em}
 .sc-ins .h{font-weight:800;font-size:.68rem;display:block;margin-bottom:3px}
+/* バンク特性。諸元は説明用（予測根拠ではない）ので主張の弱い地色にする */
+.bk{margin:8px 0 10px;padding:9px 11px;border:1px solid var(--border2);border-radius:11px;background:var(--surface2)}
+.bk-head{font-size:.72rem;font-weight:800;color:var(--ink);display:flex;align-items:baseline;gap:7px}
+.bk-v{font-size:.66rem;font-weight:700;color:var(--muted)}
+.bk-nums{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+.bk-nums span{display:flex;align-items:baseline;gap:4px;font-size:.62rem;color:var(--muted);font-weight:700}
+.bk-nums b{font-size:1rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.bk-nums em{font-style:normal}
+.bk-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.bk-chip{font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:var(--surface);color:var(--muted);border:1px solid var(--border2)}
+.bk-adv{margin-top:7px;font-size:.7rem;font-weight:800;padding:5px 9px;border-radius:8px}
+.bk-adv.esc{background:var(--good-soft);color:var(--good)}
+.bk-adv.sas{background:var(--edge-soft);color:var(--edge)}
+.bk-adv.mak{background:var(--accent-soft);color:var(--accent)}
+.bk-adv.flat{background:var(--surface);color:var(--muted);font-weight:700}
+.bk-kim{margin-top:5px;font-size:.63rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.bk-kim.sub{color:var(--muted)}
 /* 展開6パターンの円グラフ。dataviz検証済みカテゴリカル配色（6スロット固定順）。
    light/darkとも 明度帯・彩度・CVD分離・通常視力フロアを通過（輪の折返しペア含む）。
    lightでは magenta/yellow/aqua が3:1未満のため、全スライスに直接ラベルを必須とする。 */
@@ -991,9 +1009,36 @@ function boot(DB){
       }
       return `<div class="dev">`
         +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`
-        +narabi + bsBlock + paceBlock + patBlock + scenarioBlock(r)
+        +bankBlock(r) + narabi + bsBlock + paceBlock + patBlock + scenarioBlock(r)
         +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
         +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
+        +`</div>`;
+    }
+    // バンク特性（諸元＋統計的な有利脚質）。予測根拠ではなく「どういうバンクか」の説明。
+    function bankBlock(r){
+      const B = r.bank_profile;
+      if(!B) return "";
+      const kim = d => d ? `逃 ${d["逃"]}%／捲 ${d["捲"]}%／差 ${d["差"]}%` : "—";
+      const adv = B.advantage||{};
+      const advCls = adv.leg ? (adv.leg.indexOf("先行")>=0?"esc":(adv.leg.indexOf("差")>=0?"sas":"mak")) : "flat";
+      const chips = (B.traits||[]).map(t=>`<span class="bk-chip">${esc(t)}</span>`).join("");
+      const br = B.b_reliability;
+      return `<div class="bk">`
+        +`<div class="bk-head">🏟 バンク特性 <span class="bk-v">${esc(B.venue||"")}</span></div>`
+        +`<div class="bk-nums">`
+        +`<span><b>${B.bank}</b>m<em>周長</em></span>`
+        +`<span><b>${B.straight}</b>m<em>みなし直線</em></span>`
+        +`<span><b>${B.cant}</b>°<em>カント</em></span>`
+        +`</div>`
+        +`<div class="bk-chips">${chips}</div>`
+        +`<div class="bk-adv ${advCls}">${esc(adv.text||"")}</div>`
+        +`<div class="bk-kim">このバンク全体（${(B.bank_n||0).toLocaleString()}レース）　${kim(B.bank_kimarite)}</div>`
+        +(B.venue_kimarite?`<div class="bk-kim sub">当会場のみ（${B.venue_n}レース・参考）　${kim(B.venue_kimarite)}</div>`:"")
+        +(br?`<div class="bk-kim">主導権を取った車　連対 ${br.rentai}%・着外 ${br.gaiji}%</div>`:"")
+        +`<div class="dev-caveat">※ 有利脚質はバンク別の実測決まり手（標本が大きく安定）に基づく`
+        +`表示です。会場別の数値は標本が薄いため参考値。`
+        +`みなし直線・カントは形状の説明であり、<b>決まり手の予測には使えない</b>ことを検証済み`
+        +`（同一周長内では無相関）。</div>`
         +`</div>`;
     }
     // 展開6パターンの構成比（ドーナツ）。上位3だけでは全体像が見えないので全形を出す。
