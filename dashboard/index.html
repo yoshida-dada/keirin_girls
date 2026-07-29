@@ -295,6 +295,39 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
   font-size:.65rem;font-weight:600;line-height:1.6;color:var(--ink)}
 .sc-ins li{margin:3px 0 3px 1.1em}
 .sc-ins .h{font-weight:800;font-size:.68rem;display:block;margin-bottom:3px}
+/* 隊列位置別の1着確率（横棒）。前→後の順序尺度なので単一色相のランプ（前=濃/後=淡）。
+   dataviz の ordinal 検証を通過: 単調・隣接ΔL 0.093/0.095・淡端 2.11:1 / 2.15:1・色相幅3° */
+.pp{--p0:#1c5cab;--p1:#2a78d6;--p2:#5598e7;--p3:#86b6ef;margin-top:4px}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .pp{
+  --p0:#184f95;--p1:#2a78d6;--p2:#5598e7;--p3:#9ec5f4}}
+:root[data-theme="dark"] .pp{--p0:#184f95;--p1:#2a78d6;--p2:#5598e7;--p3:#9ec5f4}
+.pp-row{margin:7px 0}
+.pp-h{display:flex;align-items:baseline;gap:6px}
+.pp-i{font-size:.8rem;flex:none}
+.pp-l{font-size:.68rem;font-weight:800;color:var(--ink)}
+.pp-p{margin-left:auto;font-size:.78rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pp-bar{height:9px;border-radius:0 4px 4px 0;background:var(--surface2);margin-top:3px;overflow:hidden}
+.pp-bar>span{display:block;height:100%;border-radius:0 4px 4px 0;min-width:2px}
+.pp-bar>span.s0{background:var(--p0)} .pp-bar>span.s1{background:var(--p1)}
+.pp-bar>span.s2{background:var(--p2)} .pp-bar>span.s3{background:var(--p3)}
+.pp-bar>span.sx{background:var(--border)}
+.pp-mem{display:flex;flex-wrap:wrap;gap:4px 9px;margin-top:4px}
+.pp-m{display:inline-flex;align-items:center;gap:3px}
+.pp-mn{font-size:.62rem;font-weight:700;color:var(--muted);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:6.5em}
+/* 全車の主導権確率。1変数の大小比較なので単一色（sequentialの既定）。最有力のみ濃色で強調 */
+.bs-list{margin-top:6px}
+.bs-row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.bs-car{display:inline-flex;align-items:center;gap:4px;flex:none;min-width:8.5em}
+.bs-nm{font-size:.63rem;font-weight:700;color:var(--ink);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:5.5em}
+.bs-tag{font-size:.55rem;font-weight:800;padding:1px 5px;border-radius:999px;
+  background:var(--surface2);color:var(--muted);white-space:nowrap}
+.bs-bar{flex:1;height:8px;border-radius:0 4px 4px 0;background:var(--surface2);overflow:hidden;min-width:40px}
+.bs-bar>span{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--edge);opacity:.45;min-width:2px}
+.bs-bar>span.top{opacity:1}
+.bs-p{flex:none;font-size:.66rem;font-weight:800;font-variant-numeric:tabular-nums;
+  color:var(--ink);min-width:2.4em;text-align:right}
 /* バンク特性。諸元は説明用（予測根拠ではない）ので主張の弱い地色にする */
 .bk{margin:8px 0 10px;padding:9px 11px;border:1px solid var(--border2);border-radius:11px;background:var(--surface2)}
 .bk-head{font-size:.72rem;font-weight:800;color:var(--ink);display:flex;align-items:baseline;gap:7px}
@@ -959,17 +992,34 @@ function boot(DB){
       }).join("");
       const narabi = (D.line||[]).length
         ? `<div class="dev-narabi-h">並び予想（左=先頭・車番のみ）</div><div class="dev-line">${chips}</div>` : "";
-      // 明示的な展開パターン（複数・確率付き）
-      const pats = (D.patterns||[]).map(p=>{
+      // 隊列位置別の1着確率。前→後の並びで横棒にし、前残りか後方一気かを俯瞰できるようにする。
+      // 順序尺度なのでカテゴリカル配色ではなく単一色相のランプ（前=濃、後=淡）を使う。
+      const POS_ORDER = ["先行・主導権型","番手抜け出し型","中団抜け出し型(捲り)","後方一気型","位置不明"];
+      const nameOf = {};
+      (r.riders||[]).forEach(x=>{ if(x && x.car!=null) nameOf[x.car] = x.name||""; });
+      const ordered = (D.patterns||[]).slice().sort((a,b)=>{
+        const ia = POS_ORDER.indexOf(a.label), ib = POS_ORDER.indexOf(b.label);
+        return (ia<0?99:ia) - (ib<0?99:ib);
+      });
+      const pmax = Math.max(0.01, ...ordered.map(p=>p.prob||0));
+      const pats = ordered.map(p=>{
+        const i = POS_ORDER.indexOf(p.label);
+        const cls = i>=0 && i<4 ? `s${i}` : "sx";
         const favB = p.has_fav ? `<span class="dev-fav">◎</span>` : "";
-        return `<div class="dev-pat"><span class="dev-pat-i">${esc(p.icon||"")}</span>`
-          +`<span class="dev-pat-l">${esc(p.label)}</span>`
-          +`<span class="dev-pat-p">${(p.prob*100).toFixed(0)}%</span>`
-          +`<span class="dev-pat-c">主役 ${carChip(p.lead_car)}${favB}</span></div>`;
+        const mem = (p.cars||[]).map(c=>
+          `<span class="pp-m">${carChip(c)}<span class="pp-mn">${esc(nameOf[c]||"")}</span>`
+          +`${c===p.lead_car?favB:""}</span>`).join("");
+        return `<div class="pp-row">`
+          +`<div class="pp-h"><span class="pp-i">${esc(p.icon||"")}</span>`
+          +`<span class="pp-l">${esc(p.label)}</span>`
+          +`<span class="pp-p">${(p.prob*100).toFixed(0)}%</span></div>`
+          +`<div class="pp-bar"><span class="${cls}" style="width:${Math.round((p.prob/pmax)*100)}%"></span></div>`
+          +`<div class="pp-mem">${mem}</div>`
+          +`</div>`;
       }).join("");
       const patBlock = pats
-        ? `<div class="dev-pat-h">隊列位置別の1着確率（記者の並び予想による分解）</div>`
-          +`<div class="dev-pats">${pats}</div>`
+        ? `<div class="dev-pat-h">隊列位置別の1着確率（記者の並び予想による分解・前→後の順）</div>`
+          +`<div class="pp">${pats}</div>`
           +`<div class="dev-caveat">※ これは<b>展開の予測ではありません</b>。記者の並び予想で`
           +`「先頭/番手/中団(3〜5番手)/後方(6番手以降)」に分け、各グループの1着確率を合計した値です。`
           +`「後方一気型60%」は<b>後方に置かれた選手が合計60%の確率で勝つ</b>という意味で、`
@@ -981,16 +1031,35 @@ function boot(DB){
       const B = D.backstretch;
       let bsBlock = "";
       if(B && B.lead_car!=null){
-        const sec = (B.second_car!=null)
-          ? ` <span class="dev-bs-2">2番手候補 ${carChip(B.second_car)} ${(B.second_p*100).toFixed(0)}%</span>` : "";
         const div = B.diverges
           ? `<span class="dev-div">⚠ 記者予想先頭(${B.reporter_front}番)と相違</span>`
           : `<span class="dev-agree">✓ 記者予想先頭と一致</span>`;
         const fade = (D.pace && D.pace.level==="ハイ") ? ` <span class="dev-div">⚠ ハイペースで垂れ注意</span>` : "";
+        // 全車の主導権確率。展開AIが学習しているのは「Bを取るのは誰か」だけなので、
+        // これは"Bを取る可能性の順位"であって隊列（2番手/3番手…）の予測ではない。
+        // 2番手以降は正解データが存在せず学習不能（検証済み）なので、そう明記して出す。
+        const nm = {};
+        (r.riders||[]).forEach(x=>{ if(x && x.car!=null) nm[x.car] = x.name||""; });
+        const favCar = ((r.riders||[])[0]||{}).car;
+        const pr = Object.entries(B.probs||{}).map(([c,p])=>[+c, p])
+          .sort((a,b)=> b[1]-a[1]);
+        const pmaxB = pr.length ? Math.max(...pr.map(x=>x[1])) : 1;
+        const rows = pr.map(([c,p],i)=>{
+          const tags = (c===favCar?`<span class="dev-fav">◎</span>`:"")
+            + (c===B.reporter_front?`<span class="bs-tag">記者予想先頭</span>`:"");
+          return `<div class="bs-row"><span class="bs-car">${carChip(c)}`
+            +`<span class="bs-nm">${esc(nm[c]||"")}</span>${tags}</span>`
+            +`<span class="bs-bar"><span class="${i===0?"top":""}" style="width:${Math.round(p/pmaxB*100)}%"></span></span>`
+            +`<span class="bs-p">${(p*100).toFixed(0)}%</span></div>`;
+        }).join("");
         bsBlock = `<div class="dev-pat-h">推定主導権（展開AI・最終バック先頭B）</div>`
-          +`<div class="dev-bs">主導権 ${carChip(B.lead_car)} <b>${(B.lead_p*100).toFixed(0)}%</b>${sec}`
+          +`<div class="dev-bs">主導権 ${carChip(B.lead_car)} <b>${(B.lead_p*100).toFixed(0)}%</b>`
           +` <span class="dev-bs-hit">過去実測${(B.hit_rate*100).toFixed(0)}%的中（記者22%）</span></div>`
-          +`<div class="dev-bs-div">${div}${fade}</div>`;
+          +`<div class="dev-bs-div">${div}${fade}</div>`
+          +(rows?`<div class="bs-list">${rows}</div>`
+            +`<div class="dev-caveat">※ 全車の「バックを取る確率」を高い順に並べたものです。`
+            +`<b>隊列（2番手・3番手…）の予測ではありません</b> — 展開AIが学習しているのは`
+            +`「Bを取るのは誰か」だけで、2番手以降は結果データに記録が無く学習できません。</div>`:"");
       }
       // ペース読み（先行型の数→ペース→決まり手傾向。表示専用）
       const P = D.pace;
