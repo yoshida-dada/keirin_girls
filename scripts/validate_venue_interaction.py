@@ -107,7 +107,7 @@ def _reweight(samples, idx_esc: int, idx_lead: int, venue: dict, w: dict[str, fl
     out = []
     for s in samples:
         v = venue.get(s.race_id, "")
-        b = bw.get(v, 0.0)
+        b = bw.get(s.race_id, 0.0)      # bw は race_id キー（会場コードで引くと常に0になる）
         s2 = copy.copy(s)
         X = s.X.copy()
         if abs(b) > 1e-9:                      # 既存列から rel を復元して掛け直す
@@ -149,6 +149,19 @@ def main() -> None:
         # テスト開始(b)より前のレースだけで会場重みを作る＝as-of（リーク防止）
         w = _venue_weights([s.race_id for s in s0[:b]], venue, esc, bank_rate, glob)
         sv = _reweight(s0, i_esc, i_lead, venue, w, bw)
+        # 自己チェック: 列が実際に変わっているか（変わっていなければ結果が全て0になり、
+        # それを「効果なし」と誤読してしまう。実際に一度その取り違えをしたので必ず見る）
+        diff = sum(1 for x, y in zip(s0[b:c], sv[b:c])
+                   if not np.allclose(x.X[:, [i_esc, i_lead]], y.X[:, [i_esc, i_lead]]))
+        if i == 0:
+            v400 = [vv for vv in set(venue.values()) if vm.bank_length(vv or "") == 400]
+            ws = sorted((w.get(vv, 0.0), vm.venue_name(vv) or vv) for vv in v400)
+            print(f"  [fold0] 重みが変化したテストレース {diff}/{len(sv[b:c])}  "
+                  f"400m会場の重み範囲 {ws[0][0]:+.3f}({ws[0][1]}) 〜 {ws[-1][0]:+.3f}({ws[-1][1]})"
+                  f"  ※現行の400m一律は {bank_rate.get(400, 0) - glob:+.1f}%/10 = "
+                  f"{(bank_rate.get(400,0)-glob)/10:+.3f}")
+        if diff == 0:
+            raise SystemExit("★ 交互作用列が変化していない。重みの適用に失敗している。")
         m0, mv = train_gbdt(s0[a:b]), train_gbdt(sv[a:b])
         t0, tv = s0[b:c], sv[b:c]
         e0, ev = evaluate(m0.strengths, t0), evaluate(mv.strengths, tv)
