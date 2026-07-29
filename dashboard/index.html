@@ -379,6 +379,7 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .pred-updated{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:8px 12px;margin-bottom:12px;font-size:.72rem;color:var(--muted);font-weight:600;line-height:1.5}
 .pred-updated .lu{color:var(--ink);font-size:.82rem;font-weight:700}
 .pred-updated .lu b{color:var(--accent);font-variant-numeric:tabular-nums}
+.pred-updated .uiv{margin-left:auto;font-size:.6rem;color:var(--muted);opacity:.75;font-variant-numeric:tabular-nums}
 /* predictions: venue tabs */
 .pred-vtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .pred-vtab{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.78rem;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:6px}
@@ -603,6 +604,10 @@ table.t.rh-t td{vertical-align:top}
 
 <script id="data" type="application/json">/*__DATA__*/</script>
 <script>
+// 画面(HTML)の版。機能を変えたら上げる。data.json は新しいのに外殻が古いキャッシュ、
+// という状態を画面上で切り分けるために表示する。
+const UI_VERSION = "2026-07-29b";
+
 function boot(DB){
   const yen = v => v==null ? "—" : "¥"+Math.round(v).toLocaleString();
   const pct1 = v => v==null ? "—" : (v*100).toFixed(1)+"%";
@@ -1311,8 +1316,11 @@ function boot(DB){
       let html = `<div class="pred-disc">⚠ これは各車の着順（1着）確率と三連単モデル確率の提示です。`
         +`${esc(P.note||"")} 買い目の推奨ではありません。</div>`;
       if(P.last_updated){
+        // 画面の版を出す。data.json だけ新しく外殻(HTML)が古いキャッシュ、という状態を
+        // 一目で切り分けられるようにする（実際に日付タブが出ない不具合の原因だった）。
         html += `<div class="pred-updated"><span class="lu">最終更新 <b>${esc(P.last_updated)}</b></span>`
-          +`<span>発走10分前に最新オッズで自動更新されます。</span></div>`;
+          +`<span>発走10分前に最新オッズで自動更新されます。</span>`
+          +`<span class="uiv">画面 ${UI_VERSION}</span></div>`;
       }
       // 日付タブ（昨日/今日/明日）。開催のある日だけ出す
       if(dates.length>1){
