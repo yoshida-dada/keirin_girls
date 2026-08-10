@@ -142,10 +142,12 @@ CREATE TABLE IF NOT EXISTS payouts_trifecta (
     PRIMARY KEY (race_id, combo)
 );
 CREATE TABLE IF NOT EXISTS narabi (
-    race_id    TEXT NOT NULL,
-    car_number INTEGER NOT NULL,
-    position   INTEGER NOT NULL,   -- 記者の並び予想の隊列位置(0=先頭)
-    leg        TEXT,               -- 脚質(先行/自在/追込/押え先 等)
+    race_id     TEXT NOT NULL,
+    car_number  INTEGER NOT NULL,
+    position    INTEGER NOT NULL,  -- 記者の並び予想の隊列位置(0=先頭。全ライン通しの通し番号)
+    leg         TEXT,              -- 脚質(先行/自在/追込/押え先 等)
+    line_id     INTEGER,           -- 何本目のラインか(0起点)。単騎も1本として数える
+    pos_in_line INTEGER,           -- ライン内の位置(0=ライン先頭, 1=番手, 2=3番手…)
     PRIMARY KEY (race_id, car_number)
 );
 """
@@ -202,12 +204,23 @@ class DatasetRepo:
         return len(rows)
 
     def save_narabi(self, race_id: str, narabi: dict) -> int:
-        """並び予想 {"order":[車番...(前→後)], "legs":{車番:脚質}} を保存。"""
+        """並び予想を保存。
+
+        {"order":[車番...(前→後)], "legs":{車番:脚質}, "lines":[[車番...], ...]}
+        lines が無い旧データ（ガールズ既存分）は line_id/pos_in_line を NULL にする。
+        """
         order = (narabi or {}).get("order") or []
         legs = (narabi or {}).get("legs") or {}
-        rows = [(race_id, car, pos, legs.get(car)) for pos, car in enumerate(order)]
+        lines = (narabi or {}).get("lines") or []
+        pos_of: dict[int, tuple[int, int]] = {}
+        for li, line in enumerate(lines):
+            for pi, car in enumerate(line):
+                pos_of[car] = (li, pi)
+        rows = [(race_id, car, pos, legs.get(car),
+                 pos_of.get(car, (None, None))[0], pos_of.get(car, (None, None))[1])
+                for pos, car in enumerate(order)]
         if rows:
-            self.conn.executemany("INSERT OR REPLACE INTO narabi VALUES (?,?,?,?)", rows)
+            self.conn.executemany("INSERT OR REPLACE INTO narabi VALUES (?,?,?,?,?,?)", rows)
             self.conn.commit()
         return len(rows)
 

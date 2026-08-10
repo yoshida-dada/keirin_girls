@@ -191,14 +191,24 @@ def parse_narabi(html: str) -> dict:
     soup = BeautifulSoup(html, "html.parser")
     dt = soup.find("dt", string=re.compile("並び予想"))
     if dt is None:
-        return {"order": [], "legs": {}}
+        return {"order": [], "legs": {}, "lines": []}
     dl = dt.find_parent("dl")
     dd = dl.find("dd") if dl else None
     if dd is None:
-        return {"order": [], "legs": {}}
+        return {"order": [], "legs": {}, "lines": []}
     order: list[int] = []
     legs: dict[int, str] = {}
+    lines: list[list[int]] = []
+    cur: list[int] = []
     for grp in dd.find_all("span", class_="icon_p"):
+        # ラインの切れ目は数字を持たない <span class="icon_p space">。これを読み飛ばすと
+        # 全ラインが1本のフラットな隊列に潰れる（男子はライン構造が精度を決めるので致命的）。
+        # 末尾にはレイアウト用の space が連続して並ぶが、cur が空なので空ラインは作られない。
+        if "space" in (grp.get("class") or []):
+            if cur:
+                lines.append(cur)
+                cur = []
+            continue
         num = None
         leg = None
         for sp in grp.find_all("span"):
@@ -207,8 +217,12 @@ def parse_narabi(html: str) -> dict:
                 num = int(t)
             elif t and t not in ("←", "→"):
                 leg = t
-        if num is not None:
-            order.append(num)
-            if leg:
-                legs[num] = leg
-    return {"order": order, "legs": legs}
+        if num is None:            # 矢印だけの span
+            continue
+        order.append(num)
+        if leg:
+            legs[num] = leg
+        cur.append(num)
+    if cur:
+        lines.append(cur)
+    return {"order": order, "legs": legs, "lines": lines}
