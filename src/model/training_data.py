@@ -81,22 +81,39 @@ def _order_of(conn, race_id: str) -> list[int]:
     return [car for _, car in rows]
 
 
-def load_samples(db_path: str | Path, field_size: int = 7,
+def load_samples(db_path: str | Path, field_size: int | list[int] | None = 7,
                  features: list[str] = PL_FEATURES) -> list[RaceSample]:
-    """結果のある field_size 車レースを RaceSample のリストで返す（date昇順）。"""
+    """結果のあるレースを RaceSample のリストで返す（date昇順）。
+
+    field_size: 7（既定・従来どおり7車のみ）/ [7, 9]（複数車立てを同時に）/ None（全件）。
+      男子は7車と9車が混在するため、単一値固定だと片方しか学習できない。
+      モデルの特徴はレース内で相対化されているので混在学習自体は可能だが、
+      1/N系の prior など車立て依存の箇所があるため、混ぜる場合は検証で確認すること。
+    """
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     conn.execute("PRAGMA query_only=1")
     try:
-        races = conn.execute(
-            "SELECT race_id, race_date FROM races WHERE field_size=? ORDER BY race_date, race_id",
-            (field_size,)).fetchall()
+        if field_size is None:
+            races = conn.execute(
+                "SELECT race_id, race_date FROM races ORDER BY race_date, race_id").fetchall()
+            want: set[int] | None = None
+        else:
+            sizes = [field_size] if isinstance(field_size, int) else list(field_size)
+            ph = ",".join("?" * len(sizes))
+            races = conn.execute(
+                f"SELECT race_id, race_date FROM races WHERE field_size IN ({ph}) "
+                "ORDER BY race_date, race_id", sizes).fetchall()
+            want = set(sizes)
         samples: list[RaceSample] = []
         for race_id, date in races:
             order = _order_of(conn, race_id)
             if len(order) < 3:
                 continue                      # 上位3着が確定しないレースは学習に使わない
             entries = _entries_of(conn, race_id)
-            if len(entries) != field_size:
+            # 出走表の人数が races.field_size と食い違うレースは除く（欠車等でズレる）
+            if want is not None and len(entries) not in want:
+                continue
+            if len(entries) < 4:
                 continue
             recent = _recent_of(conn, race_id)
             df = build_features(entries, recent)   # recentがあれば直近4ヶ月特徴も入る
