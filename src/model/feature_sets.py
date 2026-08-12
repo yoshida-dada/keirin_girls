@@ -45,3 +45,26 @@ def men_features() -> list[str]:
 # 学習・推論の両方から参照する定数
 MEN_MODEL_NAME = "pl_model_men.pkl"
 MEN_ELO_NAME = "elo_state_men.json"
+
+
+def load_for(is_girls: bool):
+    """レースの種別に応じたモデルとEloを返す → (model, elo_state, label)。
+
+    男子モデルが無い場合はガールズモデルへフォールバックせず (None, None, ...) を返す。
+    特徴セットが違うので取り違えると無言で誤った推論になるため、落とす方が安全。
+    """
+    from pathlib import Path
+    from src.model.persist import load_model, load_elo_state, DEFAULT_MODEL_PATH
+
+    if is_girls:
+        return load_model(), load_elo_state(), "ガールズ"
+    mp = Path(DEFAULT_MODEL_PATH).parent / MEN_MODEL_NAME
+    ep = Path(DEFAULT_MODEL_PATH).parent / MEN_ELO_NAME
+    if not mp.exists():
+        return None, None, "男子(モデル未配置)"
+    model = load_model(mp)
+    try:
+        elo = load_elo_state(ep)
+    except Exception:
+        elo = {}
+    return model, elo, "男子"

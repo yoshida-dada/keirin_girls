@@ -72,29 +72,37 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         except ValueError:
             return None
 
-    model = load_model()
-    _mfeats = model.feature_names or []
-    elo_state = load_elo_state() if "rel_elo" in _mfeats else None
+    # レース種別でモデルを切り替える。特徴セットが違う（ガールズ38列 / 男子39列）ので、
+    # 取り違えると無言で誤った推論になる。男子モデルが無ければフォールバックせず落とす。
+    _girls = is_girls_race(entries)
+    from src.model.feature_sets import load_for
+    model, elo_state, _mlabel = load_for(_girls)
+    # 男子DBは別ファイル。展開特徴(as-of history)と Elo は同じ母集団から引く必要がある
+    men_db = str(DATA_DIR / "keirin_men.sqlite")
+    feat_db = db_path if _girls else (men_db if Path(men_db).exists() else db_path)
+
+    # 後続（展開予想・紐補正・展開AI）でも使うので、モデルの有無に関わらず先に用意する
+    from src.collect.gamboo_racecard import parse_narabi
+    narabi_ctx = parse_narabi(html)
     tactics_ctx = None
-    from src.features.tactics_features import TACTIC_NAMES
-    if any(n in _mfeats for n in TACTIC_NAMES):    # 展開特徴付きモデル: 現時点as-of historyを引く
-        from src.features.rider_tactics import current_tactics
-        tactics_ctx = current_tactics(db_path)
-    narabi_ctx = None
-    from src.features.rider_narabi import NARABI_KEYS
-    if any(n in _mfeats for n in NARABI_KEYS):     # 並び予想付きモデル: 出走表ページから即取得
-        from src.collect.gamboo_racecard import parse_narabi
-        narabi_ctx = parse_narabi(html)
-    strengths = strengths_from_model(model, entries, recent, elo_state,
-                                     tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
-                                     venue_code=venue_code)
+    strengths = {}
+    _mfeats = (model.feature_names or []) if model is not None else []
+    if model is not None:
+        if "rel_elo" not in _mfeats:
+            elo_state = None
+        from src.features.tactics_features import TACTIC_NAMES
+        if any(n in _mfeats for n in TACTIC_NAMES):   # 展開特徴付き: 現時点as-of historyを引く
+            from src.features.rider_tactics import current_tactics
+            tactics_ctx = current_tactics(feat_db)
+        strengths = strengths_from_model(model, entries, recent, elo_state,
+                                         tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
+                                         venue_code=venue_code)
     _mtype = "LightGBM" if type(model).__name__ == "GBDTModel" else "PL線形"
-    source = (f"学習済みモデル({_mtype}+Elo)" if elo_state is not None
-              else f"学習済みモデル({_mtype}拡張20特徴)")
+    source = f"学習済みモデル({_mlabel}・{_mtype} {len(_mfeats)}特徴)"
     if not strengths:
         from src.model.strength import strengths_from_entries
         strengths = strengths_from_entries(entries)
-        source = "ベースライン(競走得点)"
+        source = f"ベースライン(競走得点)※{_mlabel}モデルで推論できず"
     rt = classify_race(strengths)
     # 条件付き紐補正: 2着分布を平坦化(PLの○過大評価是正)＋◎の並び番手を加点（精度改善, himo_adjust）。
     # 並び予想があれば {車番: 隊列位置} を渡す。無ければ温度平坦化のみ適用。
@@ -110,6 +118,10 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         inv = sum(1.0 / o for k, o in odds.items() if k[0] == car and o and o > 0)
         return round(1.0 / inv, 2) if inv > 0 else None
 
+    # 並び予想のライン境界 → {車番: (line_id, pos_in_line)}。ガールズは lines が空で全て None。
+    _line_of = {car: (li, pi)
+                for li, line in enumerate((narabi_ctx or {}).get("lines") or [])
+                for pi, car in enumerate(line)}
     riders = []
     for e in sorted(entries, key=lambda e: -strengths.get(e.car_number, 0)):
         f = recent.get(e.car_number)
@@ -123,9 +135,14 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         sc = styles.get(e.rider_name) or {}
         mr = meets.get(e.rider_name) or []
         from src.features.venue_region import is_home_pref, is_home_district
+        _lp = _line_of.get(e.car_number)
         riders.append({
             "car": e.car_number, "name": e.rider_name,
             "score": e.racing_score, "leg": e.leg_type,
+            "class_rank": e.class_rank,                        # 級班（男子はS1/S2/A1/A2/A3）
+            "line_id": _lp[0] if _lp else None,                # 所属ライン（並び予想由来）
+            "pos_in_line": _lp[1] if _lp else None,            # 0=ライン先頭 1=番手 2=3番手
+            "narabi_leg": (narabi_ctx or {}).get("legs", {}).get(e.car_number),
             "pref": (e.prefecture or "").strip() or None,        # 登録府県
             "home": is_home_pref(e.prefecture, venue_code),      # 地元(同県)開催か
             "home_dist": is_home_district(e.prefecture, venue_code),  # 同地区開催か
@@ -230,9 +247,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             read = f"◎{_fav}番の並び位置は不明。"
         read += "◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。"
         # 推定主導権（展開AI=最終バック先頭B予測。過去実測55%的中で記者予想22%を上回る）
+        # **ガールズ専用**（ガールズ38特徴で学習）。男子は特徴セットが違うので使わない。
+        # 男子の主導権はライン先頭がほぼ独占（実測37.8% vs 番手0.4%）なのでライン表示で足りる。
         _backstretch = None
         from src.model.backstretch import load_backstretch
-        _bs = load_backstretch()
+        _bs = load_backstretch() if _girls else None
         if _bs is not None:
             pB = strengths_from_model(_bs, entries, recent, elo_state,
                                       tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
@@ -301,7 +320,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         # venue_code も持たせる（会場名は「伊東競輪」表記でテーブルの「伊東温泉」と一致せず、
         # 名前からバンク長を引くと取りこぼす。後段は必ずこのコードを使う）
         "venue": venue, "venue_code": venue_code, "race_no": race_no, "deadline": deadline,
-        "is_girls": is_girls_race(entries), "field_size": len(entries),
+        "is_girls": _girls, "field_size": len(entries),
+        # 男子用。級班はレース単位の階層（番手の価値が級班で反転するため表示に要る）、
+        # lines は並び予想のライン境界（ガールズは空になる）
+        "class_group": "/".join(sorted({e.class_rank for e in entries if e.class_rank})) or None,
+        "lines": (narabi_ctx or {}).get("lines") or [],
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
