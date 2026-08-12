@@ -123,6 +123,20 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         ncols = narabi_columns(list(df.index), per_car)
         for i, name in enumerate(NARABI_KEYS):
             df[name] = [ncols[c][i] for c in df.index]
+    from src.features.line_features import LINE_KEYS
+    if any(n in feats for n in LINE_KEYS):      # 男子モデル: ライン特徴（学習と同一関数）
+        from src.features.line_features import line_columns, class_level
+        nb = narabi_ctx or {}
+        # parse_narabi の lines（ライン境界つき）から {車番: (line_id, pos_in_line)} を作る。
+        # lines が無い（＝並び予想を取れなかった）場合は全列0になり、推論は落ちない。
+        line_of = {car: (li, pi)
+                   for li, line in enumerate(nb.get("lines") or [])
+                   for pi, car in enumerate(line)}
+        scores = {e.car_number: e.racing_score for e in entries if e.racing_score}
+        lv = class_level([e.class_rank for e in entries if e.class_rank])
+        lcols = line_columns(list(df.index), line_of, scores, lv)
+        for i, name in enumerate(LINE_KEYS):
+            df[name] = [lcols[c][i] for c in df.index]
     # 欠損はレース内平均で補完する。1名の gear_ratio 欠け等だけで全車の推論を捨てて
     # 競走得点ベースラインへ落ちるのを防ぐ（2026-07-28 実測: 本日8R中2Rが該当）。
     # ただし CORE_FEATURES（強さの主信号）が欠けた選手がいる場合と、列が全車欠損の場合は
