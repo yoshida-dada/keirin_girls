@@ -28,6 +28,7 @@ from bs4 import BeautifulSoup
 from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_schedule import (
     build_kaisai_list_url, parse_kaisai_list, fetch_girls_race_numbers, kaisai_race_date,
+    fetch_race_numbers,
 )
 from src.model.persist import load_model
 from src.model.training_data import load_samples, PL_FEATURES_FULL
@@ -58,18 +59,31 @@ def _venue_map(html: str) -> dict[str, str]:
     return out
 
 
-def build_races_for_date(target: date) -> list:
-    """指定日のガールズ各レースをモデル予測して返す（ネットワークアクセスあり）。"""
+def build_races_for_date(target: date, include: str = "girls") -> list:
+    """指定日の各レースをモデル予測して返す（ネットワークアクセスあり）。
+
+    include: "girls"（既定・従来どおり） / "men" / "all"
+      男子は1日約90レースあり、ガールズ(約8)の10倍以上になる。所要時間とpayloadが
+      桁違いになるので、既定はガールズのままにして明示指定でのみ男子を含める。
+    """
     res = fetch(build_kaisai_list_url(target.year, target.month, target.day))
     # 開催一覧は初日〜最終日の全日程を含むため、実施日が target と一致する開催日のみに絞る
     # （初日=昨日/2日目=今日 の混在を防ぐ）。
     kaisai_list = [k for k in parse_kaisai_list(res.text)
-                   if k.is_girls and kaisai_race_date(k.kaisai_day_code) == target]
+                   if kaisai_race_date(k.kaisai_day_code) == target]
+    if include == "girls":
+        kaisai_list = [k for k in kaisai_list if k.is_girls]
     venues = _venue_map(res.text)
     races = []
     for k in kaisai_list:
         venue = venues.get(k.kaisai_code, k.venue_code)
-        for rno in fetch_girls_race_numbers(k):
+        girls_nos = set(fetch_girls_race_numbers(k))
+        if include == "girls":
+            nos = sorted(girls_nos)
+        else:
+            allr = set(fetch_race_numbers(k))
+            nos = sorted(allr - girls_nos) if include == "men" else sorted(allr)
+        for rno in nos:
             try:
                 d = predict_race_dict(k.kaisai_code, k.kaisai_day_code, rno, venue=venue)
             except Exception as e:
@@ -79,7 +93,40 @@ def build_races_for_date(target: date) -> list:
     return races
 
 
-def build_predictions_section(target: date, window: int = 1) -> dict:
+def prune_combos(races: list, keep_within_min: float, now: datetime) -> int:
+    """締切が遠いレースの combos(全オッズ) を落とす。落とした数を返す。
+
+    combos は1レースの約4割を占める最大の重量物（7車210点で約6.8KB、9車504点で約2.4倍）。
+    しかし発走が何時間も先のレースのオッズは実用価値が無く、**data.json は数分ごとに
+    コミットされる**ため、全レース分を載せるとリポジトリが急速に肥大する
+    （実測: 既に2,707コミット・直近24hで58回push）。
+    近接レースだけ残せば、ライブEVの機能は保ったまま容量と差分を大幅に抑えられる。
+    """
+    dropped = 0
+    for r in races:
+        if not r.get("combos"):
+            continue
+        dl, rd = r.get("deadline"), r.get("date")
+        keep = False
+        if dl and ":" in str(dl):
+            try:
+                h, m = (int(x) for x in str(dl).split(":"))
+                t = now.replace(hour=h, minute=m, second=0, microsecond=0)
+                if rd:
+                    y = date.fromisoformat(str(rd))
+                    t = t.replace(year=y.year, month=y.month, day=y.day)
+                mins = (t - now).total_seconds() / 60
+                keep = -30 <= mins <= keep_within_min
+            except ValueError:
+                keep = False
+        if not keep:
+            r["combos"] = []
+            r["combos_pruned"] = True      # UIが「オッズ未取得」と区別できるように
+            dropped += 1
+    return dropped
+
+
+def build_predictions_section(target: date, window: int = 1, include: str = "girls") -> dict:
     """target を起点に前後 window 日ぶんのガールズ予測を返す（既定=前後1日＝計3日）。
 
     レースは (date, venue, race_no) で一意。同一会場でも日をまたぐと R番号が重複するため、
@@ -89,8 +136,9 @@ def build_predictions_section(target: date, window: int = 1) -> dict:
     days = [target + timedelta(days=i) for i in range(-window, window + 1)]
     races = []
     for d in days:
-        got = build_races_for_date(d)
-        print(f"  {d}: {len(got)}レース")
+        got = build_races_for_date(d, include=include)
+        ng = sum(1 for r in got if r.get("is_girls"))
+        print(f"  {d}: {len(got)}レース（ガールズ{ng} / 男子{len(got)-ng}）")
         races.extend(got)
     races.sort(key=lambda r: (r.get("date", ""), r.get("venue", ""), r.get("race_no") or 0))
     jst = timezone(timedelta(hours=9))
@@ -145,6 +193,12 @@ def main() -> None:
     ap.add_argument("--predict", action="store_true", help="ガールズ予測を生成（ネットワーク）")
     ap.add_argument("--window", type=int, default=1,
                     help="起点日の前後何日を含めるか（既定=1＝昨日/今日/明日の3日）")
+    ap.add_argument("--include", choices=["girls", "men", "all"], default="girls",
+                    help="予測対象。men/all は1日約90レースになり所要時間もpayloadも桁違い")
+    ap.add_argument("--combos-within", type=float, default=90.0,
+                    help="オッズ全点(combos)を残す締切までの分数。遠いレースは落として容量を抑える")
+    ap.add_argument("--compact", action="store_true",
+                    help="data.json をインデント無しで書く（サイズが約4割になる）")
     args = ap.parse_args()
 
     db_path = Path(args.db)
@@ -159,7 +213,8 @@ def main() -> None:
     doc["results_history"] = build_results_history(db_path, days=180)   # 成績: 過去約半年の開催結果
     if args.predict:
         target = date.fromisoformat(args.date) if args.date else date.today()
-        print(f"{target} を起点に前後{args.window}日のガールズ予測を生成中…")
+        _lbl = {"girls": "ガールズ", "men": "男子", "all": "男女全"}[args.include]
+        print(f"{target} を起点に前後{args.window}日の{_lbl}予測を生成中…")
         # 確定済みレース（result あり）は**予測ごと丸ごと据え置く**。
         # 発走後にモデルが変わると「事前に出した予測」が書き換わり、的中実績が遡って
         # 良く見えてしまう。result だけ引き継いで予測を作り直すと、表示中の予測と
@@ -174,7 +229,8 @@ def main() -> None:
                         prev[(r.get("date"), r.get("venue"), r.get("race_no"))] = r
             except Exception:
                 pass
-        doc["predictions"] = build_predictions_section(target, window=args.window)
+        doc["predictions"] = build_predictions_section(target, window=args.window,
+                                                       include=args.include)
         races, kept = [], 0
         for r in doc["predictions"]["races"]:
             old_r = prev.get((r.get("date"), r.get("venue"), r.get("race_no")))
@@ -186,12 +242,20 @@ def main() -> None:
         doc["predictions"]["races"] = races
         if kept:
             print(f"  確定済みレースは当時の予測を据え置き: {kept}レース")
+        # 締切が遠いレースのオッズ全点を落とす（容量とgit差分の抑制。機能は落ちない）
+        if args.combos_within > 0:
+            n_dropped = prune_combos(doc["predictions"]["races"], args.combos_within,
+                                     datetime.now(timezone(timedelta(hours=9))))
+            print(f"  オッズ全点を保持: 締切{args.combos_within:.0f}分以内 "
+                  f"（{n_dropped}レース分を除外）")
         print(f"  予測レース数: {len(doc['predictions']['races'])}")
 
     out = Path(args.out)
-    out.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    kw = ({"separators": (",", ":")} if args.compact else {"indent": 2})
+    out.write_text(json.dumps(doc, ensure_ascii=False, **kw), encoding="utf-8")
     rt = {c["type"]: c["n"] for c in doc["race_type_dist"]["counts"]}
-    print(f"生成: {out}")
+    print(f"生成: {out}  {out.stat().st_size/1024/1024:.2f}MB"
+          f"{'（compact）' if args.compact else ''}")
     print(f"  レースタイプ分布: {rt}  / Brier: {doc['calibration']['brier']}")
 
 
