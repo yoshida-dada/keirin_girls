@@ -64,6 +64,14 @@ def build_records(db_path: str | Path, model, race_ids: list[str],
     if need_tac:
         from src.features.rider_tactics import compute_pre_race_tactics
         tactics = compute_pre_race_tactics(db_path)
+    # 男子モデル(39特徴)のライン8列。ここが無いと df[feats] が KeyError になる。
+    # 付与は推論・学習と同一の line_columns を通す（skew防止）。
+    from src.features.line_features import LINE_KEYS, line_columns, class_level
+    need_line = any(n in feats for n in LINE_KEYS)
+    line_ctx = None
+    if need_line:
+        from src.model.feature_augment import _line_ctx
+        line_ctx = _line_ctx(db_path)
 
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     conn.execute("PRAGMA query_only=1")
@@ -88,6 +96,12 @@ def build_records(db_path: str | Path, model, race_ids: list[str],
                 cols = tactic_columns(list(df.index), tac_by_car)
                 for i, name in enumerate(TACTIC_NAMES):
                     df[name] = [cols[c][i] for c in df.index]
+            if need_line:
+                lo, sc, cl = line_ctx
+                lcols = line_columns(list(df.index), lo.get(race_id, {}),
+                                     sc.get(race_id, {}), class_level(cl.get(race_id, [])))
+                for i, name in enumerate(LINE_KEYS):
+                    df[name] = [lcols[c][i] for c in df.index]
             if df[feats].isna().any().any():
                 continue
             cars = list(df.index)
@@ -158,3 +172,53 @@ def odds_bucket_roi(records: list[ComboRecord], ev_threshold: float = 0.0) -> di
                 b["ret"] += r.payout
     return {k: {**v, "roi": round(v["ret"] / v["stake"], 4) if v["stake"] else None}
             for k, v in sorted(agg.items())}
+
+
+def bootstrap_roi_by_race(records: list, ev_threshold: float, race_type: str,
+                          odds_bucket: str, min_prob: float = 0.0,
+                          max_odds: float | None = None, n_boot: int = 2000,
+                          seed: int = 0) -> dict:
+    """1バケットの実現ROIに、**レース単位**のブートストラップ信頼区間を付ける。
+
+    買い目単位で resample してはいけない。同一レースの210〜504点は互いに強く従属し
+    （的中は1点だけ、残りは全て外れ）、独立とみなすと区間が実際より遥かに狭く出る。
+    リサンプルの単位は「レース」＝独立な試行にする。
+
+    n_races が少ない、または的中レース数が数レースしか無い場合、点推定のROIは
+    ほぼその数レースの配当で決まる。区間が100%をまたぐならエッジありとは言えない。
+    """
+    import random
+
+    by_race: dict[str, list[int, int]] = {}
+    for r in records:
+        if r.race_type != race_type or r.odds_bucket != odds_bucket:
+            continue
+        if not (r.ev >= ev_threshold and r.model_prob >= min_prob
+                and (max_odds is None or r.odds <= max_odds)):
+            continue
+        b = by_race.setdefault(r.race_id, [0, 0])
+        b[0] += 100                                   # 賭け金（1点100円）
+        b[1] += r.payout if r.is_win else 0           # 払戻
+    races = list(by_race.values())
+    n_races = len(races)
+    stake = sum(x[0] for x in races)
+    ret = sum(x[1] for x in races)
+    n_hit_races = sum(1 for x in races if x[1] > 0)
+    if not stake:
+        return {"n_races": 0, "n_bets": 0, "roi": None}
+    rng = random.Random(seed)
+    boots = []
+    for _ in range(n_boot):
+        s = t = 0
+        for _ in range(n_races):
+            a, b2 = races[rng.randrange(n_races)]
+            s += a
+            t += b2
+        if s:
+            boots.append(t / s)
+    boots.sort()
+    lo = boots[int(0.025 * len(boots))] if boots else None
+    hi = boots[int(0.975 * len(boots)) - 1] if boots else None
+    return {"n_races": n_races, "n_bets": stake // 100, "n_hit_races": n_hit_races,
+            "roi": ret / stake, "ci_lo": lo, "ci_hi": hi,
+            "p_over_1": sum(1 for x in boots if x > 1.0) / len(boots) if boots else None}
