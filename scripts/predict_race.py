@@ -115,9 +115,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     rt = classify_race(strengths)
     # 条件付き紐補正: 2着分布を平坦化(PLの○過大評価是正)＋◎の並び番手を加点（精度改善, himo_adjust）。
     # 並び予想があれば {車番: 隊列位置} を渡す。無ければ温度平坦化のみ適用。
-    # **男子には掛けない**: パラメータは「PLは◎勝ち時の2着＝○を8pt過大評価」という
-    # ガールズ実測に基づく。男子はライン決着があり2着分布の構造が違うため、実測し直すまでは
-    # 未検証の補正を当てるより素のPLを出す方が説明可能（stats_profile.himo_params）。
+    # 男子は A-3 で再推定済み（hold-out 5,498R: 三連単log-loss -0.104 / 2着top1 +1.6pt）。
+    # 番手は**記者の並び予想のライン基準**で判定する（隊列の直後だと次ラインの先頭＝敵を拾う）。
     from src.model.stats_profile import profile as _stats_profile
     _sp = _stats_profile(_girls)
     narabi_pos = ({car: i for i, car in enumerate(narabi_ctx["order"])}
@@ -125,7 +124,10 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     # 番手は**記者の並び予想のライン構成**で判定する（男子）。隊列の直後で判定すると
     # ラインの最後尾で次ラインの先頭＝敵を番手扱いしてしまう（marker_of 参照）。
     _narabi_lines = (narabi_ctx or {}).get("lines") or None
-    probs = (corrected_trifecta_probs(strengths, narabi_pos, lines=_narabi_lines)
+    # パラメータは性別ごと（ガールズ DEFAULT_PARAMS / 男子 MEN_PARAMS）。取り違えると
+    # 無言で別の補正が掛かるので、必ず stats_profile から受け取る。
+    probs = (corrected_trifecta_probs(strengths, narabi_pos, _sp.himo_params,
+                                      lines=_narabi_lines)
              if _sp.himo_params else all_trifecta_probs(strengths))
 
     # 一着固定の合成オッズ: 車cを1着に固定した三連単(c,*,*)全通りを合成した実効オッズ

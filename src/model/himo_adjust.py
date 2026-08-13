@@ -17,7 +17,25 @@ from itertools import permutations
 # PL と等価（補正なし）。検証のベースライン。
 PL_PARAMS = {"t2": 1.0, "t3": 1.0, "mark": 0.0}
 # 既定の補正。validate_himo_adjust の hold-out で確定（2026-07-17, 三連単log-loss −0.115・2着top3 +1.7pt）。
+# ガールズ専用。男子は stats_profile.himo_params=False で未適用（A-3で再推定中）。
 DEFAULT_PARAMS = {"t2": 1.5, "t3": 1.4, "mark": 0.25}
+# 男子。validate_himo_adjust --men の hold-out(5,498R)で確定（2026-08-13）:
+#   三連単log-loss 4.7081→4.6043(Δ-0.1038) / 2着top1 25.9→27.6% / tri10 31.0→33.1%
+#   hold-out 2fold とも改善。番手は**記者の並び予想のライン基準**で判定する（lines 必須）。
+# mate（勝者が誰でもその番手を加点する一般形）は探索したが **0 が最良** ＝ 効くのは
+# ◎が勝つ場合に限られる。構造的には勝者一般に成り立つはずという直感は実測で否定された。
+# **注意**: この補正でもライン決着の過小評価は -22.0pt → -20.7pt までしか縮まらない。
+# 順位付けの質は上がるが、ライン決着確率の絶対値は依然として低い。
+MEN_PARAMS = {"t2": 1.15, "t3": 1.4, "mark": 0.5, "mate": 0.0}
+
+# パラメータの意味:
+#   t2/t3 : 2着/3着の重みの平坦化（>1で平坦化。PLの○過大評価を緩和）
+#   mark  : **◎が勝つときだけ**、◎の番手の2着重みを加点（ガールズ実測に基づく形）
+#   mate  : **誰が勝っても**、その勝者の番手の2着重みを加点（男子向けに追加）
+#           番手が2着に来るのは「ラインを引いた本人の直後にいる」ことの帰結で、
+#           勝者がモデル本命かどうかとは本来独立のはず。男子は実測で
+#           「勝者の番手が2着 41.0%（ランダム16.5%）」＝ラインを引いた誰に対しても成立する。
+#           mate を使うには lines（記者の並び予想のライン構成）が要る。
 
 
 def marker_of(fav, narabi_pos, lines=None):
@@ -77,14 +95,19 @@ def combo_logprob(strengths: dict, narabi_pos: dict | None, order3, params: dict
         return -50.0
     fav = max(strengths, key=strengths.get)
     marker = marker_of(fav, narabi_pos, lines)
-    t2, t3, mk = params["t2"], params["t3"], params["mark"]
+    t2, t3, mk = params["t2"], params["t3"], params.get("mark", 0.0)
+    mate = params.get("mate", 0.0)
     S = sum(strengths[r] for r in riders)
     if S <= 0 or strengths.get(a, 0) <= 0:
         return -50.0
     p1 = strengths[a] / S
     rem2 = [r for r in riders if r != a]
     w2 = {r: _pow(strengths[r], t2) for r in rem2}
-    if a == fav and marker in w2:
+    if mate and lines:                      # 勝者(a)の番手を加点（◎かどうかに依らない）
+        ma = marker_of(a, narabi_pos, lines)
+        if ma in w2:
+            w2[ma] *= (1.0 + mate)
+    if mk and a == fav and marker in w2:    # ◎限定の上乗せ（ガールズ形）
         w2[marker] *= (1.0 + mk)
     Z2 = sum(w2.values())
     p2 = w2.get(b, 0.0) / Z2 if Z2 > 0 else 0.0
@@ -104,7 +127,8 @@ def corrected_trifecta_probs(strengths: dict, narabi_pos: dict | None = None,
     lines（記者の並び予想のライン構成）を渡すと番手をライン基準で判定する（男子）。
     """
     p = params or DEFAULT_PARAMS
-    t2, t3, mk = p["t2"], p["t3"], p["mark"]
+    t2, t3, mk = p["t2"], p["t3"], p.get("mark", 0.0)
+    mate = p.get("mate", 0.0)
     riders = [r for r in strengths if strengths[r] > 0]
     if len(riders) < 3:
         return {}
@@ -118,7 +142,11 @@ def corrected_trifecta_probs(strengths: dict, narabi_pos: dict | None = None,
         p1 = strengths[a] / S
         rem2 = [r for r in riders if r != a]
         w2 = {r: pow2[r] for r in rem2}
-        if a == fav and marker in w2:
+        if mate and lines:                      # 勝者(a)の番手を加点（◎かどうかに依らない）
+            ma = marker_of(a, narabi_pos, lines)
+            if ma in w2:
+                w2[ma] *= (1.0 + mate)
+        if mk and a == fav and marker in w2:    # ◎限定の上乗せ（ガールズ形）
             w2[marker] *= (1.0 + mk)
         Z2 = sum(w2.values())
         if Z2 <= 0:

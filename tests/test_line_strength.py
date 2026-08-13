@@ -123,3 +123,37 @@ def test_correction_targets_the_line_mate():
     # ライン情報が無いと隊列直後の2番へ加点され、素のPLから乖離する（＝従来の誤り方）
     flat = corrected_trifecta_probs(st, npos, params)
     assert flat[(1, 2, 3)] > plain[(1, 2, 3)]
+
+
+def test_men_params_are_separate_from_girls():
+    """男女で別パラメータが引かれること。取り違えると無言で別の補正が掛かる。"""
+    from src.model.stats_profile import profile
+    from src.model.himo_adjust import DEFAULT_PARAMS, MEN_PARAMS
+    assert profile(True).himo_params == DEFAULT_PARAMS
+    assert profile(False).himo_params == MEN_PARAMS
+    assert DEFAULT_PARAMS != MEN_PARAMS
+
+
+def test_men_correction_raises_line_settle():
+    """男子の補正がライン決着確率を（少しでも）押し上げる方向に働くこと。"""
+    from src.model.himo_adjust import corrected_trifecta_probs, MEN_PARAMS
+    lines = [[1, 2, 3], [4, 5], [6, 7]]
+    st = {1: 0.30, 2: 0.15, 3: 0.05, 4: 0.20, 5: 0.10, 6: 0.14, 7: 0.06}
+    lo = {c: i for i, m in enumerate(lines) for c in m}
+    settle = lambda d: sum(p for (a, b, _), p in d.items() if lo[a] == lo[b])
+    raw = all_trifecta_probs(st)
+    cor = corrected_trifecta_probs(st, None, MEN_PARAMS, lines=lines)
+    assert settle(cor) > settle(raw)
+    assert sum(cor.values()) == pytest.approx(1.0, abs=1e-6)   # 正しい確率分布のまま
+
+
+def test_narabi_order_and_lines_are_consistent():
+    """order が非空なら lines も非空（男子で番手判定がフラットへ退行しない前提）。"""
+    from pathlib import Path
+    from src.collect.gamboo_racecard import parse_narabi
+    html = (Path(__file__).parent / "fixtures" / "gamboo_racecard_7car.html").read_text(
+        encoding="utf-8")
+    nb = parse_narabi(html)
+    assert bool(nb["order"]) == bool(nb["lines"])
+    if nb["lines"]:
+        assert [c for line in nb["lines"] for c in line] == nb["order"]

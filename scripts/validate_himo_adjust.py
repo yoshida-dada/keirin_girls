@@ -135,6 +135,28 @@ def main():
     print(f"  2着 top2的中   PL {pct('pl_2t2'):.1f}% → 補正 {pct('cx_2t2'):.1f}%  (Δ{pct('cx_2t2')-pct('pl_2t2'):+.1f})")
     print(f"  2着 top3的中   PL {pct('pl_2t3'):.1f}% → 補正 {pct('cx_2t3'):.1f}%  (Δ{pct('cx_2t3')-pct('pl_2t3'):+.1f})")
     print(f"  三連単top10的中 PL {pct('pl_t10'):.1f}% → 補正 {pct('cx_t10'):.1f}%  (Δ{pct('cx_t10')-pct('pl_t10'):+.1f})")
+    # --- ライン決着の較正（今回の主目的）---
+    if args.men and any(ln for _, _, _, _, ln in hold):
+        def settle_pred(dist, lo):
+            return sum(p for (a, b, _), p in dist.items()
+                       if lo.get(a) is not None and lo.get(a) == lo.get(b))
+        sp = sc = sa = n2 = 0
+        for fi, st, npos, o3, ln in hold:
+            if not ln:
+                continue
+            lo = {c: i for i, mem in enumerate(ln) for c in mem}
+            if lo.get(o3[0]) is None or lo.get(o3[1]) is None:
+                continue
+            sp += settle_pred(corrected_trifecta_probs(st, npos, PL_PARAMS, lines=ln), lo)
+            sc += settle_pred(corrected_trifecta_probs(st, npos, best, lines=ln), lo)
+            sa += int(lo[o3[0]] == lo[o3[1]])
+            n2 += 1
+        if n2:
+            print(f"\n  【ライン決着の較正】n={n2}")
+            print(f"    実測                 {sa/n2*100:.1f}%")
+            print(f"    PL(補正なし)の予測   {sp/n2*100:.1f}%  (Δ{(sp-sa)/n2*100:+.1f}pt)")
+            print(f"    補正後の予測         {sc/n2*100:.1f}%  (Δ{(sc-sa)/n2*100:+.1f}pt)")
+
     print("\n  per-fold Δ(補正−PL):")
     for fi, pf in sorted(per_fold.items()):
         m = pf["n"]
