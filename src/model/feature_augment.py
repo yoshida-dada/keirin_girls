@@ -18,6 +18,28 @@ from src.model.elo import compute_pre_race_elo, DEFAULT_ELO
 from src.features.tactics_features import TACTIC_NAMES, tactic_columns
 from src.features.rider_narabi import NARABI_KEYS, narabi_columns
 from src.features.bank_features import BANK_KEYS, bank_columns
+from src.features.line_features import LINE_KEYS, line_columns, class_level
+
+
+def _line_ctx(db_path):
+    """race_id ごとの {車番:(line_id,pos)} / {車番:得点} / 級班リスト を引く（男子ライン特徴用）。"""
+    import sqlite3
+    from collections import defaultdict
+    c = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    c.execute("PRAGMA query_only=1")
+    line_of = defaultdict(dict)
+    for rid, car, li, pi in c.execute(
+            "SELECT race_id,car_number,line_id,pos_in_line FROM narabi WHERE line_id IS NOT NULL"):
+        line_of[rid][car] = (li, pi)
+    scores, cls = defaultdict(dict), defaultdict(list)
+    for rid, car, sc, cr in c.execute(
+            "SELECT race_id,car_number,racing_score,class_rank FROM entries"):
+        if sc:
+            scores[rid][car] = sc
+        if cr:
+            cls[rid].append(cr)
+    c.close()
+    return line_of, scores, cls
 
 
 def _venue_map(db_path) -> dict[str, str]:
@@ -38,7 +60,8 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     # バンク交互作用は展開特徴（逃げ残率・主導権指数）から作るので、展開の計算が要る
     need_tac = any(n in names for n in TACTIC_NAMES) or need_bank
     need_nb = any(n in names for n in NARABI_KEYS)
-    if not (need_elo or need_tac or need_nb):
+    need_line = any(n in names for n in LINE_KEYS)
+    if not (need_elo or need_tac or need_nb or need_line):
         return samples
 
     pre_elo = compute_pre_race_elo(db_path) if need_elo else None
@@ -51,6 +74,9 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     if need_nb:
         from src.features.rider_narabi import compute_narabi_features
         narabi = compute_narabi_features(db_path)      # 各(race_id,car)の並び予想 生特徴
+    line_of = scores = cls = None
+    if need_line:
+        line_of, scores, cls = _line_ctx(db_path)      # 男子: ライン境界＋得点＋級班
 
     out = []
     for s in samples:
@@ -86,6 +112,21 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
             bmat = np.array([[bcols[c][i] for i, _ in bkeep] for c in s.car_numbers], dtype=float)
             X = np.hstack([X, bmat])
             fn = fn + [name for _, name in bkeep]
+        if need_line:
+            cars = list(s.car_numbers)
+            lcols = line_columns(cars, line_of.get(s.race_id, {}), scores.get(s.race_id, {}),
+                                 class_level(cls.get(s.race_id, [])))   # 推論と同一関数
+            lkeep = [(i, name) for i, name in enumerate(LINE_KEYS) if name in names]
+            lmat = np.array([[lcols[c][i] for i, _ in lkeep] for c in cars], dtype=float)
+            X = np.hstack([X, lmat])
+            fn = fn + [name for _, name in lkeep]
+        # 最後に model.feature_names の並びへ揃える。ここが無いと「どの順で hstack したか」に
+        # 暗黙依存し、呼び出し側が列を挟み直す羽目になる（実際 deploy_men.py がそうしていて、
+        # analyze_dev_patterns から男子モデルを使った時に 31列 vs 39列 で落ちた）。
+        if names and set(names).issubset(set(fn)):
+            idx = [fn.index(n) for n in names]
+            X = X[:, idx]
+            fn = list(names)
         s2.X = X
         s2.feature_names = fn
         out.append(s2)

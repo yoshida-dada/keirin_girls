@@ -24,7 +24,7 @@ from pathlib import Path
 
 from src.features import venue_meta as vm
 
-STATS_PATH = Path(__file__).resolve().parent.parent / "model" / "kimarite_stats.json"
+# 決まり手実測の所在は src/model/stats_profile.py が持つ（男女で別ファイル）。
 
 
 def _dms(s: str) -> float:
@@ -86,10 +86,19 @@ BANK_LABEL = {333: "短走路", 400: "標準走路", 500: "長走路"}
 MIN_ADV_DIFF = 3.0
 
 
-@lru_cache(maxsize=1)
-def _stats() -> dict:
+@lru_cache(maxsize=4)
+def _stats(is_girls: bool = True) -> dict:
+    """性別に応じたバンク別決まり手の実測を読む。未実測なら {}。
+
+    男子は差し43〜56%が支配的で、ガールズ(捲り46%中心)とは分布が別物。
+    500m会場は男子にしか十分な標本が無い。フォールバックしない。
+    """
+    from src.model.stats_profile import profile as _sp
+    path = _sp(is_girls).kimarite_stats
+    if path is None:
+        return {}
     try:
-        return json.loads(STATS_PATH.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
@@ -128,8 +137,12 @@ def _band(rank: int, total: int, hi: str, lo: str, mid: str = "標準的") -> st
     return mid
 
 
-def profile(venue_code: str | None) -> dict | None:
-    """1会場ぶんのバンク特性を返す。諸元が無ければ None。"""
+def profile(venue_code: str | None, is_girls: bool = True) -> dict | None:
+    """1会場ぶんのバンク特性を返す。諸元が無ければ None。
+
+    「統計的な有利脚質」は is_girls で実測元を切り替える。バンクの静的諸元
+    （周長・直線・カント）は性別に依らないので共通。
+    """
     if not venue_code:
         return None
     name, bank = vm.venue_name(venue_code), vm.bank_length(venue_code)
@@ -143,7 +156,7 @@ def profile(venue_code: str | None) -> dict | None:
     traits.append(f"直線 {_band(r_st, n_st, '長い', '短い')}（同周長{n_st}場中{r_st}位）")
     traits.append(f"カント {_band(r_ca, n_ca, '急', '緩い')}（同{n_ca}場中{r_ca}位）")
 
-    st = _stats()
+    st = _stats(is_girls)
     g = ((st.get("global") or {}).get("kim") or {})
     bank_kim = ((st.get("bank") or {}).get(str(bank)) or {})
     ven = ((st.get("venue") or {}).get(venue_code) or {})

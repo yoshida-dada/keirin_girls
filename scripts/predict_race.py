@@ -111,9 +111,15 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     rt = classify_race(strengths)
     # 条件付き紐補正: 2着分布を平坦化(PLの○過大評価是正)＋◎の並び番手を加点（精度改善, himo_adjust）。
     # 並び予想があれば {車番: 隊列位置} を渡す。無ければ温度平坦化のみ適用。
+    # **男子には掛けない**: パラメータは「PLは◎勝ち時の2着＝○を8pt過大評価」という
+    # ガールズ実測に基づく。男子はライン決着があり2着分布の構造が違うため、実測し直すまでは
+    # 未検証の補正を当てるより素のPLを出す方が説明可能（stats_profile.himo_params）。
+    from src.model.stats_profile import profile as _stats_profile
+    _sp = _stats_profile(_girls)
     narabi_pos = ({car: i for i, car in enumerate(narabi_ctx["order"])}
                   if narabi_ctx and narabi_ctx.get("order") else None)
-    probs = corrected_trifecta_probs(strengths, narabi_pos)
+    probs = (corrected_trifecta_probs(strengths, narabi_pos) if _sp.himo_params
+             else all_trifecta_probs(strengths))
 
     # 一着固定の合成オッズ: 車cを1着に固定した三連単(c,*,*)全通りを合成した実効オッズ
     #   合成オッズ_c = 1 / Σ(1/オッズ)   … cを1着で買い切ったときの実効配当倍率
@@ -196,9 +202,12 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         ev.update(status="ok", n_buy=len(table["buy"]), buys=buys)
 
     # 参考フォーメーション（◎頭固定・補正確率top-K）。実弾非推奨・回収率<100%（黒字ゾーンは無い）。
-    from src.betting.reference_formation import build_reference
-    reference = build_reference(strengths, narabi_pos, venue_code,
-                               bool(riders and riders[0].get("home")))
+    # 的中率/回収率の実測はガールズout-of-sample。男子では出さない（pocket_stats=False）
+    reference = None
+    if _sp.pocket_stats:
+        from src.betting.reference_formation import build_reference
+        reference = build_reference(strengths, narabi_pos, venue_code,
+                                    bool(riders and riders[0].get("home")))
 
     # 展開予想（記者の並び予想の隊列＋モデルの一言読み）。ガールズは並び通りになるとは限らない。
     development = None
@@ -283,7 +292,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         # 無視すると短走路で逃げを過小評価する。標本の薄いセルはバンク→ペース→全体へ後退。
         _plv = "ハイ" if _nfront >= 4 else ("ミドル〜ハイ" if _nfront == 3 else "スロー〜ミドル")
         from src.model.kimarite_hint import hint as _khint, pace_note as _knote
-        _h = _khint(_nfront, venue_code)
+        _h = _khint(_nfront, venue_code, is_girls=_girls)
         if _h:
             _pkm, _brel = _h["kimarite_hint"], _h.get("b_reliability")
             _pnote = _knote(_nfront, _pkm)
@@ -308,12 +317,13 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
 
     # バンク特性（諸元＋統計的な有利脚質）。静的テーブル＋統計JSONのみ＝DB非依存。
     from src.features.bank_profile import profile as _bank_profile
-    bank_profile = _bank_profile(venue_code)
+    bank_profile = _bank_profile(venue_code, is_girls=_girls)
 
     # 展開6パターンの上位3つ（発生確率＋紐の内訳）。履歴統計JSONのみ参照＝DB非依存。
     from src.model.dev_patterns import build_dev_patterns
     _pace_lv = ((development or {}).get("pace") or {}).get("level", "")
-    dev_patterns = build_dev_patterns(rt.top1_win_prob, _pace_lv, riders)
+    dev_patterns = build_dev_patterns(rt.top1_win_prob, _pace_lv, riders,
+                                      is_girls=_girls)
 
     from datetime import datetime, timezone, timedelta
     from src.collect.gamboo_schedule import kaisai_race_date as _krd

@@ -92,10 +92,21 @@ def _mark(rank: int | None) -> str:
     return {1: "◎", 2: "○", 3: "▲", 4: "△"}.get(rank, "×") if rank else "—"
 
 
-def analyze(db: str) -> dict:
-    model = load_model()
+def analyze(db: str, is_girls: bool = True) -> dict:
+    """展開パターンの分岐比を実測する。
+
+    is_girls=False で男子モデル(39特徴)＋男子DBを使う。男子は決まり手構造がガールズと
+    真逆（男子 差50%/捲30%/逃19% vs ガールズ 逃21%/捲47%/差32%）なので、
+    ガールズの分岐比を男子に流用してはいけない。
+    """
+    from src.model.feature_sets import load_for
+    model, _elo, _lbl = load_for(is_girls)
+    if model is None:
+        raise SystemExit("モデルが見つかりません（男子は data/models/pl_model_men.pkl）")
     feats = list(model.feature_names)
-    base = load_samples(db, features=PL_FEATURES_FULL)
+    # 男子は7車・9車が混在する。車立てを絞らずに全部見る（分岐比は車立てに依らない構造の話）
+    base = load_samples(db, features=PL_FEATURES_FULL,
+                        field_size=7 if is_girls else [7, 9])
     samples = augment_samples(base, db, feats)
     res, bcnt = _load_ctx(db)
 
@@ -308,11 +319,13 @@ def emit_stats(recs: list[dict], out: Path) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="展開6パターンの発生率と紐構造")
     ap.add_argument("--db", default=str(DATA_DIR / "keirin.sqlite"))
+    ap.add_argument("--men", action="store_true",
+                    help="男子モデル・男子DBとして解析する（既定=ガールズ）")
     ap.add_argument("--apply", help="このdata.jsonの当日レースへ適用")
     ap.add_argument("--venue", default="", help="--apply時の会場フィルタ")
     ap.add_argument("--emit", help="本番参照用の統計JSONを書き出す先")
     args = ap.parse_args()
-    recs = analyze(args.db)["recs"]
+    recs = analyze(args.db, is_girls=not args.men)["recs"]
     report(recs)
     if args.emit:
         emit_stats(recs, Path(args.emit))

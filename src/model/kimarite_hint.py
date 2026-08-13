@@ -19,13 +19,17 @@ from pathlib import Path
 
 from src.features import venue_meta as vm
 
-STATS_PATH = Path(__file__).with_name("kimarite_stats.json")
+# 統計の所在は stats_profile.py が持つ（男女で別ファイル）。
 
 
 @lru_cache(maxsize=1)
-def _stats() -> dict:
+def _stats(is_girls: bool = True) -> dict:
+    from src.model.stats_profile import profile as _sp
+    path = _sp(is_girls).kimarite_stats
+    if path is None:
+        return {}
     try:
-        return json.loads(STATS_PATH.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
@@ -39,9 +43,9 @@ def _usable(cell: dict | None, min_n: int) -> bool:
     return bool(cell and cell.get("kim") and cell.get("n", 0) >= min_n)
 
 
-def hint(n_front: int, venue_code: str) -> dict | None:
+def hint(n_front: int, venue_code: str, is_girls: bool = True) -> dict | None:
     """{kimarite_hint, b_reliability, basis, bank} を返す。統計が無ければ None。"""
-    st = _stats()
+    st = _stats(is_girls)
     if not st:
         return None
     min_n = st.get("min_n", 60)

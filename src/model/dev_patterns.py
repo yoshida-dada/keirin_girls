@@ -17,7 +17,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-STATS_PATH = Path(__file__).with_name("dev_pattern_stats.json")
+# 統計の所在は src/model/stats_profile.py が持つ（男女で別ファイル）。ここでは直読みしない。
 MARKS = ["◎", "○", "▲", "△", "×"]
 
 def _pct(x: float) -> str:
@@ -89,10 +89,18 @@ def build_insights(top: list, allrows: list, cars: dict[str, str]) -> list[str]:
     return ins
 
 
-@lru_cache(maxsize=1)
-def load_stats() -> dict:
+@lru_cache(maxsize=4)
+def load_stats(is_girls: bool = True) -> dict:
+    """性別に応じた分岐比統計を読む。未実測なら {}（＝表示しない）。
+
+    男子は決まり手構造がガールズと真逆なので、ガールズ統計へフォールバックしない。
+    """
+    from src.model.stats_profile import profile
+    path = profile(is_girls).dev_pattern_stats
+    if path is None:
+        return {}
     try:
-        return json.loads(STATS_PATH.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
@@ -130,9 +138,9 @@ def _dist_list(d: dict | None, cars: dict[str, str], floor: float = 0.05) -> lis
 
 
 def build_dev_patterns(top1_prob: float | None, pace_level: str,
-                       riders: list, top_k: int = 3) -> dict | None:
+                       riders: list, top_k: int = 3, is_girls: bool = True) -> dict | None:
     """上位 top_k の展開パターンを返す。統計・入力が無ければ None。"""
-    st = load_stats()
+    st = load_stats(is_girls)
     if not st or not riders or top1_prob is None:
         return None
     rates = (st.get("pace_rates") or {}).get(_pace_key(pace_level))
