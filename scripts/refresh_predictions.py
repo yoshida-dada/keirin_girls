@@ -67,6 +67,7 @@ def _minutes_to_deadline(deadline: str, now: datetime, race_date: str | None = N
 def main() -> None:
     ap = argparse.ArgumentParser(description="最新オッズで予測EVを更新")
     ap.add_argument("--out", default=str(DEFAULT_OUT))
+    ap.add_argument("--out-men", help="男子の書き出し先（既定=--out と同じ場所の data_men.json）")
     ap.add_argument("--only-near", type=float,
                     help="締切まで N 分以内のレースだけ更新（Actions定期実行用）")
     ap.add_argument("--include", choices=["girls", "men", "all"], default="girls",
@@ -77,8 +78,12 @@ def main() -> None:
     args = ap.parse_args()
     set_default_interval(0.5)
 
+    # 男女でファイルを分ける（ダッシュボードも別ページ）。締切窓の判定は既存の
+    # data.json 側の締切キャッシュを使うので、読み込みは両方まとめて行う。
     out = Path(args.out)
+    out_men = Path(args.out_men) if args.out_men else out.with_name("data_men.json")
     doc = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {}
+    doc_men = json.loads(out_men.read_text(encoding="utf-8")) if out_men.exists() else {}
     now = datetime.now(JST)
     target = now.date()
     try:
@@ -97,7 +102,8 @@ def main() -> None:
     # キーは (date, venue, race_no)。日付を外すと同一会場のR番号が日をまたいで衝突する。
     tstr = target.isoformat()
     known = {(r.get("date") or tstr, r.get("venue"), r.get("race_no")): r
-             for r in doc.get("predictions", {}).get("races", [])}
+             for d in (doc, doc_men)
+             for r in d.get("predictions", {}).get("races", [])}
     dl_cache = {k2: r.get("deadline") for k2, r in known.items()}
 
     men_near = args.men_only_near if args.men_only_near is not None else args.only_near
@@ -145,29 +151,36 @@ def main() -> None:
     def _key(r: dict) -> tuple:
         return (r.get("date") or tstr, r.get("venue") or "", r.get("race_no") or 0)
 
-    if doc.get("predictions", {}).get("races"):
-        # 既存レース（前後1日を含む）を保持し、今回取得したぶんだけ差し替えマージ。
-        # only_near 指定の有無にかかわらず、他日のレースを消さない。
-        merged = {_key(r): r for r in doc["predictions"]["races"]}
-        for r in races:
-            merged[_key(r)] = r
-        races = sorted(merged.values(), key=_key)
-
-    doc.setdefault("predictions", {})
-    # 表示対象日（前後1日）。日付が変わっても morning build を待たずに追従させる。
     dates = [(target + timedelta(days=i)).isoformat() for i in (-1, 0, 1)]
-    doc["predictions"].update({
-        "status": "ok" if races else doc["predictions"].get("status", "pending"),
-        "date": target.isoformat(),
-        "dates": dates,
-        # model は build_predictions が入れた正しい値を尊重する（ここで上書きしない）
-        "model": doc["predictions"].get("model") or "LightGBM lambdarank",
-        "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
-        "last_updated": now.strftime("%Y-%m-%d %H:%M JST"),
-        "races": races if races else doc["predictions"].get("races", []),
-    })
-    out.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"更新: {out}  レース{len(doc['predictions']['races'])}  {now:%H:%M JST}")
+
+    def _write(path: Path, d: dict, got: list) -> None:
+        """既存レースを保持しつつ今回取得ぶんを差し替えて書く。取得0なら既存のまま。"""
+        if not d.get("predictions") and not got:
+            return                       # そのファイル自体が無い（例: ガールズ非開催日）
+        if d.get("predictions", {}).get("races"):
+            # 既存レース（前後1日を含む）を保持し、今回取得したぶんだけ差し替えマージ。
+            # only_near 指定の有無にかかわらず、他日のレースを消さない。
+            merged = {_key(r): r for r in d["predictions"]["races"]}
+            for r in got:
+                merged[_key(r)] = r
+            got = sorted(merged.values(), key=_key)
+        d.setdefault("predictions", {})
+        d["predictions"].update({
+            "status": "ok" if got else d["predictions"].get("status", "pending"),
+            "date": target.isoformat(),
+            # 表示対象日（前後1日）。日付が変わっても morning build を待たずに追従させる。
+            "dates": dates,
+            # model は build_predictions が入れた正しい値を尊重する（ここで上書きしない）
+            "model": d["predictions"].get("model") or "LightGBM lambdarank",
+            "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
+            "last_updated": now.strftime("%Y-%m-%d %H:%M JST"),
+            "races": got if got else d["predictions"].get("races", []),
+        })
+        path.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"更新: {path}  レース{len(d['predictions']['races'])}  {now:%H:%M JST}")
+
+    _write(out, doc, [r for r in races if r.get("is_girls") is not False])
+    _write(out_men, doc_men, [r for r in races if r.get("is_girls") is False])
 
 
 if __name__ == "__main__":

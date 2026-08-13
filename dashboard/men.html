@@ -1,0 +1,1455 @@
+<meta charset="utf-8">
+<title>競輪予測AI（男子）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7048e8">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="競輪予測AI">
+<style>
+:root{
+  --bg:#f4f1fb; --surface:#ffffff; --surface2:#f7f4fd; --ink:#1e1633; --muted:#6b6480;
+  --border:#e5dff2; --border2:#efe9f8; --accent:#7048e8; --accent-soft:#e9e2fb;
+  --good:#2f9e44; --good-soft:#e4f5e8; --edge:#1098ad; --edge-soft:#d8f1f4;
+  --loss:#e03131; --loss-soft:#fbe3e3; --warn:#e8a800;
+  --shadow:0 1px 2px rgba(50,30,80,.06),0 8px 22px -12px rgba(50,30,80,.18);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141019; --surface:#1d1726; --surface2:#231b30; --ink:#ece7f5; --muted:#9a8fb0;
+  --border:#302640; --border2:#281f36; --accent:#9775fa; --accent-soft:#2a2140;
+  --good:#51cf66; --good-soft:#173021; --edge:#3bc9db; --edge-soft:#0e2c30;
+  --loss:#ff6b6b; --loss-soft:#331a1a; --warn:#f0c040;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 28px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme="light"]{--bg:#f4f1fb;--surface:#ffffff;--surface2:#f7f4fd;--ink:#1e1633;--muted:#6b6480;--border:#e5dff2;--border2:#efe9f8;--accent:#7048e8;--accent-soft:#e9e2fb;--good:#2f9e44;--good-soft:#e4f5e8;--edge:#1098ad;--edge-soft:#d8f1f4;--loss:#e03131;--loss-soft:#fbe3e3;--warn:#e8a800;--shadow:0 1px 2px rgba(50,30,80,.06),0 8px 22px -12px rgba(50,30,80,.18);}
+:root[data-theme="dark"]{--bg:#141019;--surface:#1d1726;--surface2:#231b30;--ink:#ece7f5;--muted:#9a8fb0;--border:#302640;--border2:#281f36;--accent:#9775fa;--accent-soft:#2a2140;--good:#51cf66;--good-soft:#173021;--edge:#3bc9db;--edge-soft:#0e2c30;--loss:#ff6b6b;--loss-soft:#331a1a;--warn:#f0c040;--shadow:0 1px 2px rgba(0,0,0,.35),0 10px 28px -14px rgba(0,0,0,.7);}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.wrap{max-width:680px;margin:0 auto;padding:0 14px calc(48px + env(safe-area-inset-bottom))}
+
+header{padding:calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 6px calc(14px + env(safe-area-inset-left));max-width:680px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.16rem;letter-spacing:.01em}
+.brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 4px var(--accent-soft)}
+.gen{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:500;text-align:right}
+.theme-btn{background:var(--surface);border:1px solid var(--border);color:var(--ink);border-radius:9px;
+  padding:6px 11px;font-size:.78rem;font-weight:700;font-family:inherit;cursor:pointer}
+
+.notice{max-width:680px;margin:8px auto 0;padding:0 14px}
+.notice .box{background:var(--accent-soft);border:1px solid var(--accent);border-radius:11px;
+  padding:9px 12px;font-size:.74rem;color:var(--ink);line-height:1.55}
+.notice .box b{color:var(--accent)}
+
+.sect{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:24px 2px 4px}
+.sub{font-size:.72rem;color:var(--muted);margin:0 2px 10px;line-height:1.5}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow)}
+
+.badge{display:inline-block;font-size:.6rem;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px}
+.badge.sample{background:var(--accent-soft);color:var(--accent)}
+.badge.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.badge.ok{background:var(--good-soft);color:var(--good)}
+
+.empty{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:18px 14px;
+  text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6}
+
+/* tables */
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);background:var(--surface)}
+table.t{width:100%;border-collapse:collapse;font-size:.82rem;min-width:460px}
+table.t th{position:sticky;top:0;background:var(--surface2);font-size:.64rem;letter-spacing:.02em;color:var(--muted);
+  font-weight:800;padding:8px 8px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;z-index:1}
+table.t th.l,table.t td.l{text-align:left}
+table.t td{padding:8px 8px;text-align:right;border-bottom:1px solid var(--border2);white-space:nowrap;font-variant-numeric:tabular-nums}
+table.t tr:last-child td{border-bottom:none}
+.combo{font-weight:800;letter-spacing:.03em}
+.evp{color:var(--good);font-weight:800}
+.evp.lo{color:var(--muted)}
+.rtag{font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.rtag.axis{background:var(--good-soft);color:var(--good)}
+.rtag.std{background:var(--edge-soft);color:var(--edge)}
+.rtag.chaos{background:var(--accent-soft);color:var(--accent)}
+/* 波乱確率バッジ。しきい値は実測波乱率（軸堅16.4%/標準43.9%/混戦63.9%）に合わせた */
+.upt{display:inline-block;font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.upt.lo{background:var(--good-soft);color:var(--good)}
+.upt.mid{background:var(--edge-soft);color:var(--edge)}
+.upt.hi{background:var(--accent-soft);color:var(--accent)}
+.upt.na{background:var(--surface2);color:var(--muted)}
+.tfoot-row td{background:var(--surface2);font-weight:800;border-top:2px solid var(--border)}
+
+/* toggle */
+.secthead{display:flex;align-items:center;gap:8px;margin:24px 2px 4px;flex-wrap:wrap}
+.secthead .sect{margin:0}
+.sec-upd{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:600;white-space:nowrap;flex:none;display:none}
+.sec-upd.on{display:inline-flex;align-items:center;gap:3px}
+.sec-upd b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.secthead .vtoggle+.sec-upd,.secthead .sec-upd+.vtoggle{margin-left:8px}
+.vtoggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:none;margin-left:auto}
+.vtoggle button{background:var(--surface);border:none;color:var(--muted);font-family:inherit;font-size:.72rem;
+  font-weight:800;padding:5px 12px;cursor:pointer}
+.vtoggle button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.vtoggle button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* heatmap */
+.hmwrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);background:var(--surface)}
+table.hm{border-collapse:collapse;width:100%;min-width:520px;font-size:.8rem}
+table.hm th{font-size:.66rem;color:var(--muted);font-weight:800;padding:8px 5px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--border)}
+table.hm th.l,table.hm td.l{text-align:left;padding-left:10px}
+table.hm td{padding:0;border-bottom:1px solid var(--border2);text-align:center}
+table.hm td.l{padding:8px 10px;font-weight:800}
+.hcell{height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.08;border-radius:8px;margin:3px}
+.hcell .r{font-weight:800;font-variant-numeric:tabular-nums;font-size:.92rem}
+.hcell .n{font-size:.58rem;opacity:.8}
+.hcell.empty{color:var(--muted);background:repeating-linear-gradient(45deg,transparent,transparent 5px,var(--border2) 5px,var(--border2) 6px)}
+.legend{display:flex;gap:14px;justify-content:center;align-items:center;font-size:.68rem;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+
+/* dist bars */
+.barrow{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:.78rem}
+.barrow .bl{width:118px;flex:none;display:flex;align-items:center;gap:7px}
+.bartrack{flex:1;height:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;position:relative;overflow:hidden}
+.barfill{height:100%;border-radius:5px 0 0 5px}
+.ref100{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.6}
+.barrow .bv{width:74px;flex:none;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.dot-sw{width:11px;height:11px;border-radius:3px;flex:none}
+
+/* svg charts */
+.tksvg{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+.note{font-size:.7rem;color:var(--muted);margin-top:9px;line-height:1.6}
+.kpirow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.kpi{flex:1 1 130px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;box-shadow:var(--shadow)}
+.kpi .kl{font-size:.66rem;color:var(--muted);font-weight:700}
+.kpi .kv{font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;line-height:1.1}
+.kpi .kv.pos{color:var(--good)} .kpi .kv.neg{color:var(--loss)}
+.kpi .kn{font-size:.62rem;color:var(--muted);margin-top:2px}
+
+/* data status */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:520px){.tiles{grid-template-columns:repeat(3,1fr)}}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 12px;box-shadow:var(--shadow)}
+.tile .tl{font-size:.66rem;color:var(--muted);font-weight:700}
+.tile .tv{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;line-height:1.1}
+.tile .tn{font-size:.62rem;color:var(--muted);margin-top:2px}
+.fsrow{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+.fspill{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:6px 11px;font-size:.74rem;font-weight:700}
+.fspill b{color:var(--accent)}
+
+/* predictions (本日のレース予測) */
+.pred-disc{background:var(--warn);color:#3a2c00;border-radius:11px;padding:9px 12px;font-size:.73rem;line-height:1.55;font-weight:600;margin-bottom:14px}
+:root[data-theme="dark"] .pred-disc{color:#1a1400}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .pred-disc{color:#1a1400}}
+.pred-venue{margin:0 0 12px;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.pred-venue>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;padding:11px 14px;font-weight:800;font-size:.95rem;user-select:none}
+.pred-venue>summary::-webkit-details-marker{display:none}
+.pred-venue>summary .chev{margin-left:auto;color:var(--muted);font-size:.8rem;transition:transform .15s}
+.pred-venue[open]>summary .chev{transform:rotate(90deg)}
+.pred-venue>summary .vcount{font-size:.68rem;font-weight:700;color:var(--muted)}
+.pred-races{padding:0 12px 6px}
+.pred-race{border-top:1px solid var(--border2);padding:12px 2px 14px}
+.pred-race:first-child{border-top:none}
+.pred-rhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.pred-rno{font-weight:800;font-size:1.02rem}
+.pred-rno small{font-size:.68rem;color:var(--muted);font-weight:700;margin-left:3px}
+.pred-dl{font-size:.68rem;color:var(--muted);font-weight:700}
+.pred-src{margin-left:auto;font-size:.6rem;color:var(--muted);font-weight:700;text-align:right}
+.pred-top1{font-size:.66rem;color:var(--muted);font-weight:700;margin:2px 0 9px}
+.pred-top1 b{color:var(--ink);font-variant-numeric:tabular-nums}
+.carno{width:22px;height:22px;flex:none;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.78rem;font-variant-numeric:tabular-nums;border:1px solid rgba(0,0,0,.18)}
+/* 出走表（列可変テーブル）。車/選手は横スクロールでも左に固定表示 */
+.rt-wrap{margin:2px 0 2px}
+table.rt{border-collapse:collapse;width:100%;min-width:max-content;font-size:.76rem}
+table.rt th{position:sticky;top:0;z-index:1;background:var(--surface2);font-size:.6rem;letter-spacing:.02em;color:var(--muted);font-weight:800;padding:6px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+table.rt td{padding:6px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border2);font-variant-numeric:tabular-nums;font-weight:700}
+table.rt th.l,table.rt td.l{text-align:left}
+table.rt td.strong,table.rt th.strong{font-weight:800}
+table.rt td.strong{color:var(--ink);font-size:.84rem}
+table.rt td s{color:var(--muted);text-decoration:none;font-size:.82em;font-weight:700;margin-left:2px}
+table.rt th.rt-car,table.rt td.rt-car{position:sticky;left:0;z-index:2;width:30px;min-width:30px;text-align:center;padding-left:4px;padding-right:4px;background:var(--surface)}
+table.rt th.rt-car{z-index:3;background:var(--surface2)}
+table.rt th.rt-name,table.rt td.rt-name{position:sticky;left:30px;z-index:2;background:var(--surface);font-weight:800;vertical-align:top}
+table.rt td.rt-name{padding-top:6px}
+table.rt th.rt-name{z-index:3;background:var(--surface2)}
+/* 出走表に統合した今場所成績（選手名の下） */
+.rt .rn-nm{display:block;white-space:nowrap;font-weight:800}
+.rt .rn-home{display:inline-block;margin-left:6px;font-size:.56rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:1px 5px;vertical-align:middle;letter-spacing:.03em}
+.rt .rn-home.dist{background:var(--muted)}
+.rt .rn-meet{display:flex;gap:5px;align-items:baseline;margin-top:2px;font-size:.6rem;font-weight:700;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rt .rn-meet .rn-md{color:var(--muted)}
+.rt .rn-meet .rn-mr{color:var(--muted)}
+.rt .rn-meet .rn-mp{color:var(--ink);font-weight:800}
+.rt .rn-meet .rn-mp.p1{color:#e03131}
+.rt .rn-meet .rn-mp.p3{color:var(--accent)}
+.rt .rn-meet .rn-ml{color:var(--muted)}
+table.rt tr.rt-top td{background:var(--accent-soft)}
+table.rt tr.rt-top td.rt-car,table.rt tr.rt-top td.rt-name{background:var(--accent-soft)}
+/* レース番号タブ（会場選択後に表示） */
+.pred-rtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.pred-rtab{background:var(--surface);border:1px solid var(--border);color:var(--ink);font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 11px;border-radius:9px;min-width:52px}
+.pred-rtab .rn{font-size:.82rem;font-weight:800;font-variant-numeric:tabular-nums}
+.pred-rtab .dl{font-size:.58rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.pred-rtab .done{font-size:.54rem;font-weight:800;color:var(--good)}
+.pred-rtab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.pred-rtab[aria-selected="true"] .dl,.pred-rtab[aria-selected="true"] .done{color:rgba(255,255,255,.85)}
+.pred-rtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pred-rpanel .pred-vbox{border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);padding:2px 14px 12px}
+/* レース内 予測／確定結果 タブ */
+.rc-tabs{display:flex;gap:6px;margin:10px 0 4px}
+.rc-tab{flex:1 1 0;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.8rem;font-weight:800;padding:8px 10px;border-radius:10px;cursor:pointer}
+.rc-tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.rc-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rc-pane[hidden]{display:none}
+/* 確定結果 */
+.res{margin:6px 0 12px;border:1px solid var(--good);border-radius:11px;background:var(--good-soft);overflow:hidden}
+.res-head{padding:8px 11px;font-size:.78rem;font-weight:800;color:var(--good);display:flex;align-items:center;gap:8px}
+.res-head .res-time{margin-left:auto;font-size:.62rem;font-weight:700;color:var(--muted)}
+.res .tblwrap{border-radius:0;border-left:none;border-right:none;background:var(--surface)}
+table.res-t{font-size:.76rem}
+table.res-t th.res-pos,table.res-t td.res-pos{position:static;width:26px;min-width:26px;text-align:center;font-weight:800}
+table.res-t th.res-car,table.res-t td.res-car{position:static;width:30px;min-width:30px;text-align:center}
+table.res-t tr.res-tr.p1 td{background:var(--accent-soft)}
+table.res-t td.res-pos{color:var(--ink)}
+table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
+.res-sb{font-size:.6rem;font-weight:800;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 3px;margin-left:2px}
+.res-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:9px 11px;font-size:.72rem;font-weight:700;color:var(--ink)}
+.res-foot .res-yen{color:var(--good);font-variant-numeric:tabular-nums}
+.res-foot .res-pop{font-size:.64rem;color:var(--muted);font-weight:700}
+.res-hit{font-size:.64rem;font-weight:800;border-radius:999px;padding:2px 9px}
+.res-hit.ok{background:var(--good-soft);color:var(--good);border:1px solid var(--good)}
+.res-hit.ng{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
+/* 列表示・並び順の設定パネル */
+.cc{margin:0 0 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.cc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:.76rem;font-weight:800;user-select:none}
+.cc>summary::-webkit-details-marker{display:none}
+.cc>summary .cc-hint{font-size:.62rem;font-weight:700;color:var(--muted)}
+.cc>summary .chev{margin-left:auto;color:var(--muted);font-size:.8rem;transition:transform .15s}
+.cc[open]>summary .chev{transform:rotate(90deg)}
+.cc>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cc-body{padding:2px 12px 12px}
+.cc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.cc-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 9px}
+.cc-chk{flex:1 1 auto;display:flex;align-items:center;gap:8px;font-size:.76rem;font-weight:700;cursor:pointer}
+.cc-chk input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+.cc-move{flex:none;display:flex;gap:4px}
+.cc-btn{width:30px;height:28px;border:1px solid var(--border);background:var(--surface);border-radius:7px;color:var(--ink);font-size:.7rem;cursor:pointer;font-family:inherit}
+.cc-btn:disabled{opacity:.35;cursor:default}
+.cc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.cc-actions{margin-top:9px}
+.cc-reset{border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:800;color:var(--ink);cursor:pointer;font-family:inherit}
+.cc-note{font-size:.62rem;color:var(--muted);font-weight:600;margin:8px 0 0;line-height:1.5}
+.pred-tfhead{font-size:.64rem;letter-spacing:.04em;color:var(--muted);font-weight:800;margin:12px 2px 5px;text-transform:uppercase}
+.oddson{color:var(--good);font-weight:800}
+/* 展開予想（並び予想＝車番のみ1行 ＋ 展開パターン） */
+.dev{margin:10px 2px 4px;padding:10px 12px;border:1px solid var(--border2);border-radius:10px;background:var(--surface2)}
+.dev-head{font-size:.72rem;font-weight:800;display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--ink)}
+.dev-src{font-size:.6rem;color:var(--muted);font-weight:600}
+.dev-narabi-h,.dev-pat-h{font-size:.6rem;letter-spacing:.03em;color:var(--muted);font-weight:800;margin:9px 2px 4px;text-transform:uppercase}
+.dev-line{display:flex;flex-wrap:nowrap;align-items:center;gap:3px;overflow-x:auto;padding-bottom:2px}
+.dev-node{display:inline-flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:2px 6px;flex:none}
+.dev-arrow{color:var(--muted);font-size:.62rem;flex:none}
+.dev-fav{color:#e8590c;font-weight:800}
+.dev-pats{display:flex;flex-direction:column;gap:5px}
+.dev-pat{display:flex;align-items:center;gap:8px;font-size:.72rem}
+.dev-pat-i{width:1.3em;text-align:center;flex:none}
+.dev-pat-l{font-weight:700;min-width:9.5em}
+.dev-pat-p{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent);min-width:2.8em;text-align:right}
+.dev-pat-c{color:var(--muted);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.dev-bs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.74rem;font-weight:700}
+.dev-bs b{color:var(--accent)}
+.dev-bs-2{color:var(--muted);font-weight:600}
+.dev-bs-hit{font-size:.58rem;color:var(--muted);font-weight:700;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+.dev-bs-div{margin-top:4px}
+.dev-div{font-size:.62rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:2px 7px}
+.dev-agree{font-size:.62rem;font-weight:700;color:var(--muted)}
+.dev-pace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.72rem;font-weight:700}
+.dev-pace-lv{font-size:.62rem;font-weight:800;color:#fff;border-radius:5px;padding:2px 7px}
+.dev-pace-lv.lv-hi{background:#e8590c}.dev-pace-lv.lv-mid{background:var(--accent)}.dev-pace-lv.lv-lo{background:var(--muted)}
+.dev-pace-n{color:var(--ink)}
+.dev-pace-note{color:var(--muted);font-weight:600}
+.dev-pace-km{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+.dev-note{font-size:.7rem;font-weight:600;line-height:1.55;color:var(--ink);margin-top:8px}
+.dev-caveat{font-size:.62rem;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
+/* 展開シナリオ上位3（実測分岐比）。◎勝ち=緑系・◎負け=アクセント系で地色を分ける */
+.sc{margin-top:9px}
+.sc-item{border:1px solid var(--border2);border-radius:9px;padding:7px 9px;margin-top:6px;background:var(--surface)}
+.sc-item.lose{border-color:var(--accent-soft);background:var(--accent-soft)}
+.sc-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.sc-rank{font-size:.6rem;font-weight:800;color:var(--muted);min-width:1.2em}
+.sc-key{font-size:.72rem;font-weight:800;color:var(--ink)}
+.sc-prob{margin-left:auto;font-size:.8rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--good)}
+.sc-item.lose .sc-prob{color:var(--accent)}
+.sc-bar{height:4px;border-radius:999px;background:var(--surface2);margin-top:5px;overflow:hidden}
+.sc-bar>span{display:block;height:100%;background:var(--good)}
+.sc-item.lose .sc-bar>span{background:var(--accent)}
+.sc-line{display:flex;gap:6px;margin-top:5px;font-size:.63rem;font-weight:600;line-height:1.5}
+.sc-lbl{flex:none;width:4.6em;color:var(--muted);font-weight:700}
+.sc-dist{color:var(--ink);font-variant-numeric:tabular-nums}
+.sc-dist b{font-weight:800}
+.sc-fav{margin-top:5px;font-size:.63rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+.sc-fav em{font-style:normal;color:var(--good);font-weight:800}
+.sc-ins{margin-top:9px;padding:8px 10px;border-radius:9px;background:var(--surface2);
+  font-size:.65rem;font-weight:600;line-height:1.6;color:var(--ink)}
+.sc-ins li{margin:3px 0 3px 1.1em}
+.sc-ins .h{font-weight:800;font-size:.68rem;display:block;margin-bottom:3px}
+/* 隊列位置別の1着確率（横棒）。前→後の順序尺度なので単一色相のランプ（前=濃/後=淡）。
+   dataviz の ordinal 検証を通過: 単調・隣接ΔL 0.093/0.095・淡端 2.11:1 / 2.15:1・色相幅3° */
+.pp{--p0:#1c5cab;--p1:#2a78d6;--p2:#5598e7;--p3:#86b6ef;margin-top:4px}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .pp{
+  --p0:#184f95;--p1:#2a78d6;--p2:#5598e7;--p3:#9ec5f4}}
+:root[data-theme="dark"] .pp{--p0:#184f95;--p1:#2a78d6;--p2:#5598e7;--p3:#9ec5f4}
+.pp-row{margin:7px 0}
+.pp-h{display:flex;align-items:baseline;gap:6px}
+.pp-i{font-size:.8rem;flex:none}
+.pp-l{font-size:.68rem;font-weight:800;color:var(--ink)}
+.pp-p{margin-left:auto;font-size:.78rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pp-bar{height:9px;border-radius:0 4px 4px 0;background:var(--surface2);margin-top:3px;overflow:hidden}
+.pp-bar>span{display:block;height:100%;border-radius:0 4px 4px 0;min-width:2px}
+.pp-bar>span.s0{background:var(--p0)} .pp-bar>span.s1{background:var(--p1)}
+.pp-bar>span.s2{background:var(--p2)} .pp-bar>span.s3{background:var(--p3)}
+.pp-bar>span.sx{background:var(--border)}
+.pp-mem{display:flex;flex-wrap:wrap;gap:4px 9px;margin-top:4px}
+.pp-m{display:inline-flex;align-items:center;gap:3px}
+.pp-mn{font-size:.62rem;font-weight:700;color:var(--muted);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:6.5em}
+/* 全車の主導権確率。1変数の大小比較なので単一色（sequentialの既定）。最有力のみ濃色で強調 */
+.bs-list{margin-top:6px}
+.bs-row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.bs-car{display:inline-flex;align-items:center;gap:4px;flex:none;min-width:8.5em}
+.bs-nm{font-size:.63rem;font-weight:700;color:var(--ink);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:5.5em}
+.bs-tag{font-size:.55rem;font-weight:800;padding:1px 5px;border-radius:999px;
+  background:var(--surface2);color:var(--muted);white-space:nowrap}
+.bs-bar{flex:1;height:8px;border-radius:0 4px 4px 0;background:var(--surface2);overflow:hidden;min-width:40px}
+.bs-bar>span{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--edge);opacity:.45;min-width:2px}
+.bs-bar>span.top{opacity:1}
+.bs-p{flex:none;font-size:.66rem;font-weight:800;font-variant-numeric:tabular-nums;
+  color:var(--ink);min-width:2.4em;text-align:right}
+/* バンク特性。諸元は説明用（予測根拠ではない）ので主張の弱い地色にする */
+.bk{margin:8px 0 10px;padding:9px 11px;border:1px solid var(--border2);border-radius:11px;background:var(--surface2)}
+.bk-head{font-size:.72rem;font-weight:800;color:var(--ink);display:flex;align-items:baseline;gap:7px}
+.bk-v{font-size:.66rem;font-weight:700;color:var(--muted)}
+.bk-nums{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+.bk-nums span{display:flex;align-items:baseline;gap:4px;font-size:.62rem;color:var(--muted);font-weight:700}
+.bk-nums b{font-size:1rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.bk-nums em{font-style:normal}
+.bk-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.bk-chip{font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:var(--surface);color:var(--muted);border:1px solid var(--border2)}
+.bk-adv{margin-top:7px;font-size:.7rem;font-weight:800;padding:5px 9px;border-radius:8px}
+.bk-adv.esc{background:var(--good-soft);color:var(--good)}
+.bk-adv.sas{background:var(--edge-soft);color:var(--edge)}
+.bk-adv.mak{background:var(--accent-soft);color:var(--accent)}
+.bk-adv.flat{background:var(--surface);color:var(--muted);font-weight:700}
+.bk-kim{margin-top:5px;font-size:.63rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.bk-kim.sub{color:var(--muted)}
+/* 展開6パターンの円グラフ。dataviz検証済みカテゴリカル配色（6スロット固定順）。
+   light/darkとも 明度帯・彩度・CVD分離・通常視力フロアを通過（輪の折返しペア含む）。
+   lightでは magenta/yellow/aqua が3:1未満のため、全スライスに直接ラベルを必須とする。 */
+.pie{--s1:#2a78d6;--s2:#008300;--s3:#e87ba4;--s4:#eda100;--s5:#1baf7a;--s6:#eb6834;
+  margin-top:10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .pie{
+  --s1:#3987e5;--s2:#008300;--s3:#d55181;--s4:#c98500;--s5:#199e70;--s6:#d95926}}
+:root[data-theme="dark"] .pie{--s1:#3987e5;--s2:#008300;--s3:#d55181;--s4:#c98500;--s5:#199e70;--s6:#d95926}
+.pie-svg{flex:none}
+.pie-svg path{stroke:var(--surface);stroke-width:2}   /* スライス間2pxのサーフェス間隙 */
+.pie-c1{font-size:.58rem;font-weight:700;fill:var(--muted)}
+.pie-c2{font-size:1.05rem;font-weight:800;fill:var(--ink)}
+.pie-lg{flex:1;min-width:190px;display:grid;grid-template-columns:auto 1fr auto;gap:3px 8px;align-items:center}
+.pie-sw{width:11px;height:11px;border-radius:3px}
+.pie-nm{font-size:.66rem;font-weight:700;color:var(--ink)}
+.pie-nm em{font-style:normal;color:var(--muted);font-weight:600;font-size:.92em}
+.pie-v{font-size:.68rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pie-note{font-size:.62rem;color:var(--muted);font-weight:600;line-height:1.5;margin-top:6px}
+/* 参考フォーメーション（実弾非推奨） */
+.rf{margin:12px 2px 4px;padding:10px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface2)}
+.rf-head{font-size:.72rem;font-weight:800;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rf-pk{font-size:.6rem;font-weight:800;color:#fff;background:#e8590c;border-radius:6px;padding:2px 7px}
+.rf-pk.none{background:var(--muted)}
+.rf-combos{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px}
+.rf-combo{font-variant-numeric:tabular-nums;font-weight:800;font-size:.82rem;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:3px 9px;letter-spacing:.03em}
+.rf-model{font-size:.66rem;color:var(--muted);font-weight:600;margin:2px 0 6px}
+.rf-hist-t{font-size:.62rem;letter-spacing:.03em;color:var(--muted);font-weight:800;margin:6px 2px 4px;text-transform:uppercase}
+.rf-hist table.t{max-width:280px}
+.rf-note{font-size:.64rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.5}
+/* predictions: last-updated banner */
+.pred-updated{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:8px 12px;margin-bottom:12px;font-size:.72rem;color:var(--muted);font-weight:600;line-height:1.5}
+.pred-updated .lu{color:var(--ink);font-size:.82rem;font-weight:700}
+.pred-updated .lu b{color:var(--accent);font-variant-numeric:tabular-nums}
+.pred-updated .uiv{margin-left:auto;font-size:.6rem;color:var(--muted);opacity:.75;font-variant-numeric:tabular-nums}
+/* predictions: venue tabs */
+.pred-vtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pred-vtab{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.78rem;font-weight:800;padding:7px 13px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.pred-vtab .vc{font-size:.64rem;font-weight:700;background:var(--surface2);color:var(--muted);border-radius:999px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.pred-vtab[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pred-vtab[aria-selected="true"] .vc{background:rgba(255,255,255,.22);color:#fff}
+.pred-vtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* 日付タブ（昨日/今日/明日）。会場タブより一段上の階層なので枠線を強めて区別する */
+.pred-dtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.pred-dtab{background:var(--surface2);border:1.5px solid var(--border2);color:var(--muted);
+  font-family:inherit;font-size:.76rem;font-weight:800;padding:7px 14px;border-radius:999px;
+  cursor:pointer;display:flex;align-items:center;gap:6px}
+.pred-dtab .vc{font-size:.62rem;font-weight:700;background:var(--surface);color:var(--muted);
+  border-radius:999px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.pred-dtab[aria-selected="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.pred-dtab[aria-selected="true"] .vc{background:rgba(255,255,255,.22);color:var(--surface)}
+.pred-dtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pred-vbox{border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);padding:2px 14px 8px}
+.pred-vpanel[hidden]{display:none}
+/* predictions: per-race update time */
+.pred-rupd{font-size:.6rem;color:var(--muted);font-weight:700}
+/* predictions: EV block */
+.pred-ev{margin-top:12px;border:1px solid var(--edge);border-radius:11px;background:var(--edge-soft);padding:9px 11px}
+.pred-ev-head{font-size:.72rem;font-weight:800;color:var(--edge);display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.pred-ev-head .nb{font-variant-numeric:tabular-nums;font-size:.82rem}
+.pred-ev-head .more{font-size:.6rem;color:var(--muted);font-weight:700}
+.pred-ev-none{font-size:.74rem;font-weight:700;color:var(--muted)}
+.pred-ev .tblwrap{margin-top:8px}
+/* EV買い目: 全買いサマリ・1着車タブ・車頭別サマリ */
+.ev-allsum{margin-top:8px;background:var(--surface);border:1px solid var(--edge);border-radius:9px;padding:7px 10px;font-size:.72rem;font-weight:700;color:var(--ink);line-height:1.5}
+.ev-allsum b{color:var(--edge);font-variant-numeric:tabular-nums}
+.ev-sel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+.ev-tab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 6px 3px 3px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;line-height:1}
+.ev-tab[aria-selected="true"]{border-color:var(--edge);box-shadow:0 0 0 2px var(--edge-soft)}
+.ev-tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ev-tab .ev-tc{font-size:.6rem;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.ev-subsum{font-size:.7rem;font-weight:700;color:var(--ink);margin:2px 0 4px}
+.ev-subsum b{color:var(--edge);font-variant-numeric:tabular-nums}
+.pred-ev-note{font-size:.64rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.5}
+/* predictions: 三連単オッズテーブル（1着固定マトリクス） */
+.om{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
+.om>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:.74rem;font-weight:800;color:var(--ink);user-select:none}
+.om>summary::-webkit-details-marker{display:none}
+.om>summary .om-lab{font-size:.66rem;font-weight:700;color:var(--muted)}
+.om>summary .chev{margin-left:auto;color:var(--muted);font-size:.8rem;transition:transform .15s}
+.om[open]>summary .chev{transform:rotate(90deg)}
+.om>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.om-body{padding:0 11px 11px}
+.om-sel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+.om-sellab{font-size:.64rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.om-tab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px;cursor:pointer;line-height:0;font-family:inherit}
+.om-tab[aria-selected="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.om-tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+table.om-t{border-collapse:separate;border-spacing:2px;font-size:.72rem;min-width:340px;margin:0 auto}
+table.om-t th{font-size:.64rem;color:var(--muted);font-weight:800;padding:2px;text-align:center;white-space:nowrap}
+table.om-t th.om-corner{font-size:.56rem;color:var(--muted);font-weight:700}
+.om-cell{min-width:52px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;border-radius:7px;background:var(--surface);border:1px solid var(--border2)}
+.om-cell .o{font-weight:800;font-variant-numeric:tabular-nums;font-size:.8rem}
+.om-cell .p{font-size:.56rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.om-cell .e{font-size:.54rem;font-weight:800;color:var(--good);font-variant-numeric:tabular-nums}
+.om-cell.na,.om-cell.dead{color:var(--muted);font-weight:700;background:var(--surface2)}
+.om-cell.dead{background:repeating-linear-gradient(45deg,transparent,transparent 5px,var(--border2) 5px,var(--border2) 6px)}
+.om-cell.hi{background:var(--good-soft);border-color:var(--good)}
+.om-cell.hi .o{color:var(--good)}
+.om-none{font-size:.72rem;font-weight:700;color:var(--muted);padding:2px 0 4px}
+.om-legend{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:.64rem;color:var(--muted);margin-top:9px}
+.om-legend .om-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;background:var(--good-soft);border:1px solid var(--good)}
+/* predictions: 三連単オッズテーブル 常時表示ヘッダ */
+.om-head{display:flex;align-items:center;gap:8px;padding:9px 11px 0;font-size:.74rem;font-weight:800;color:var(--ink)}
+.om-head .om-lab{font-size:.66rem;font-weight:700;color:var(--muted);margin-left:auto}
+/* predictions: 過去対戦成績マトリクス */
+.h2h{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
+.h2h>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:.74rem;font-weight:800;color:var(--ink);user-select:none}
+.h2h>summary::-webkit-details-marker{display:none}
+.h2h>summary .h2h-lab{font-size:.66rem;font-weight:700;color:var(--muted)}
+.h2h>summary .chev{margin-left:auto;color:var(--muted);font-size:.8rem;transition:transform .15s}
+.h2h[open]>summary .chev{transform:rotate(90deg)}
+.h2h>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.h2h-body{padding:0 11px 11px}
+table.h2h-t{border-collapse:separate;border-spacing:2px;font-size:.72rem;min-width:320px;margin:0 auto}
+table.h2h-t th{font-size:.64rem;color:var(--muted);font-weight:800;padding:2px;text-align:center;white-space:nowrap}
+table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
+.h2h-cell{min-width:46px;height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;border-radius:7px;background:var(--surface);border:1px solid var(--border2)}
+.h2h-cell .wl{font-weight:800;font-variant-numeric:tabular-nums;font-size:.8rem}
+.h2h-cell .n{font-size:.54rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.h2h-cell.na,.h2h-cell.dead{color:var(--muted);font-weight:700;background:var(--surface2)}
+.h2h-cell.dead{background:repeating-linear-gradient(45deg,transparent,transparent 5px,var(--border2) 5px,var(--border2) 6px)}
+.h2h-cell.adv{background:rgba(47,158,68,.15);border-color:var(--good)}
+.h2h-cell.adv .wl{color:var(--good)}
+.h2h-cell.dis{background:rgba(224,49,49,.13);border-color:#e03131}
+.h2h-cell.dis .wl{color:#e03131}
+.h2h-legend{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:.62rem;color:var(--muted);margin-top:9px}
+.h2h-legend .h2h-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.h2h-legend .h2h-sw.adv{background:rgba(47,158,68,.15);border:1px solid var(--good)}
+.h2h-legend .h2h-sw.dis{background:rgba(224,49,49,.13);border:1px solid #e03131}
+.h2h-names{font-size:.6rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.6;text-align:center}
+
+/* predictions: 本日のハイライト（妙味サマリ・買い目推奨ではない） */
+.hl-card{margin-bottom:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.hl-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:11px 14px 0}
+.hl-title{font-weight:800;font-size:.95rem}
+.hl-count{font-size:.66rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.hl-note{font-size:.66rem;color:var(--muted);font-weight:600;line-height:1.5;padding:6px 14px 10px;margin:0}
+.hl-card .tblwrap{margin:0 14px 12px;width:auto}
+.hl-honmei{display:flex;align-items:center;gap:7px;min-width:0}
+.hl-honmei .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:8em}
+.hl-spice{display:inline-block;font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap;background:var(--edge-soft);color:var(--edge)}
+.hl-spice.none{background:var(--surface2);color:var(--muted)}
+.hl-ev{font-weight:800;font-variant-numeric:tabular-nums;color:var(--good)}
+.hl-ev.none{color:var(--muted);font-weight:600}
+
+.foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
+.foot b{color:var(--ink)}
+
+.sexbadge{margin-left:8px;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+a.theme-btn{text-decoration:none;display:inline-flex;align-items:center}
+/* トップレベルのタブ（予測・分析 / 成績） */
+.toptabs{display:flex;gap:8px;position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 0 8px;margin-bottom:2px}
+.toptab{flex:0 0 auto;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.92rem;font-weight:800;padding:9px 18px;border-radius:11px;cursor:pointer;box-shadow:var(--shadow)}
+.toptab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.toptab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabpane[hidden]{display:none}
+/* 成績（過去1ヶ月の開催結果） */
+.rh-tools{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap}
+.rh-tools .vtoggle{margin-left:0}
+.rh-count{font-size:.68rem;color:var(--muted);font-weight:700;margin-left:auto}
+.rh-sel{background:var(--surface);border:1px solid var(--border);color:var(--ink);border-radius:9px;padding:6px 9px;font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
+table.t.rh-t{min-width:520px}
+table.t.rh-t td{vertical-align:top}
+.rh-meta{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+.rh-date{font-size:.66rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.rh-ven{font-weight:800;font-size:.8rem}
+.rh-fm{color:var(--muted);font-size:.66rem;font-weight:700;margin-top:2px}
+.rh-r{color:var(--muted);font-weight:800;margin-left:5px}
+.rh-fin{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.rh-leg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.rh-pos{font-size:.58rem;color:var(--muted);font-weight:700;min-width:22px}
+.rh-mk{font-size:.9rem;font-weight:800;color:var(--muted);width:1.1em;text-align:center;font-variant-numeric:tabular-nums}
+.rh-mk.win{font-size:1.15rem;color:var(--accent)}
+.rh-nm{font-weight:700;font-size:.78rem}
+.rh-leg.top .rh-nm{font-weight:800}
+.rh-rank{font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+.rh-rank.hit{color:var(--good)}
+.rh-rank.out{color:var(--muted);font-weight:700;opacity:.8}
+.rh-big{color:var(--loss);font-weight:800}
+.rh-morewrap{text-align:center;margin-top:10px}
+.rh-more{background:var(--surface);border:1px solid var(--border);color:var(--accent);font-family:inherit;
+  font-size:.74rem;font-weight:800;padding:8px 18px;border-radius:9px;cursor:pointer;box-shadow:var(--shadow)}
+.rh-more:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* 男子: 会場カード → レース一覧 → レース詳細の3階層 */
+.mv-back{position:sticky;top:52px;z-index:20;background:var(--bg);padding:6px 0 8px;display:flex;align-items:center;gap:8px}
+.mv-back button{background:var(--surface);border:1px solid var(--border);color:var(--ink);font-family:inherit;
+  font-size:.8rem;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
+.mv-back .cur{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:700}
+.daysum{display:flex;gap:14px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);
+  border-radius:11px;padding:9px 13px;margin-bottom:12px;font-size:.72rem;font-weight:700;color:var(--muted)}
+.daysum b{color:var(--ink);font-variant-numeric:tabular-nums}
+.vcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);
+  padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.vcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vc-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vc-name{font-size:1rem;font-weight:800;color:var(--ink)}
+.gbadge{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+.vc-cls{font-size:.62rem;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.vc-arrow{margin-left:auto;color:var(--muted);font-size:.9rem}
+.vc-spec{font-size:.63rem;color:var(--muted);font-weight:600;margin-top:4px}
+.prog{display:flex;height:6px;border-radius:999px;overflow:hidden;background:var(--surface2);margin-top:8px}
+.prog>span{display:block;height:100%}
+.prog .done{background:var(--good)} .prog .live{background:var(--edge)} .prog .yet{background:var(--border)}
+.vc-legend{display:flex;gap:12px;margin-top:5px;font-size:.6rem;font-weight:700;color:var(--muted)}
+.vc-legend i{font-style:normal;display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:3px}
+.vc-next{margin-top:7px;font-size:.68rem;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.vc-soon{font-size:.6rem;font-weight:800;padding:1px 7px;border-radius:999px;background:var(--loss-soft);color:var(--loss)}
+.vc-pick{margin-top:6px;padding-top:6px;border-top:1px dashed var(--border2);font-size:.68rem;
+  font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.vc-pick .lbl{font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--edge-soft);color:var(--edge)}
+.vhead{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:12px}
+.rrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--surface);
+  border:1px solid var(--border);border-radius:11px;padding:9px 12px;margin-bottom:7px;cursor:pointer}
+.rrow.live{border-left:3px solid var(--edge)}
+.rrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rr-no{text-align:center;min-width:2.6em}
+.rr-no b{font-size:1.05rem;font-weight:800;color:var(--ink)}
+.rr-no small{display:block;font-size:.58rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.rr-mid{min-width:0}
+.rr-l1{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.rr-nm{font-size:.76rem;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:7em}
+.rr-l2{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:3px;font-size:.63rem;font-weight:700;color:var(--muted)}
+.rr-st{font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.rr-st.done{background:var(--good-soft);color:var(--good)}
+.rr-st.live{background:var(--edge-soft);color:var(--edge)}
+.rr-st.wait{background:var(--surface2);color:var(--edge)}
+.rr-st.yet{background:var(--surface2);color:var(--muted)}
+.rr-pay{font-size:.66rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.backfoot{width:100%;margin:14px 0 4px;background:var(--surface);border:1px solid var(--border);color:var(--ink);
+  font-family:inherit;font-size:.85rem;font-weight:800;padding:13px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow)}
+.sexbadge{margin-left:8px;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+a.theme-btn{text-decoration:none;display:inline-flex;align-items:center}
+</style>
+<header>
+  <div class="brand"><span class="dot"></span>競輪予測AI<span class="sexbadge">男子</span></div>
+  <a class="theme-btn" href="./index.html">👩 ガールズ</a>
+  <button class="theme-btn" id="themeBtn" aria-label="テーマ切替">🌓 テーマ</button>
+  <div class="gen" id="gen"></div>
+</header>
+
+<div class="wrap">
+  <div class="secthead"><span class="sect" id="menTitle">男子競輪の予測</span><span class="sec-upd" id="menUpd"></span></div>
+  <div class="sub" id="menSub"></div>
+  <div id="menBody"></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+// 画面(HTML)の版。機能を変えたら上げる。
+const UI_VERSION = "2026-08-13";
+// ==== 以下 index.html と共通の表示部品（見た目のみ。ロジック・データは男女で独立）====
+const yen = v => v==null ? "—" : "¥"+Math.round(v).toLocaleString();
+const pct1 = v => v==null ? "—" : (v*100).toFixed(1)+"%";
+const pctR = v => v==null ? "—" : Math.round(v*100)+"%";
+const oddsF = v => v==null ? "—" : v.toFixed(1);
+const esc = s => (s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const cssvar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+
+// 各セクションの更新時刻チップ。ライブ更新される予測/推奨は last_updated（1分ごと）、
+// 集計系（バケット/分布/較正/実績/ROI/収集）は data.json 生成時刻 generated を表示。
+
+// notice
+
+// status badge helper
+const STATUS_BADGE = { sample:['sample','サンプル'], pending:['pending','未算出'],
+  ready:['ok','算出済'], ok:['ok','実データ'], none:['pending','対象なし'] };
+function badge(st){ const b=STATUS_BADGE[st]||STATUS_BADGE.pending;
+  return `<span class="badge ${b[0]}">${b[1]}</span>`; }
+function isShown(st){ return st==="sample"||st==="ready"||st==="ok"; }
+const rtagCls = t => t==="軸堅"?"axis":(t==="混戦"?"chaos":"std");
+// 波乱確率＝1−P(◎1着)。◎＝1着確率トップの選手。out-of-sample 3477レース/5foldで
+// 単調較正を確認済み（予測35.3% vs 実33.1%）＝実勢は表示値より約2pt低い。
+const upsetOf = r => { const t = (r.top1_prob!=null) ? r.top1_prob
+    : ((r.riders && r.riders[0] && r.riders[0].win_prob) != null ? r.riders[0].win_prob : null);
+  return t==null ? null : 1-t; };
+const uptCls = u => u==null ? "na" : (u<0.30 ? "lo" : (u<0.55 ? "mid" : "hi"));
+const UPT_TIP = "波乱確率＝◎（1着確率トップ）が1着を外す確率。"
+  + "過去3477レースの検証で較正済み（実勢は表示値より約2pt低め）。"
+  + "高い＝荒れやすいが、その荒れはオッズにも織り込み済みで穴狙いの根拠にはならない。";
+const uptTag = u => u==null ? `<span class="upt na">—</span>`
+  : `<span class="upt ${uptCls(u)}" title="${UPT_TIP}">${pct1(u)}</span>`;
+function emptyBox(msg){ return `<div class="empty">${esc(msg)}</div>`; }
+
+// ROI diverging color: gray midpoint at 1.0, green above, red below
+function roiColor(roi){
+  if(roi==null) return "var(--surface2)";
+  const good=cssvar("--good"), loss=cssvar("--loss"), surf=cssvar("--surface");
+  if(roi>=1){ const t=Math.min((roi-1)/0.3,1); return `color-mix(in srgb, ${good} ${(18+t*52).toFixed(0)}%, ${surf})`; }
+  const t=Math.min((1-roi)/0.4,1); return `color-mix(in srgb, ${loss} ${(14+t*46).toFixed(0)}%, ${surf})`;
+}
+const roiTextCol = roi => roi==null?"var(--muted)":(roi>=1?"var(--good)":"var(--loss)");
+const CARCOL = {
+  1:["#ffffff","#111"], 2:["#242424","#fff"], 3:["#e03131","#fff"],
+  4:["#1c7ed6","#fff"], 5:["#f2d600","#111"], 6:["#2f9e44","#fff"],
+  7:["#f76707","#fff"], 8:["#f06595","#fff"], 9:["#7048e8","#fff"]
+};
+function carChip(n){ const c=CARCOL[n]||["var(--surface2)","var(--ink)"];
+  return `<span class="carno" style="background:${c[0]};color:${c[1]}">${n}</span>`; }
+const oddsCell = v => (v==null||v>=9999) ? "—" : v.toFixed(1);
+const sub = s => s!=null && s!=="" ? `<s>${s}</s>` : "";       // 補助数値（走数など）
+const COLUMNS = [
+  {key:"win",   label:"1着確率",  th:"1着確率", cls:"strong", get:rd=>pct1(rd.win_prob)},
+  {key:"synth", label:"合成オッズ", th:"合成",  cls:"", get:rd=> rd.synth_odds_1st!=null?(+rd.synth_odds_1st).toFixed(1)+"倍":"—"},
+  {key:"leg",   label:"脚質",      th:"脚",    cls:"", get:rd=> esc(rd.leg||"—")},
+  {key:"score", label:"得点",      th:"得点",  cls:"", get:rd=>(rd.score||0).toFixed(1)},
+  {key:"wr",    label:"直近勝率",  th:"勝率",  cls:"", get:rd=> rd.win_rate!=null?pctR(rd.win_rate):"—"},
+  {key:"fair",  label:"必要オッズ", th:"必要",  cls:"", get:rd=> rd.fair_odds_1st!=null?(+rd.fair_odds_1st).toFixed(1)+"倍":"—"},
+  {key:"career",label:"通算勝率",  th:"通算",  cls:"", get:rd=> rd.career_win_rate!=null?`${(rd.career_win_rate*100).toFixed(1)}%${sub((rd.career_starts||0)+"走")}`:"—"},
+  {key:"r5",    label:"直近5走平均着", th:"直近5走", cls:"", get:rd=> rd.recent5_finish!=null?rd.recent5_finish.toFixed(1)+"着":"—"},
+  {key:"venue", label:"当地勝率",  th:"当地",  cls:"", get:rd=> (rd.venue_win_rate!=null&&rd.venue_starts)?`${(rd.venue_win_rate*100).toFixed(0)}%${sub(rd.venue_starts+"走")}`:"—"},
+  {key:"days",  label:"出走間隔",  th:"間隔",  cls:"", get:rd=> rd.days_since!=null?rd.days_since+"日":"—"},
+  // 脚質プロファイル（直近1年）。S=スタート先頭 B=バック先頭 / 逃捲差=1着決まり手回数
+  {key:"s",     label:"S回数(直近1年)", th:"S", cls:"", get:rd=> rd.s_cnt!=null?rd.s_cnt:"—"},
+  {key:"b",     label:"B回数(直近1年)", th:"B", cls:"", get:rd=> rd.b_cnt!=null?rd.b_cnt:"—"},
+  {key:"nige",  label:"逃げ1着(直近1年)", th:"逃", cls:"", get:rd=> rd.nige!=null?rd.nige:"—"},
+  {key:"makuri",label:"捲り1着(直近1年)", th:"捲", cls:"", get:rd=> rd.makuri!=null?rd.makuri:"—"},
+  {key:"sashi", label:"差し1着(直近1年)", th:"差", cls:"", get:rd=> rd.sashi!=null?rd.sashi:"—"},
+];
+const colByKey = Object.fromEntries(COLUMNS.map(c=>[c.key,c]));
+const DEFAULT_ORDER = COLUMNS.map(c=>c.key);
+const DEFAULT_HIDDEN = ["fair","days"];       // 既定は控えめ（設定でいつでも表示）
+const LS_KEY = "keirin_pred_cols_v1";
+function loadCfg(){
+  try{ const j=JSON.parse(localStorage.getItem(LS_KEY)||"null");
+    if(j && Array.isArray(j.order)) return {order:j.order.slice(), hidden:(j.hidden||[]).slice()};
+  }catch(e){}
+  return {order:DEFAULT_ORDER.slice(), hidden:DEFAULT_HIDDEN.slice()};
+}
+function saveCfg(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(cfg)); }catch(e){} }
+let cfg = loadCfg();
+DEFAULT_ORDER.forEach(k=>{ if(!cfg.order.includes(k)) cfg.order.push(k); });   // 新列は末尾に補完
+cfg.order = cfg.order.filter(k=>colByKey[k]);
+cfg.hidden = cfg.hidden.filter(k=>colByKey[k]);
+function activeCols(){ return cfg.order.filter(k=>!cfg.hidden.includes(k)).map(k=>colByKey[k]); }
+
+// 出走表（設定した列・順で描画。riders は1着確率降順で格納済み → 先頭=本命行を強調）
+function riderTable(r){
+  const cols = activeCols();
+  const head = `<th class="rt-car">車</th><th class="rt-name l">選手</th>`
+    + cols.map(c=>`<th class="${c.cls}">${c.th}</th>`).join("");
+  const body = (r.riders||[]).map((rd,i)=>{
+    const tds = cols.map(c=>`<td class="${c.cls}">${c.get(rd)}</td>`).join("");
+    // 今場所成績を選手名の下に統合（新しい開催日から順に、初日を除く最大日数分）
+    const meet = (rd.meet||[]).slice().reverse();
+    const meetHtml = meet.map(m=>{
+      const pos=m[2], pcls = pos===1?" p1":(pos!=null&&pos<=3?" p3":"");
+      return `<span class="rn-meet"><span class="rn-md">${fmtMD(m[0])}</span>`
+        +`<span class="rn-mr">${m[1]!=null?m[1]+"R":""}</span>`
+        +`<span class="rn-mp${pcls}">${pos!=null?pos+"着":"—"}</span>`
+        +(m[3]!=null?`<span class="rn-ml">上${(+m[3]).toFixed(1)}</span>`:"")+`</span>`;
+    }).join("");
+    return `<tr${i===0?' class="rt-top"':''}>`
+      +`<td class="rt-car">${carChip(rd.car)}</td>`
+      +`<td class="rt-name l"><span class="rn-nm">${esc(rd.name||"")}`
+      +`${rd.home?`<span class="rn-home" title="地元(同県)開催">地元</span>`:(rd.home_dist?`<span class="rn-home dist" title="同地区開催">地区</span>`:"")}`
+      +`</span>${meetHtml}</td>${tds}</tr>`;
+  }).join("");
+  return `<div class="tblwrap rt-wrap"><table class="rt"><thead><tr>${head}</tr></thead>`
+    +`<tbody>${body}</tbody></table></div>`;
+}
+
+// 今場所成績は出走表(riderTable)の選手名の下に統合表示（imsBlockは廃止）。
+const fmtMD = d => { const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||""); return m?`${+m[1]}/${+m[2]}`:esc(d||""); };
+
+// 確定結果（発走後に取得）: 着順・上り・決まり手・払戻＋予測的中を表示。
+function resultBlock(r){
+  const R = r.result;
+  if(!R || !(R.order||[]).length) return "";
+  const rows = R.order.map(o=>{
+    const pcls = o.pos===1?" p1":(o.pos!=null&&o.pos<=3?" p3":"");
+    return `<tr class="res-tr${pcls}">`
+      +`<td class="res-pos">${o.pos!=null?o.pos:"—"}</td>`
+      +`<td class="res-car">${carChip(o.car)}</td>`
+      +`<td class="l">${esc(o.name||"")}</td>`
+      +`<td>${o.last_lap!=null?(+o.last_lap).toFixed(1):"—"}</td>`
+      +`<td class="l">${esc(o.kimarite||"")}${o.sb?` <span class="res-sb">${esc(o.sb)}</span>`:""}</td></tr>`;
+  }).join("");
+  const p = R.payout;
+  const payTxt = p
+    ? `三連単 <b>${esc(p.combo)}</b> <b class="res-yen">¥${Number(p.yen).toLocaleString()}</b>`
+      +(p.pop!=null?` <span class="res-pop">${p.pop}番人気</span>`:"")
+    : "払戻情報なし";
+  const h = R.hit||{};
+  let hitTxt = "";
+  if(h.win_hit!=null)
+    hitTxt += `<span class="res-hit ${h.win_hit?"ok":"ng"}">本命${h.win_hit?"的中":"不的中"}</span>`;
+  if(h.tri_rank!=null)
+    hitTxt += `<span class="res-hit ${h.tri_rank<=10?"ok":"ng"}">三連単 モデル${h.tri_rank}位</span>`;
+  else if("tri_rank" in h)
+    hitTxt += `<span class="res-hit ng">三連単 モデル圏外</span>`;
+  return `<div class="res"><div class="res-head">🏁 確定結果`
+    +(R.fetched_at?`<span class="res-time">取得 ${esc(String(R.fetched_at).slice(11))}</span>`:"")+`</div>`
+    +`<div class="tblwrap"><table class="rt res-t"><thead><tr>`
+    +`<th class="res-pos">着</th><th class="res-car">車</th><th class="l">選手</th><th>上り</th><th class="l">決まり手</th>`
+    +`</tr></thead><tbody>${rows}</tbody></table></div>`
+    +`<div class="res-foot"><span class="res-pay">${payTxt}</span>${hitTxt}</div></div>`;
+}
+
+// 出走者同士の過去対戦成績（同一レースでの着順比較）マトリクス。行=当該車の先着 - 相手の先着。
+function h2hBlock(r){
+  const h = r.h2h;
+  if(!h || !h.cars || h.cars.length<2 || !h.cell || !Object.keys(h.cell).length)
+    return "";
+  const cars = h.cars;
+  const head = `<th class="h2h-corner">先着＼相手</th>`+cars.map(c=>`<th>${carChip(c)}</th>`).join("");
+  const body = cars.map(row=>{
+    const rec = h.cell[row]||{};
+    const tds = cars.map(col=>{
+      if(row===col) return `<td><div class="h2h-cell dead">—</div></td>`;
+      const x = rec[col];
+      if(!x || !x.n) return `<td><div class="h2h-cell na">—</div></td>`;
+      const cls = x.w>x.l ? " adv" : (x.w<x.l ? " dis" : "");
+      return `<td><div class="h2h-cell${cls}">`
+        +`<span class="wl">${x.w}-${x.l}</span><span class="n">${x.n}戦</span></div></td>`;
+    }).join("");
+    return `<tr><th class="h2h-rh">${carChip(row)}</th>${tds}</tr>`;
+  }).join("");
+  const names = cars.map(c=>`${c}=${esc(h.names[c]||"")}`).join("　");
+  return `<details class="h2h"><summary aria-label="過去対戦成績の開閉">`
+    +`<span class="h2h-ttl">🤼 過去の対戦成績</span>`
+    +`<span class="h2h-lab">同一レースでの着順比較</span><span class="chev">▸</span></summary>`
+    +`<div class="h2h-body"><div class="tblwrap"><table class="h2h-t"><thead><tr>${head}</tr></thead>`
+    +`<tbody>${body}</tbody></table></div>`
+    +`<div class="h2h-legend"><span><span class="h2h-sw adv"></span>先着優位</span>`
+    +`<span><span class="h2h-sw dis"></span>劣位</span><span>数字＝当該車の先着-相手の先着（戦=対戦数）</span></div>`
+    +`<div class="h2h-names">${names}</div></div></details>`;
+}
+
+// EV買い目（最新オッズ×モデルの参考値。買い目推奨ではない）。combos: [1着,2着,3着,オッズ,確率,EV]。
+// 1着車で表示切替し、車番順(2着→3着 昇順)に並べてフォーメーション購入を容易にする。
+const EV_THR = 1.10;
+let evUid = 0;
+const evReg = {};
+function _evSummary(buys){
+  const prob = buys.reduce((s,c)=>s+(c[4]||0),0);                 // 的中率=モデル確率の総和
+  const inv = buys.reduce((s,c)=>s+(c[3]>0?1/c[3]:0),0);          // 合成オッズ=1/Σ(1/オッズ)
+  return {n: buys.length, prob, synth: inv>0?1/inv:null};
+}
+function renderEvGrid(uid, head){
+  const g = evReg[uid]||{};
+  const buys = (g.buys||[]).filter(c=>c[0]===head)
+    .sort((x,y)=> (x[1]-y[1]) || (x[2]-y[2]));                    // 車番順(2着→3着)
+  if(!buys.length) return `<div class="om-none">この車頭でEV≥${EV_THR.toFixed(2)}の買い目なし</div>`;
+  const s = _evSummary(buys);
+  const sub = `<div class="ev-subsum">${carChip(head)}頭 <b>${s.n}</b>点買い ｜ 的中率 <b>${(s.prob*100).toFixed(1)}%</b> ｜ 合成 <b>${s.synth!=null?s.synth.toFixed(1):"—"}倍</b></div>`;
+  const rows = buys.map(c=>`<tr>`
+    +`<td class="l combo">${c[0]}-${c[1]}-${c[2]}</td>`
+    +`<td>${(c[4]*100).toFixed(1)}%</td>`
+    +`<td>${(+c[3]).toFixed(1)}</td>`
+    +`<td class="evp">${c[5].toFixed(2)}</td></tr>`).join("");
+  return sub + `<div class="tblwrap"><table class="t"><thead><tr>`
+    +`<th class="l">買い目</th><th>モデル確率</th><th>オッズ</th><th>EV</th>`
+    +`</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function evBlock(r){
+  const combos = r.combos||[];
+  const hasOdds = combos.some(c=>c[3]!=null && c[3]<9999);
+  if(!hasOdds)
+    return `<div class="pred-ev"><div class="pred-ev-none">オッズ未発売</div></div>`;
+  const buys = combos.filter(c=>c[3]!=null && c[3]<9999 && c[5]!=null && c[5]>=EV_THR);
+  if(!buys.length)
+    return `<div class="pred-ev"><div class="pred-ev-none">最新オッズでEV≥${EV_THR.toFixed(2)}の買い目なし</div></div>`;
+  const uid = evUid++;
+  evReg[uid] = {buys};
+  const heads = [...new Set(buys.map(c=>c[0]))].sort((a,b)=>a-b);
+  const init = heads[0];
+  const all = _evSummary(buys);
+  const tabs = heads.map(c=>`<button class="ev-tab" type="button" role="tab" data-ev="${uid}" data-car="${c}"`
+    +` aria-selected="${c===init?"true":"false"}" tabindex="${c===init?0:-1}" aria-label="1着 ${c}番">`
+    +`${carChip(c)}<span class="ev-tc">${buys.filter(b=>b[0]===c).length}</span></button>`).join("");
+  return `<div class="pred-ev">`
+    +`<div class="pred-ev-head">🎯 最新オッズでEV≥${EV_THR.toFixed(2)}の買い目 <span class="nb">${buys.length}点</span></div>`
+    +`<div class="ev-allsum">全${all.n}点を購入した場合 ｜ 的中率 <b>${(all.prob*100).toFixed(1)}%</b>（モデル確率の総和）｜ 合成オッズ <b>${all.synth!=null?all.synth.toFixed(1):"—"}倍</b></div>`
+    +`<div class="ev-sel" role="tablist" aria-label="1着車の選択"><span class="om-sellab">1着</span>${tabs}</div>`
+    +`<div id="ev-grid-${uid}">${renderEvGrid(uid, init)}</div>`
+    +`<div class="pred-ev-note">車番順（2着→3着）で表示。EV=モデル確率×オッズ。合成オッズ=1/Σ(1/オッズ)。`
+    +`参考値でエッジ未確立・買い目推奨ではありません。</div>`
+    +`</div>`;
+}
+
+// 三連単オッズテーブル（1着固定マトリクス。確率×市場オッズの比較・買い目推奨ではない）
+let omUid = 0;
+const omReg = {};
+function omCars(uid){
+  const g=omReg[uid]||{}; const s=new Set();
+  (g.combos||[]).forEach(x=>{ s.add(x[0]); s.add(x[1]); s.add(x[2]); });
+  let cars=[...s].filter(v=>v!=null).sort((a,b)=>a-b);
+  if(!cars.length && g.field_size){ for(let i=1;i<=g.field_size;i++) cars.push(i); }
+  return cars;
+}
+function renderOmGrid(uid, A){
+  const g=omReg[uid]||{}; const combos=g.combos||[];
+  const cars=omCars(uid).filter(c=>c!==A);
+  const map={};
+  combos.forEach(x=>{ if(x[0]===A) map[x[1]+"-"+x[2]]=x; });
+  const head=`<th class="om-corner">2着＼3着</th>`+cars.map(c=>`<th>${carChip(c)}</th>`).join("");
+  const body=cars.map(row=>{
+    const tds=cars.map(col=>{
+      if(row===col) return `<td><div class="om-cell dead">—</div></td>`;
+      const x=map[row+"-"+col];
+      const odds=x?x[3]:null, prob=x?x[4]:null, ev=x?x[5]:null;
+      if(odds==null) return `<td><div class="om-cell na">—</div></td>`;
+      const hi = ev!=null && ev>1;
+      return `<td><div class="om-cell${hi?' hi':''}">`
+        +`<span class="o">${(+odds).toFixed(1)}</span>`
+        +`<span class="p">${prob!=null?(prob*100).toFixed(1)+"%":""}</span>`
+        +(hi?`<span class="e">EV${ev.toFixed(2)}</span>`:"")
+        +`</div></td>`;
+    }).join("");
+    return `<tr><th class="om-rh">${carChip(row)}</th>${tds}</tr>`;
+  }).join("");
+  return `<table class="om-t"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+function omBlock(r){
+  const uid=omUid++;
+  const combos=r.combos||[];
+  omReg[uid]={combos, field_size:r.field_size||0};
+  const firstCars=omCars(uid).filter(c=>combos.some(x=>x[0]===c));
+  if(!combos.length || !firstCars.length){
+    return `<div class="pred-tfhead">三連単 オッズテーブル</div><div class="om-none">オッズテーブルは未生成</div>`;
+  }
+  const topCar = (r.riders&&r.riders[0])?r.riders[0].car:null;
+  const initCar = firstCars.includes(topCar)?topCar:firstCars[0];
+  const tabs=firstCars.map(c=>`<button class="om-tab" type="button" role="tab" data-om="${uid}" data-car="${c}"`
+    +` aria-selected="${c===initCar?"true":"false"}" tabindex="${c===initCar?0:-1}"`
+    +` aria-label="1着 ${c}番を固定">${carChip(c)}</button>`).join("");
+  // 毎回参照する情報のため常時表示（アコーディオンにしない）。
+  return `<div class="om">`
+    +`<div class="om-head"><span class="om-ttl">🔢 三連単オッズテーブル</span>`
+    +`<span class="om-lab" id="om-lab-${uid}">1着 ${initCar} 固定</span></div>`
+    +`<div class="om-body">`
+    +`<div class="om-sel" role="tablist" aria-label="1着車の固定"><span class="om-sellab">1着固定</span>${tabs}</div>`
+    +`<div class="tblwrap"><div id="om-grid-${uid}">${renderOmGrid(uid,initCar)}</div></div>`
+    +`<div class="om-legend"><span><span class="om-sw"></span>期待値1超（モデル確率＞市場オッズ）</span>`
+    +`<span>—＝未発売／不成立</span></div>`
+    +`<div class="pred-ev-note">セル＝三連単オッズ（上）＋モデル確率（下）。色付き＝モデル確率に対しオッズが高いセル（EV&gt;1）。`
+    +`確率と市場オッズの比較であり、エッジ確立・買い目推奨ではありません。</div>`
+    +`</div></div>`;
+}
+
+function raceHead(r){
+  // upsetOf と同じ優先順で取る（1着確率と波乱確率が必ず足して100%になるように）
+  const up = upsetOf(r);
+  const top1 = up!=null ? 1-up : 0;
+  return `<div class="pred-rhead">`
+    +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
+    +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
+    +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
+    +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
+    +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
+    +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
+    +`<span class="pred-src">${esc(r.source||"")}</span>`
+    +`</div>`
+    +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　波乱確率 ${uptTag(up)}`
+    +`　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`;
+}
+// 予測タブの中身（出走表・対戦・三連単モデル確率・EV買い目・オッズテーブル）
+function predContent(r){
+  const tf = (r.top_trifecta||[]).map(t=>{
+    const cover = (t.odds!=null && t.odds<9999 && t.need_odds!=null && t.odds>=t.need_odds);
+    return `<tr><td class="l combo">${esc(t.combo)}</td>`
+      +`<td>${pct1(t.prob)}</td>`
+      +`<td>${oddsF(t.need_odds)}</td>`
+      +`<td class="${cover?'oddson':''}">${oddsCell(t.odds)}</td></tr>`;
+  }).join("");
+  const tfBlock = tf
+    ? `<div class="pred-tfhead">三連単 モデル確率 上位</div>`
+      +`<div class="tblwrap"><table class="t"><thead><tr>`
+      +`<th class="l">着順</th><th>モデル確率</th><th>必要オッズ</th><th>市場オッズ</th>`
+      +`</tr></thead><tbody>${tf}</tbody></table></div>` : "";
+  return riderTable(r) + devBlock(r) + h2hBlock(r) + tfBlock + refBlock(r) + evBlock(r) + omBlock(r);
+}
+// 展開予想（記者の並び予想=車番のみ1行 ＋ 明示的な展開パターン複数）。出走表と対戦成績の間。
+function devBlock(r){
+  const D = r.development;
+  if(!D) return "";
+  // 並び予想: 車番のみ・1行（スペース節約。選手名/脚質は出走表参照）
+  const chips = (D.line||[]).map((s,i)=>{
+    const arrow = i>0 ? `<span class="dev-arrow">▶</span>` : "";
+    const favB = s.is_fav ? `<span class="dev-fav">◎</span>` : "";
+    return `${arrow}<span class="dev-node">${favB}${carChip(s.car)}</span>`;
+  }).join("");
+  const narabi = (D.line||[]).length
+    ? `<div class="dev-narabi-h">並び予想（左=先頭・車番のみ）</div><div class="dev-line">${chips}</div>` : "";
+  // 隊列位置別の1着確率。前→後の並びで横棒にし、前残りか後方一気かを俯瞰できるようにする。
+  // 順序尺度なのでカテゴリカル配色ではなく単一色相のランプ（前=濃、後=淡）を使う。
+  const POS_ORDER = ["先行・主導権型","番手抜け出し型","中団抜け出し型(捲り)","後方一気型","位置不明"];
+  const nameOf = {};
+  (r.riders||[]).forEach(x=>{ if(x && x.car!=null) nameOf[x.car] = x.name||""; });
+  const ordered = (D.patterns||[]).slice().sort((a,b)=>{
+    const ia = POS_ORDER.indexOf(a.label), ib = POS_ORDER.indexOf(b.label);
+    return (ia<0?99:ia) - (ib<0?99:ib);
+  });
+  const pmax = Math.max(0.01, ...ordered.map(p=>p.prob||0));
+  const pats = ordered.map(p=>{
+    const i = POS_ORDER.indexOf(p.label);
+    const cls = i>=0 && i<4 ? `s${i}` : "sx";
+    const favB = p.has_fav ? `<span class="dev-fav">◎</span>` : "";
+    const mem = (p.cars||[]).map(c=>
+      `<span class="pp-m">${carChip(c)}<span class="pp-mn">${esc(nameOf[c]||"")}</span>`
+      +`${c===p.lead_car?favB:""}</span>`).join("");
+    return `<div class="pp-row">`
+      +`<div class="pp-h"><span class="pp-i">${esc(p.icon||"")}</span>`
+      +`<span class="pp-l">${esc(p.label)}</span>`
+      +`<span class="pp-p">${(p.prob*100).toFixed(0)}%</span></div>`
+      +`<div class="pp-bar"><span class="${cls}" style="width:${Math.round((p.prob/pmax)*100)}%"></span></div>`
+      +`<div class="pp-mem">${mem}</div>`
+      +`</div>`;
+  }).join("");
+  const patBlock = pats
+    ? `<div class="dev-pat-h">隊列位置別の1着確率（記者の並び予想による分解・前→後の順）</div>`
+      +`<div class="pp">${pats}</div>`
+      +`<div class="dev-caveat">※ これは<b>展開の予測ではありません</b>。記者の並び予想で`
+      +`「先頭/番手/中団(3〜5番手)/後方(6番手以降)」に分け、各グループの1着確率を合計した値です。`
+      +`「後方一気型60%」は<b>後方に置かれた選手が合計60%の確率で勝つ</b>という意味で、`
+      +`後方から一気に来る展開が60%起きるという意味ではありません。`
+      +`主役＝そのグループで最も1着確率が高い車。`
+      +`並び予想自体の的中は弱く（予想先頭が実際にバックを取る率≒20%）、`
+      +`実測に基づく展開は下の「展開シナリオ」を参照してください。</div>` : "";
+  // 推定主導権（展開AI＝最終バック先頭B。記者予想より当たる）
+  const B = D.backstretch;
+  let bsBlock = "";
+  if(B && B.lead_car!=null){
+    const div = B.diverges
+      ? `<span class="dev-div">⚠ 記者予想先頭(${B.reporter_front}番)と相違</span>`
+      : `<span class="dev-agree">✓ 記者予想先頭と一致</span>`;
+    const fade = (D.pace && D.pace.level==="ハイ") ? ` <span class="dev-div">⚠ ハイペースで垂れ注意</span>` : "";
+    // 全車の主導権確率。展開AIが学習しているのは「Bを取るのは誰か」だけなので、
+    // これは"Bを取る可能性の順位"であって隊列（2番手/3番手…）の予測ではない。
+    // 2番手以降は正解データが存在せず学習不能（検証済み）なので、そう明記して出す。
+    const nm = {};
+    (r.riders||[]).forEach(x=>{ if(x && x.car!=null) nm[x.car] = x.name||""; });
+    const favCar = ((r.riders||[])[0]||{}).car;
+    const pr = Object.entries(B.probs||{}).map(([c,p])=>[+c, p])
+      .sort((a,b)=> b[1]-a[1]);
+    const pmaxB = pr.length ? Math.max(...pr.map(x=>x[1])) : 1;
+    const rows = pr.map(([c,p],i)=>{
+      const tags = (c===favCar?`<span class="dev-fav">◎</span>`:"")
+        + (c===B.reporter_front?`<span class="bs-tag">記者予想先頭</span>`:"");
+      return `<div class="bs-row"><span class="bs-car">${carChip(c)}`
+        +`<span class="bs-nm">${esc(nm[c]||"")}</span>${tags}</span>`
+        +`<span class="bs-bar"><span class="${i===0?"top":""}" style="width:${Math.round(p/pmaxB*100)}%"></span></span>`
+        +`<span class="bs-p">${(p*100).toFixed(0)}%</span></div>`;
+    }).join("");
+    bsBlock = `<div class="dev-pat-h">推定主導権（展開AI・最終バック先頭B）</div>`
+      +`<div class="dev-bs">主導権 ${carChip(B.lead_car)} <b>${(B.lead_p*100).toFixed(0)}%</b>`
+      +` <span class="dev-bs-hit">過去実測${(B.hit_rate*100).toFixed(0)}%的中（記者22%）</span></div>`
+      +`<div class="dev-bs-div">${div}${fade}</div>`
+      +(rows?`<div class="bs-list">${rows}</div>`
+        +`<div class="dev-caveat">※ 全車の「バックを取る確率」を高い順に並べたものです。`
+        +`<b>隊列（2番手・3番手…）の予測ではありません</b> — 展開AIが学習しているのは`
+        +`「Bを取るのは誰か」だけで、2番手以降は結果データに記録が無く学習できません。</div>`:"");
+  }
+  // ペース読み（先行型の数→ペース→決まり手傾向。表示専用）
+  const P = D.pace;
+  let paceBlock = "";
+  if(P && P.level){
+    const km = P.kimarite_hint||{};
+    const lv = P.level==="ハイ" ? "hi" : (P.level==="ミドル" ? "mid" : "lo");
+    paceBlock = `<div class="dev-pat-h">ペース・バンク読み</div>`
+      +`<div class="dev-pace"><span class="dev-pace-lv lv-${lv}">${esc(P.level)}ペース</span>`
+      +` <span class="dev-pace-n">先行型 ${P.n_front}人</span>`
+      +(P.bank?` <span class="dev-pace-n">${P.bank}mバンク</span>`:"")
+      +` <span class="dev-pace-note">${esc(P.note||"")}</span></div>`
+      +`<div class="dev-pace-km">決まり手の目安　逃 ${km["逃"]}%／捲 ${km["捲"]}%／差 ${km["差"]}%</div>`
+      +(P.b_reliability?`<div class="dev-pace-km">主導権の信頼度　連対 ${P.b_reliability.rentai}%・着外 ${P.b_reliability.gaiji}% — ${esc(P.b_reliability.note||"")}</div>`:"")
+      +(P.basis?`<div class="dev-pace-km">根拠　${esc(P.basis)}（バンク長は決まり手への影響がペースより大きい: 逃げ率 333m 35% / 400m 19% / 500m 13%）</div>`:"");
+  }
+  return `<div class="dev">`
+    +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`
+    +bankBlock(r) + narabi + bsBlock + paceBlock + patBlock + scenarioBlock(r)
+    +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
+    +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
+    +`</div>`;
+}
+// バンク特性（諸元＋統計的な有利脚質）。予測根拠ではなく「どういうバンクか」の説明。
+function bankBlock(r){
+  const B = r.bank_profile;
+  if(!B) return "";
+  const kim = d => d ? `逃 ${d["逃"]}%／捲 ${d["捲"]}%／差 ${d["差"]}%` : "—";
+  const adv = B.advantage||{};
+  const advCls = adv.leg ? (adv.leg.indexOf("先行")>=0?"esc":(adv.leg.indexOf("差")>=0?"sas":"mak")) : "flat";
+  const chips = (B.traits||[]).map(t=>`<span class="bk-chip">${esc(t)}</span>`).join("");
+  const br = B.b_reliability;
+  return `<div class="bk">`
+    +`<div class="bk-head">🏟 バンク特性 <span class="bk-v">${esc(B.venue||"")}</span></div>`
+    +`<div class="bk-nums">`
+    +`<span><b>${B.bank}</b>m<em>周長</em></span>`
+    +`<span><b>${B.straight}</b>m<em>みなし直線</em></span>`
+    +`<span><b>${B.cant}</b>°<em>カント</em></span>`
+    +`</div>`
+    +`<div class="bk-chips">${chips}</div>`
+    +`<div class="bk-adv ${advCls}">${esc(adv.text||"")}</div>`
+    +`<div class="bk-kim">このバンク全体（${(B.bank_n||0).toLocaleString()}レース）　${kim(B.bank_kimarite)}</div>`
+    +(B.venue_kimarite?`<div class="bk-kim sub">当会場のみ（${B.venue_n}レース・参考）　${kim(B.venue_kimarite)}</div>`:"")
+    +(br?`<div class="bk-kim">主導権を取った車　連対 ${br.rentai}%・着外 ${br.gaiji}%</div>`:"")
+    +`<div class="dev-caveat">※ 有利脚質はバンク別の実測決まり手（標本が大きく安定）に基づく`
+    +`表示です。会場別の数値は標本が薄いため参考値。`
+    +`みなし直線・カントは形状の説明であり、<b>決まり手の予測には使えない</b>ことを検証済み`
+    +`（同一周長内では無相関）。</div>`
+    +`</div>`;
+}
+// 展開6パターンの構成比（ドーナツ）。上位3だけでは全体像が見えないので全形を出す。
+// 配色は dataviz 検証済みの6スロット固定順。lightで3:1未満の色があるため
+// 全スライスに凡例＋数値を直接ラベルとして必ず添える（relief条件）。
+function pieBlock(S){
+  const all = (S.all||[]).filter(x=>x && x.prob>0);
+  if(all.length<2) return "";
+  const tot = all.reduce((s,x)=>s+x.prob,0);
+  if(!(tot>0)) return "";
+  const R=52, r0=30, CX=60, CY=60;
+  const pt=(deg,rad)=>{ const a=(deg-90)*Math.PI/180;
+    return [(CX+rad*Math.cos(a)).toFixed(2),(CY+rad*Math.sin(a)).toFixed(2)]; };
+  let acc=0;
+  const paths = all.map((x,i)=>{
+    const frac = x.prob/tot;                 // 角度は正規化（端数で輪が閉じないのを防ぐ）
+    const a0=acc*360, a1=(acc+frac)*360; acc+=frac;
+    const large = (a1-a0)>180 ? 1 : 0;
+    const [x0,y0]=pt(a0,R), [x1,y1]=pt(a1,R), [x2,y2]=pt(a1,r0), [x3,y3]=pt(a0,r0);
+    const d = `M${x0},${y0}A${R},${R} 0 ${large} 1 ${x1},${y1}`
+            + `L${x2},${y2}A${r0},${r0} 0 ${large} 0 ${x3},${y3}Z`;
+    return `<path d="${d}" fill="var(--s${i+1})"><title>${esc(x.key)} ${(x.prob*100).toFixed(1)}%</title></path>`;
+  }).join("");
+  const favWin = all.filter(x=>x.fav_wins).reduce((s,x)=>s+x.prob,0);
+  const lg = all.map((x,i)=>
+    `<span class="pie-sw" style="background:var(--s${i+1})"></span>`
+    +`<span class="pie-nm">${esc(x.key)} <em>${x.fav_wins?"◎勝ち":"◎負け"}</em></span>`
+    +`<span class="pie-v">${(x.prob*100).toFixed(1)}%</span>`).join("");
+  return `<div class="dev-pat-h" style="margin-top:12px">展開6パターンの構成比</div>`
+    +`<div class="pie">`
+    +`<svg class="pie-svg" viewBox="0 0 120 120" width="132" height="132" role="img"`
+    +` aria-label="展開6パターンの構成比">${paths}`
+    +`<text class="pie-c1" x="60" y="54" text-anchor="middle">◎が勝つ</text>`
+    +`<text class="pie-c2" x="60" y="70" text-anchor="middle">${Math.round(favWin*100)}%</text>`
+    +`</svg><div class="pie-lg">${lg}</div></div>`
+    +`<div class="pie-note">①〜③が◎の勝ち方、④〜⑥が◎の負け方。`
+    +`各形の割合＝このレースの1着確率×履歴の分岐比。`
+    +`合計は${(tot*100).toFixed(1)}%で、残りは標本が少なく統計を出せない稀な形`
+    +`（◎が主導権を取らずに逃げ切る等）。</div>`;
+}
+// 展開シナリオ上位3（◎勝ち/負け×決まり手の6分類。確率=1着確率×履歴の分岐比）
+function scenarioBlock(r){
+  const S = r.dev_patterns;
+  if(!S || !(S.top||[]).length) return "";
+  const dist = arr => (arr||[]).map(d =>
+    `${esc(d.mark)}${esc(d.car||"")} <b>${Math.round(d.p*100)}%</b>`).join(" / ");
+  const items = S.top.map((t,i)=>{
+    const lose = !t.fav_wins;
+    const w = Math.round(t.prob*100);
+    // ◎が勝つ形では勝者は自明なので出さず、負ける形だけ「勝つのは」を見せる
+    const winLine = lose
+      ? `<div class="sc-line"><span class="sc-lbl">勝つのは</span><span class="sc-dist">${dist(t.winner)}</span></div>` : "";
+    const bLine = (lose && t.b_win!=null && t.b_win>=0.3)
+      ? `<div class="sc-line"><span class="sc-lbl">うち主導権</span><span class="sc-dist">その車が勝つ <b>${Math.round(t.b_win*100)}%</b></span></div>`
+      : ((!lose && t.b_second!=null && t.b_second>=0.2)
+        ? `<div class="sc-line"><span class="sc-lbl">主導権</span><span class="sc-dist">2着に <b>${Math.round(t.b_second*100)}%</b></span></div>` : "");
+    const favLine = (lose && t.fav_pos)
+      ? `<div class="sc-fav">◎の着順　2着 ${Math.round(t.fav_pos["2"]*100)}% ／ 3着 ${Math.round(t.fav_pos["3"]*100)}% ／ 着外 ${Math.round(t.fav_pos.out*100)}%`
+        +`　→ <em>3着以内 ${Math.round((t.fav_top3||0)*100)}%</em></div>` : "";
+    return `<div class="sc-item${lose?" lose":""}">`
+      +`<div class="sc-top"><span class="sc-rank">${i+1}位</span>`
+      +`<span class="sc-key">${esc(t.key)}</span>`
+      +`<span class="sc-prob">${w}%</span></div>`
+      +`<div class="sc-bar"><span style="width:${Math.min(100,w)}%"></span></div>`
+      +winLine + bLine
+      +`<div class="sc-line"><span class="sc-lbl">2着</span><span class="sc-dist">${dist(t.second)}</span></div>`
+      +`<div class="sc-line"><span class="sc-lbl">3着</span><span class="sc-dist">${dist(t.third)}</span></div>`
+      +favLine
+      +`</div>`;
+  }).join("");
+  const ins = (S.insights||[]).map(s=>`<li>${esc(s)}</li>`).join("");
+  return `<div class="sc">`
+    +`<div class="dev-pat-h">展開シナリオ 上位3（過去${(S.n_races||0).toLocaleString()}レースの実測分岐比 × このレースの1着確率）</div>`
+    +items
+    +pieBlock(S)
+    +(ins?`<div class="sc-ins"><span class="h">📌 展開から紐を選ぶときの読み</span><ul>${ins}</ul></div>`:"")
+    +(S.note?`<div class="dev-caveat">※ ${esc(S.note)}</div>`:"")
+    +`</div>`;
+}
+// 参考フォーメーション（◎頭固定・補正確率top-K）。実弾非推奨・回収率<100%。
+function refBlock(r){
+  const R = r.reference;
+  if(!R || !(R.combos||[]).length) return "";
+  const pk = (R.pockets||[]).length
+    ? (R.pockets||[]).map(p=>`<span class="rf-pk">${esc(p)}</span>`).join("")
+    : `<span class="rf-pk none">妙味ポケット外</span>`;
+  const combos = (R.combos||[]).map(c=>`<span class="rf-combo">${esc(c)}</span>`).join("");
+  const hist = Object.keys(R.hist||{}).sort((a,b)=>(+a)-(+b)).map(k=>{
+    const h = R.hist[k];
+    return `<tr><td>${k}点</td><td>${(+h.hit).toFixed(1)}%</td><td>${(+h.roi).toFixed(1)}%</td></tr>`;
+  }).join("");
+  return `<div class="rf">`
+    +`<div class="rf-head">🧭 参考フォーメーション（◎頭固定・${R.points}点） ${pk}</div>`
+    +`<div class="rf-combos">${combos}</div>`
+    +(R.model_hit_pct!=null?`<div class="rf-model">このレースのモデル想定的中率（${R.points}点合計）: <b>${(+R.model_hit_pct).toFixed(1)}%</b></div>`:"")
+    +`<div class="rf-hist"><div class="rf-hist-t">過去実測（${esc(R.primary)}・ポケット平均, out-of-sample）</div>`
+    +`<div class="tblwrap"><table class="t"><thead><tr><th>点数</th><th>的中率</th><th>回収率</th></tr></thead><tbody>${hist}</tbody></table></div></div>`
+    +`<div class="rf-note">⚠️ ${esc(R.note||"")} <b>回収率は全て100%未満＝実弾投入は非推奨</b>。的中率で点数を選ぶ“参考”用です。</div>`
+    +`</div>`;
+}
+// 1レースのブロック。結果確定後は「予測／確定結果」をタブで分ける（tab: 'pred'|'res'）。
+function raceBlock(r, tab){
+  const hasRes = !!(r.result && (r.result.order||[]).length);
+  let inner;
+  if(hasRes){
+    const t = tab==="res" ? "res" : "pred";
+    inner = `<div class="rc-tabs" role="tablist" aria-label="予測と結果の切替">`
+      +`<button class="rc-tab" type="button" role="tab" data-rc="pred" aria-selected="${t==="pred"}" tabindex="${t==="pred"?0:-1}">予測</button>`
+      +`<button class="rc-tab" type="button" role="tab" data-rc="res" aria-selected="${t==="res"}" tabindex="${t==="res"?0:-1}">🏁 確定結果</button>`
+      +`</div>`
+      +`<div class="rc-pane"${t==="res"?" hidden":""}>${predContent(r)}</div>`
+      +`<div class="rc-pane"${t==="res"?"":" hidden"}>${resultBlock(r)}</div>`;
+  } else {
+    inner = predContent(r);
+  }
+  return `<div class="pred-race">${raceHead(r)}${inner}</div>`;
+}
+// raceBlock が出したセレクタ（EV買い目の1着車・三連単オッズ表の1着固定）の配線。
+// 男子セクションも同じ raceBlock を描くので、ホスト要素を引数にして共有する。
+function wireRaceControls(h){
+  h.querySelectorAll(".ev-tab").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const uid=btn.dataset.ev, car=+btn.dataset.car;
+      h.querySelectorAll(`.ev-tab[data-ev="${uid}"]`).forEach(b=>{
+        const on=(+b.dataset.car===car);
+        b.setAttribute("aria-selected", on?"true":"false");
+        b.tabIndex = on?0:-1;
+      });
+      const grid=h.querySelector("#ev-grid-"+uid);
+      if(grid) grid.innerHTML=renderEvGrid(uid,car);
+    });
+  });
+  h.querySelectorAll(".om-tab").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const uid=btn.dataset.om, car=+btn.dataset.car;
+      h.querySelectorAll(`.om-tab[data-om="${uid}"]`).forEach(b=>{
+        const on=(+b.dataset.car===car);
+        b.setAttribute("aria-selected", on?"true":"false");
+        b.tabIndex = on?0:-1;
+      });
+      const grid=h.querySelector("#om-grid-"+uid);
+      if(grid) grid.innerHTML=renderOmGrid(uid,car);
+      const lab=h.querySelector("#om-lab-"+uid);
+      if(lab) lab.textContent="1着 "+car+" 固定";
+    });
+  });
+}
+
+// ==== ここから男子固有 ====
+
+// ---- 男子: 会場カード → レース一覧 → レース詳細 ----
+// ガールズ(1会場3〜5R)と違い男子は1日約130R・十数会場。会場タブを全部並べる方式は
+// 成立しないので3階層にする。データも data_men.json で独立。
+function bootMen(DB){
+  const P = DB.predictions||{};
+  const host = document.getElementById("menBody");
+  const all = (P.races||[]).filter(r=>r.is_girls===false);
+  document.getElementById("menTitle").innerHTML = "男子競輪の予測 "+badge(all.length?P.status:"pending");
+  document.getElementById("gen").textContent = P.last_updated ? ("更新 "+P.last_updated) : "";
+  if(!all.length){
+    host.innerHTML = emptyBox("男子の予測はまだ生成されていません。"
+      + "build_predictions.py を --include all で実行すると生成されます。");
+    return;
+  }
+  document.getElementById("menSub").textContent =
+    ((P.dates&&P.dates.length)?`対象 ${P.dates[0]}〜${P.dates[P.dates.length-1]}　`:"")
+    + `${all.length}レース` + (P.model?`　モデル ${P.model}`:"");
+
+  const today = P.date||"";
+  const dates = [...new Set(all.map(r=>r.date).filter(Boolean))].sort();
+  let selDate = dates.includes(today) ? today : (dates[0]||null);
+  let view = "venues", selVenue = null, selRace = null, rcOverride = null;
+
+  const DOW=["日","月","火","水","木","金","土"];
+  const dlabel = d => { const t=new Date(d+"T00:00:00Z");
+    const rel = !today ? "" : (d===today?"今日":(d<today?"昨日":"明日"));
+    return `${rel} ${d.slice(5).replace("-","/")}(${DOW[t.getUTCDay()]})`; };
+  const short = v => String(v||"").replace(/競輪場?$/,"");
+  // 進行状況はデータに無い派生値。build時刻ではなく**閲覧時刻**で判定する。
+  function mins(r){
+    if(!r.deadline||!String(r.deadline).includes(":")) return null;
+    const [h,m]=String(r.deadline).split(":").map(Number);
+    const n=new Date();
+    let d=h*60+m-(n.getHours()*60+n.getMinutes());
+    if(r.date && today && r.date!==today) d += (r.date>today?1440:-1440);   // 日跨ぎ
+    return d;
+  }
+  // done=確定 / live=発売中 / wait=締切済だが結果未取得 / yet=発売前。
+  // wait を live に混ぜない: 締切を過ぎたレースを「発売中」と出すと買えると誤解させる。
+  function status(r){
+    if(r.result&&(r.result.order||[]).length) return "done";
+    const m=mins(r);
+    if(m==null) return "yet";
+    if(m<-5) return "wait";
+    return m<=60 ? "live" : "yet";
+  }
+  const relTime = m => m==null ? "" :
+    (m<0 ? "締切" : (m<=5 ? "締切間近" : (m<60 ? `あと${m}分` : `あと${Math.floor(m/60)}時間${m%60}分`)));
+
+  function byVenue(races){
+    const m=new Map();
+    races.forEach(r=>{ const k=r.venue||"—"; if(!m.has(k)) m.set(k,[]); m.get(k).push(r); });
+    for(const v of m.values()) v.sort((a,b)=>(a.race_no||0)-(b.race_no||0));
+    return [...m.entries()].sort((a,b)=>
+      String(a[1][0].deadline||"~").localeCompare(String(b[1][0].deadline||"~")));
+  }
+
+  function renderVenues(races){
+    const vs = byVenue(races);
+    const st = races.map(status);
+    const nSt = k => st.filter(x=>x===k).length;
+    let h = `<div class="daysum"><span>開催 <b>${vs.length}</b>場</span>`
+      + `<span>全 <b>${races.length}</b>R</span>`
+      + `<span>済 <b>${nSt("done")}</b></span>`
+      + `<span>発売中 <b>${nSt("live")}</b></span>`
+      + (nSt("wait")?`<span>結果待ち <b>${nSt("wait")}</b></span>`:"")
+      + `<span>未発売 <b>${nSt("yet")}</b></span></div>`;
+    h += vs.map(([v,rs])=>{
+      const s = rs.map(status);
+      // 進捗バーは3色。結果待ちは「進行中」側に入れる（発売前ではないため）
+      const d=s.filter(x=>x==="done").length, y=s.filter(x=>x==="yet").length,
+            l=s.length-d-y, nw=s.filter(x=>x==="wait").length;
+      const w = n => (n/rs.length*100).toFixed(2)+"%";
+      const byTime = rs.slice().sort((a,b)=>
+        String(a.deadline||"~").localeCompare(String(b.deadline||"~")));
+      // 「次のレース」は買えるものを指す。結果待ちを次扱いにしない
+      const nxt = byTime.find(r=>{ const t=status(r); return t==="live"||t==="yet"; });
+      const bp = rs[0].bank_profile||{};
+      // 注目レース: 未確定があれば波乱確率が最大のもの、全確定なら最高配当
+      let pick=null, plabel="", pval="";
+      const undone = rs.filter(r=>status(r)!=="done");
+      if(undone.length){
+        pick = undone.reduce((a,b)=>((b.top1_prob||1)<(a.top1_prob||1)?b:a));
+        plabel="注目"; pval=`<span class="upt ${uptCls(1-(pick.top1_prob||0))}">波乱 ${pct1(1-(pick.top1_prob||0))}</span>`;
+      } else {
+        const paid = rs.filter(r=>(r.result||{}).payout);
+        if(paid.length){ pick = paid.reduce((a,b)=>(((b.result.payout||{}).yen||0)>((a.result.payout||{}).yen||0)?b:a));
+          plabel="最高配当"; pval=`<b>¥${((pick.result.payout||{}).yen||0).toLocaleString()}</b>`; }
+      }
+      const rd0 = pick ? ((pick.riders||[])[0]||{}) : {};
+      return `<div class="vcard" role="button" tabindex="0" data-venue="${esc(v)}">`
+        +`<div class="vc-h"><span class="vc-name">${esc(short(v))}</span>`
+        +(rs[0].grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
+        +(rs[0].class_group?`<span class="vc-cls">${esc(rs[0].class_group)}</span>`:"")
+        +`<span class="vc-arrow">›</span></div>`
+        +(rs[0].meet_name?`<div class="vc-spec">${esc(rs[0].meet_name)}</div>`:"")
+        +`<div class="vc-spec">${bp.bank?`${esc(bp.bank)}mバンク・みなし直線${esc(bp.straight)}m・`:""}全${rs.length}R</div>`
+        +`<div class="prog"><span class="done" style="width:${w(d)}"></span>`
+        +`<span class="live" style="width:${w(l)}"></span><span class="yet" style="width:${w(y)}"></span></div>`
+        +`<div class="vc-legend"><span><i style="background:var(--good)"></i>済 ${d}</span>`
+        +`<span><i style="background:var(--edge)"></i>進行中 ${l}${nw?`(結果待ち${nw})`:""}</span>`
+        +`<span><i style="background:var(--border)"></i>未発売 ${y}</span></div>`
+        +(nxt?`<div class="vc-next">⏱ 次 <b>${nxt.race_no}R</b> 締切 ${esc(nxt.deadline||"--")}`
+          +(mins(nxt)!=null&&mins(nxt)<=15&&mins(nxt)>=-5?`<span class="vc-soon">締切間近</span>`
+            :`<span style="color:var(--muted);font-weight:600">${relTime(mins(nxt))}</span>`)+`</div>`
+          :`<div class="vc-next">🏁 本日の発売は終了${nw?`（結果待ち ${nw}R）`:""}</div>`)
+        +(pick?`<div class="vc-pick"><span class="lbl">${plabel}</span>`
+          +`<b>${pick.race_no}R</b>${pval}`
+          +(rd0.car!=null?`<span class="rtag ${rtagCls(pick.race_type)}">${esc(pick.race_type||"")}</span>`
+            +carChip(rd0.car)+`<span class="rr-nm">${esc(rd0.name||"")}</span>`:"")+`</div>`:"")
+        +`</div>`;
+    }).join("");
+    return h;
+  }
+
+  function renderRaces(races){
+    const rs = races.filter(r=>r.venue===selVenue).sort((a,b)=>(a.race_no||0)-(b.race_no||0));
+    if(!rs.length) return emptyBox("この会場のレースがありません。");
+    const bp = rs[0].bank_profile||{};
+    const done = rs.filter(r=>status(r)==="done");
+    const hit = done.filter(r=>((r.result||{}).hit||{}).win_hit).length;
+    let h = `<div class="mv-back"><button type="button" data-back="venues">← 会場一覧</button>`
+      +`<span class="cur">${esc(dlabel(selDate))}</span></div>`;
+    h += `<div class="vhead"><div class="vc-h"><span class="vc-name">${esc(short(selVenue))}</span>`
+      +(rs[0].grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
+      +(rs[0].class_group?`<span class="vc-cls">${esc(rs[0].class_group)}</span>`:"")
+      +`<span class="vc-cls">済 ${done.length}/${rs.length}R</span>`
+      +(done.length?`<span class="vc-cls">◎的中 ${hit}/${done.length}</span>`:"")+`</div>`
+      +(bp.bank?`<div class="vc-spec">${esc(bp.bank)}m周長・みなし直線${esc(bp.straight)}m`
+        +(bp.cant!=null?`・カント${esc(bp.cant)}°`:"")+`</div>`:"")
+      +`</div>`;
+    h += rs.map(r=>{
+      const s=status(r), rd0=(r.riders||[])[0]||{};
+      const lbl={done:"済",live:"発売中",wait:"結果待ち",yet:"未発売"}[s];
+      let mid;
+      if(s==="done"){
+        const o=(r.result.order||[]).slice(0,3), pay=(r.result.payout||{});
+        mid = `<div class="rr-l1">${r.race_name?`<span class="vc-cls">${esc(r.race_name)}</span>`:""}`
+          +`◎ ${carChip(rd0.car)}<span class="rr-nm">${esc(rd0.name||"")}</span>`
+          +(((r.result.hit||{}).win_hit)?`<span class="rr-st done">的中</span>`:"")+`</div>`
+          +`<div class="rr-l2">${o.map(x=>carChip(x.car)).join("")}`
+          +(pay.combo?`<span>${esc(pay.combo)}</span><span class="rr-pay">¥${(pay.yen||0).toLocaleString()}</span>`:"")+`</div>`;
+      } else {
+        mid = `<div class="rr-l1">${r.race_name?`<span class="vc-cls">${esc(r.race_name)}</span>`:""}`
+          +`◎ ${carChip(rd0.car)}<span class="rr-nm">${esc(rd0.name||"")}</span></div>`
+          +`<div class="rr-l2"><span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"")}</span>`
+          +`<span>1着 ${pct1(r.top1_prob)}</span>`
+          +`<span class="upt ${uptCls(1-(r.top1_prob||0))}">波乱 ${pct1(1-(r.top1_prob||0))}</span>`
+          +`<span>${r.field_size}車</span></div>`;
+      }
+      return `<div class="rrow ${s==='live'?'live':''}" role="button" tabindex="0" data-race="${r.race_no}">`
+        +`<div class="rr-no"><b>${r.race_no}</b><small>${esc(r.deadline||"--")}</small></div>`
+        +`<div class="rr-mid">${mid}</div>`
+        +`<div class="rr-st ${s}">${lbl}</div></div>`;
+    }).join("");
+    h += `<button class="backfoot" type="button" data-back="venues">← 会場一覧へ戻る</button>`;
+    return h;
+  }
+
+  function renderRace(races){
+    const r = races.find(x=>x.venue===selVenue && x.race_no===selRace);
+    if(!r) return emptyBox("レースが見つかりません。");
+    return `<div class="mv-back"><button type="button" data-back="races">← ${esc(short(selVenue))}</button>`
+      +`<button type="button" data-back="venues">会場一覧</button>`
+      +`<span class="cur">${r.race_no}R ${esc(r.deadline||"")}</span></div>`
+      + raceBlock(r, rcOverride || ((r.result&&(r.result.order||[]).length)?"res":"pred"))
+      + `<button class="backfoot" type="button" data-back="races">← ${esc(short(selVenue))}のレース一覧へ</button>`;
+  }
+
+  function render(){
+    const races = all.filter(r=>r.date===selDate);
+    let html = `<div class="pred-disc">⚠ 男子競輪の着順（1着）確率と三連単モデル確率の提示です。`
+      +`買い目の推奨ではありません。三連単は素のPlackett-Luce（紐補正なし）です。</div>`;
+    if(dates.length>1){
+      html += `<div class="pred-dtabs" role="tablist" aria-label="日付切替">`
+        + dates.map(d=>`<button class="pred-dtab" type="button" role="tab" data-mdate="${esc(d)}"`
+          +` aria-selected="${d===selDate?"true":"false"}">${esc(dlabel(d))}`
+          +`<span class="vc">${all.filter(r=>r.date===d).length}R</span></button>`).join("")
+        + `</div>`;
+    }
+    html += view==="venues" ? renderVenues(races)
+          : view==="races"  ? renderRaces(races)
+          : renderRace(races);
+    host.innerHTML = html;
+    attach();
+  }
+
+  function attach(){
+    host.querySelectorAll("[data-mdate]").forEach(b=>b.addEventListener("click",()=>{
+      selDate=b.dataset.mdate; view="venues"; selVenue=null; render(); window.scrollTo(0,0);
+    }));
+    const go=(el,fn)=>{ el.addEventListener("click",fn);
+      el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); fn(); } }); };
+    host.querySelectorAll("[data-venue]").forEach(el=>go(el,()=>{
+      selVenue=el.dataset.venue; view="races"; render(); window.scrollTo(0,0);
+    }));
+    host.querySelectorAll("[data-race]").forEach(el=>go(el,()=>{
+      selRace=+el.dataset.race; view="race"; rcOverride=null; render(); window.scrollTo(0,0);
+    }));
+    host.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>{
+      view=b.dataset.back; if(view==="venues") selVenue=null; rcOverride=null; render(); window.scrollTo(0,0);
+    }));
+    // 予測／確定結果 タブ（レース詳細内）。スクロール位置は動かさない
+    host.querySelectorAll(".rc-tab").forEach(t=>{
+      t.addEventListener("click",()=>{ rcOverride=t.dataset.rc; render(); });
+    });
+    wireRaceControls(host);
+  }
+  render();
+
+  document.getElementById("foot").innerHTML =
+    "本ページは<b>男子競輪の3連単予測AI</b>の可視化です。"
+    +"モデルは男子専用（LightGBM 39特徴＝拡張20＋Elo＋<b>ライン8</b>＋展開10）で、"
+    +"ガールズ用モデルとは学習データも特徴も別です。展開パターンとバンク別決まり手も"
+    +"男子実測（各22,901R / 25,228R）に基づきます。"
+    +"<b>紐補正は掛けていません</b>（ガールズ実測のパラメータのため。男子は未検証）。"
+    +"参考フォーメーションの的中率・回収率もガールズ実測なので本ページには出しません。"
+    +"予測は着順確率であって買い目ではありません。<b>期待値ゾーンの検証前につき実弾投入はしません。</b>";
+}
+
+
+// ---- theme toggle (light/dark, persisted). ガールズ側とキーを共有して設定を引き継ぐ ----
+(function(){
+  const KEY="gk_theme";
+  const saved=localStorage.getItem(KEY);
+  if(saved) document.documentElement.setAttribute("data-theme",saved);
+  document.addEventListener("click",e=>{
+    if(e.target.closest && e.target.closest("#themeBtn")){
+      const cur=document.documentElement.getAttribute("data-theme")
+        || (matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+      const next=cur==="dark"?"light":"dark";
+      document.documentElement.setAttribute("data-theme",next);
+      localStorage.setItem(KEY,next);
+    }
+  });
+})();
+
+// ---- data load: 男子は data_men.json（ガールズの data.json とは別ファイル）----
+(function(){
+  fetch("./data_men.json?t="+Date.now()).then(r=>r.json()).then(bootMen).catch(e=>{
+    document.getElementById("menBody").innerHTML =
+      '<div class="empty">データ読込エラー: '+e+'<br>data_men.json を同じフォルダに置き、'
+      +'サーバ経由（GitHub Pages 等）で開いてください。</div>';
+  });
+})();
+
+// PWA: サービスワーカー登録（ガールズ側と同一のSWを共有）
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  });
+}
+</script>
