@@ -163,15 +163,27 @@ class DatasetRepo:
         self.conn.executescript(_DATASET_DDL)
         self._add_missing_columns()
 
+    # 後から足した列。CREATE TABLE IF NOT EXISTS は既存テーブルを変更しないので、
+    # ここに書いた列は起動時に ALTER で補う。**足した列はここにも必ず追加すること**
+    # （narabi の line_id/pos_in_line を書き忘れ、旧DBで INSERT の列数が合わず
+    #  結果取得が丸ごと落ちた）。
+    _ADDED_COLUMNS = {
+        "races": (("grade", "TEXT"), ("race_name", "TEXT")),
+        "narabi": (("line_id", "INTEGER"), ("pos_in_line", "INTEGER")),
+    }
+
     def _add_missing_columns(self) -> None:
-        """既存DBに後から足した列を補う（CREATE TABLE IF NOT EXISTS では増えないため）。
+        """既存DBに後から足した列を補う。
 
         SQLite の ADD COLUMN は NULL許容なら既存行を書き換えずに済むので無停止で通る。
         """
-        have = {r[1] for r in self.conn.execute("PRAGMA table_info(races)")}
-        for col, decl in (("grade", "TEXT"), ("race_name", "TEXT")):
-            if col not in have:
-                self.conn.execute(f"ALTER TABLE races ADD COLUMN {col} {decl}")
+        for table, cols in self._ADDED_COLUMNS.items():
+            have = {r[1] for r in self.conn.execute(f"PRAGMA table_info({table})")}
+            if not have:                      # そのテーブル自体が無い（DDL適用前）
+                continue
+            for col, decl in cols:
+                if col not in have:
+                    self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
         self.conn.commit()
 
     def save_race(self, race_id: str, race_date: str, venue_code: str, race_no: int,
@@ -237,7 +249,12 @@ class DatasetRepo:
                  pos_of.get(car, (None, None))[0], pos_of.get(car, (None, None))[1])
                 for pos, car in enumerate(order)]
         if rows:
-            self.conn.executemany("INSERT OR REPLACE INTO narabi VALUES (?,?,?,?,?,?)", rows)
+            # 列名を明示する。VALUES(?,?,…) の位置指定だと列を足すたびに旧DBで
+            # 「N columns but M values」で落ちる（実際にそれで結果取得が止まった）。
+            self.conn.executemany(
+                "INSERT OR REPLACE INTO narabi"
+                " (race_id, car_number, position, leg, line_id, pos_in_line)"
+                " VALUES (?,?,?,?,?,?)", rows)
             self.conn.commit()
         return len(rows)
 
