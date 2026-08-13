@@ -280,12 +280,12 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         else:
             read = f"◎{_fav}番の並び位置は不明。"
         read += "◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。"
-        # 推定主導権（展開AI=最終バック先頭B予測。過去実測55%的中で記者予想22%を上回る）
-        # **ガールズ専用**（ガールズ38特徴で学習）。男子は特徴セットが違うので使わない。
-        # 男子の主導権はライン先頭がほぼ独占（実測37.8% vs 番手0.4%）なのでライン表示で足りる。
+        # 推定主導権（展開AI＝最終バック先頭Bの予測）。男女で別モデル・別特徴。
+        #   ガールズ 55.2%的中（記者予想22.1%）/ 男子 62.5%（記者先頭49.4%・B回数最大56.3%を
+        #   5/5foldで上回る）。男子は主導権がほぼ決着構造を決めるので表示価値が高い。
         _backstretch = None
         from src.model.backstretch import load_backstretch
-        _bs = load_backstretch() if _girls else None
+        _bs = load_backstretch(_girls)
         if _bs is not None:
             pB = strengths_from_model(_bs, entries, recent, elo_state,
                                       tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
@@ -299,7 +299,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                     "second_p": round(_rk[1][1], 4) if len(_rk) > 1 else None,
                     "reporter_front": _rfront,
                     "diverges": bool(_rfront is not None and _rk[0][0] != _rfront),
-                    "hit_rate": 0.552,             # walk-forward out-of-sample 実測
+                    # walk-forward out-of-sample 実測（男女で別値）
+                    "hit_rate": 0.552 if _girls else 0.625,
                     "probs": {int(c): round(p, 4) for c, p in _rk},
                 }
         # ペース読み（先行型=レース内でb_countが最多の40%以上の人数。スケール非依存で analyze_pace_composition と同一定義）。

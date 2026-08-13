@@ -17,6 +17,8 @@ from pathlib import Path
 from src.model.persist import load_model
 
 BACKSTRETCH_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "models" / "backstretch_model.pkl"
+# 男子は別モデル（特徴セットが違う: ガールズ38列 / 男子46列）。取り違えると推論が落ちる。
+BACKSTRETCH_MEN_PATH = BACKSTRETCH_PATH.with_name("backstretch_model_men.pkl")
 
 _cache: dict = {}
 
@@ -46,11 +48,16 @@ def as_border(samples: list, btk: dict[str, int]) -> list:
     return out
 
 
-def load_backstretch():
-    """本番の展開AIモデルを読む（無ければ None）。プロセス内キャッシュ。"""
-    if "m" not in _cache:
+def load_backstretch(is_girls: bool = True):
+    """本番の展開AIモデルを読む（無ければ None）。プロセス内キャッシュ。
+
+    男子は別ファイル。B的中は男子 62.5%（記者先頭49.4% / B回数最大56.3% を5/5foldで上回る）、
+    ガールズ 55.2%。特徴セットが違うのでフォールバックしない。
+    """
+    key = "m" if is_girls else "m_men"
+    if key not in _cache:
         try:
-            _cache["m"] = load_model(BACKSTRETCH_PATH)
+            _cache[key] = load_model(BACKSTRETCH_PATH if is_girls else BACKSTRETCH_MEN_PATH)
         except Exception:
-            _cache["m"] = None
-    return _cache["m"]
+            _cache[key] = None
+    return _cache[key]
