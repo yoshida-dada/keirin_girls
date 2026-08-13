@@ -93,7 +93,8 @@ def parse_deadline(html: str) -> str | None:
 # アイコンのCSSクラス(gr1..gr5)はフォールバック: 特殊開催（全プロ記念）で実態とズレる例を確認済み。
 _GRADE_TEXT_RE = re.compile(r"(ＧＰ|Ｇ[１２３]|Ｆ[１２])")
 _Z2H = str.maketrans("ＧＦＰ１２３", "GFP123")
-_GRADE_BY_CLASS = {"gr1": "F2", "gr2": "F1", "gr3": "G3", "gr4": "G2", "gr5": "G1"}
+_GRADE_BY_CLASS = {"gr1": "F2", "gr2": "F1", "gr3": "G3", "gr4": "G2",
+                   "gr5": "G1", "gr6": "GP"}   # gr6は2025年末の平塚GPで実測
 
 
 def parse_race_meta(html: str) -> dict:
