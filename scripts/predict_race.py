@@ -231,6 +231,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
 
     # 展開予想（記者の並び予想の隊列＋モデルの一言読み）。ガールズは並び通りになるとは限らない。
     development = None
+    dev_branches = None          # 男子の展開分岐（下の _backstretch 確定後に作る）
     if narabi_ctx and narabi_ctx.get("order"):
         _order = narabi_ctx["order"]
         _legs = narabi_ctx.get("legs") or {}
@@ -303,6 +304,15 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                     "hit_rate": 0.552 if _girls else 0.625,
                     "probs": {int(c): round(p, 4) for c, p in _rk},
                 }
+        # 展開分岐（男子）: 主導権の候補ごとに条件付き着順分布と買い目を出す。
+        # **_backstretch が確定した後**でなければならない（分岐の確率はP(B)そのもの）。
+        if not _girls and _backstretch and (narabi_ctx or {}).get("lines"):
+            from src.model.development_branches import build_branches
+            dev_branches = build_branches(
+                strengths, narabi_ctx["lines"],
+                {int(c): p for c, p in (_backstretch.get("probs") or {}).items()},
+                names={e.car_number: e.rider_name for e in entries})
+
         # ペース読み（先行型=レース内でb_countが最多の40%以上の人数。スケール非依存で analyze_pace_composition と同一定義）。
         # 先行型が多いほどハイペース化し逃げが飛び捲り・差しが台頭（±5pt程度）。表示専用・着順には非影響。
         _bvals = [((recent.get(e.car_number).b_count or 0) if recent.get(e.car_number) else 0) for e in entries]
@@ -362,6 +372,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "class_group": "/".join(sorted({e.class_rank for e in entries if e.class_rank})) or None,
         "lines": (narabi_ctx or {}).get("lines") or [],
         "line_strength": line_strength,        # 男子: ライン別の強さ（表示用）
+        "dev_branches": dev_branches,          # 男子: 展開分岐＋分岐ごとの買い目
         # 開催格(G1/F2等)・開催名・レース名。混戦度は格とレース名（決勝/予選）で傾向が変わる
         "grade": meta.get("grade"), "meet_name": meta.get("meet_name"),
         "race_name": meta.get("race_name"),
