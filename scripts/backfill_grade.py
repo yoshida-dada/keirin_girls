@@ -36,7 +36,10 @@ from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_schedule import build_kaisai_list_url
 
 # 実測の対応（men_keirin_plan.md 4.12.4）。未知の grN は警告して None にする。
-GRADE_BY_CLASS = {"gr1": "F2", "gr2": "F1", "gr3": "G3", "gr4": "G2", "gr5": "G1"}
+# gr6=GP は 2025-12-28〜30 の平塚（競輪グランプリ）で実測して判明した。
+# 調査時点では未確認だったが、未知クラスを警告する実装にしていたので拾えた。
+GRADE_BY_CLASS = {"gr1": "F2", "gr2": "F1", "gr3": "G3", "gr4": "G2",
+                  "gr5": "G1", "gr6": "GP"}
 _TBL_ID = re.compile(r"^tbl_day(\d{2})(\d{8})$")
 
 
