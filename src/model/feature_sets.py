@@ -23,7 +23,7 @@ from src.model.training_data import PL_FEATURES_FULL
 from src.features.tactics_features import TACTIC_NAMES
 from src.features.rider_narabi import NARABI_KEYS
 from src.features.bank_features import BANK_KEYS
-from src.features.line_features import LINE_KEYS
+from src.features.line_features import LINE_KEYS, LEGOH_KEYS
 
 
 def girls_features() -> list[str]:
@@ -33,13 +33,19 @@ def girls_features() -> list[str]:
 
 
 def men_features() -> list[str]:
-    """男子本番モデルの特徴（39列）。
+    """男子本番モデルの特徴（46列）。
 
     ライン8列が主役（tri10 +4.61pt・5/5fold）。展開10列はその上にも純増する
-    （+0.40pt・4/5fold）。脚質と並び5列は不採用。
+    （+0.40pt・4/5fold）。並び5列(NARABI_KEYS)は不採用。
+
+    脚質7列(LEGOH_KEYS)は **one-hot で再検証して採用**（tri10 +0.25pt・4/5fold,
+    top1 +0.03pt・4/5fold）。以前スカラー化(ln_leg)で不採用にしたのは情報ではなく
+    符号化の問題で、LEG_AGGR_MEN が 先行/押え先/カマシ を全て2.0に潰していた
+    （実測のライン先頭主導権率は 55.2%/34.7%/33.0% と20pt違う）。
+    効果量はライン特徴の1/18と小さいが、事前基準は充足している。
     """
     return (list(PL_FEATURES_FULL) + ["rel_elo"] + list(LINE_KEYS)
-            + list(TACTIC_NAMES))
+            + list(TACTIC_NAMES) + list(LEGOH_KEYS))
 
 
 # 学習・推論の両方から参照する定数

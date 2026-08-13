@@ -18,7 +18,8 @@ from src.model.elo import compute_pre_race_elo, DEFAULT_ELO
 from src.features.tactics_features import TACTIC_NAMES, tactic_columns
 from src.features.rider_narabi import NARABI_KEYS, narabi_columns
 from src.features.bank_features import BANK_KEYS, bank_columns
-from src.features.line_features import LINE_KEYS, line_columns, class_level
+from src.features.line_features import (LINE_KEYS, line_columns, class_level,
+                                        LEGOH_KEYS, legoh_columns)
 
 
 def _line_ctx(db_path):
@@ -38,8 +39,11 @@ def _line_ctx(db_path):
             scores[rid][car] = sc
         if cr:
             cls[rid].append(cr)
+    legs = defaultdict(dict)
+    for rid, car, lg in c.execute("SELECT race_id,car_number,leg FROM narabi"):
+        legs[rid][car] = lg
     c.close()
-    return line_of, scores, cls
+    return line_of, scores, cls, legs
 
 
 def _venue_map(db_path) -> dict[str, str]:
@@ -61,7 +65,8 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     need_tac = any(n in names for n in TACTIC_NAMES) or need_bank
     need_nb = any(n in names for n in NARABI_KEYS)
     need_line = any(n in names for n in LINE_KEYS)
-    if not (need_elo or need_tac or need_nb or need_line):
+    need_legoh = any(n in names for n in LEGOH_KEYS)
+    if not (need_elo or need_tac or need_nb or need_line or need_legoh):
         return samples
 
     pre_elo = compute_pre_race_elo(db_path) if need_elo else None
@@ -74,9 +79,9 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     if need_nb:
         from src.features.rider_narabi import compute_narabi_features
         narabi = compute_narabi_features(db_path)      # 各(race_id,car)の並び予想 生特徴
-    line_of = scores = cls = None
-    if need_line:
-        line_of, scores, cls = _line_ctx(db_path)      # 男子: ライン境界＋得点＋級班
+    line_of = scores = cls = legs = None
+    if need_line or need_legoh:
+        line_of, scores, cls, legs = _line_ctx(db_path)   # 男子: ライン境界＋得点＋級班＋脚質
 
     out = []
     for s in samples:
@@ -120,6 +125,13 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
             lmat = np.array([[lcols[c][i] for i, _ in lkeep] for c in cars], dtype=float)
             X = np.hstack([X, lmat])
             fn = fn + [name for _, name in lkeep]
+        if need_legoh:                          # 脚質one-hot（推論と同一関数）
+            cars = list(s.car_numbers)
+            gcols = legoh_columns(cars, (legs or {}).get(s.race_id, {}))
+            gkeep = [(i, name) for i, name in enumerate(LEGOH_KEYS) if name in names]
+            gmat = np.array([[gcols[c][i] for i, _ in gkeep] for c in cars], dtype=float)
+            X = np.hstack([X, gmat])
+            fn = fn + [name for _, name in gkeep]
         # 最後に model.feature_names の並びへ揃える。ここが無いと「どの順で hstack したか」に
         # 暗黙依存し、呼び出し側が列を挟み直す羽目になる（実際 deploy_men.py がそうしていて、
         # analyze_dev_patterns から男子モデルを使った時に 31列 vs 39列 で落ちた）。

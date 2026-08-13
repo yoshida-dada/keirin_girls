@@ -97,7 +97,7 @@ def build_records(db_path: str | Path, model, race_ids: list[str],
                 for i, name in enumerate(TACTIC_NAMES):
                     df[name] = [cols[c][i] for c in df.index]
             if need_line:
-                lo, sc, cl = line_ctx
+                lo, sc, cl = line_ctx[0], line_ctx[1], line_ctx[2]
                 lcols = line_columns(list(df.index), lo.get(race_id, {}),
                                      sc.get(race_id, {}), class_level(cl.get(race_id, [])))
                 for i, name in enumerate(LINE_KEYS):

@@ -137,6 +137,13 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         lcols = line_columns(list(df.index), line_of, scores, lv)
         for i, name in enumerate(LINE_KEYS):
             df[name] = [lcols[c][i] for c in df.index]
+    from src.features.line_features import LEGOH_KEYS
+    if any(n in feats for n in LEGOH_KEYS):     # 男子モデル: 脚質one-hot（学習と同一関数）
+        from src.features.line_features import legoh_columns
+        nb = narabi_ctx or {}
+        gcols = legoh_columns(list(df.index), nb.get("legs") or {})
+        for i, name in enumerate(LEGOH_KEYS):
+            df[name] = [gcols[c][i] for c in df.index]
     # 欠損はレース内平均で補完する。1名の gear_ratio 欠け等だけで全車の推論を捨てて
     # 競走得点ベースラインへ落ちるのを防ぐ（2026-07-28 実測: 本日8R中2Rが該当）。
     # ただし CORE_FEATURES（強さの主信号）が欠けた選手がいる場合と、列が全車欠損の場合は

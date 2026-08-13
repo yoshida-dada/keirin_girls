@@ -105,3 +105,30 @@ def line_columns(cars: list[int], line_of: dict[int, tuple[int, int]],
             head * cls_level,
         ]
     return out
+
+# ---- 脚質の one-hot（LEG_AGGR のスカラー化が信号を潰した反省から）----
+# 旧 ln_leg は LEG_AGGR_MEN で 先行/押え先/カマシ を**すべて 2.0 に潰していた**。
+# 実測(25,269R)のライン先頭の主導権率は 先行55.2% / 押え先34.7% / カマシ33.0% で
+# 20pt違うのに、符号化の時点でその差が消えていた（だから tri10 -0.28pt で不採用になった）。
+# ここでは順序も間隔も仮定せず、モデルに学習させる。
+#
+# 語彙は実測の出現順（追込95,928 / 押え先28,137 / 先行21,375 / 自在18,784 / 追上10,616 /
+# カマシ3,853）。それ未満（競り954・まくり513・イン待127・イン切4）は other にまとめる。
+LEG_ONEHOT = ["先行", "押え先", "カマシ", "自在", "追上", "追込"]
+LEGOH_KEYS = [f"lg_{i}" for i in range(len(LEG_ONEHOT) + 1)]   # 末尾は other
+
+
+def leg_onehot(leg: str | None) -> list[float]:
+    """脚質 → one-hot。未知・空は other(末尾)に入れる。"""
+    v = [0.0] * (len(LEG_ONEHOT) + 1)
+    try:
+        v[LEG_ONEHOT.index(leg)] = 1.0
+    except ValueError:
+        v[-1] = 1.0
+    return v
+
+
+def legoh_columns(cars: list[int], legs: dict) -> dict[int, list[float]]:
+    """{車番: [lg_0..lg_6]}。推論・学習・バックテストで同じ関数を通すこと。"""
+    return {c: leg_onehot(legs.get(c)) for c in cars}
+
