@@ -43,10 +43,16 @@ def main():
     ap = argparse.ArgumentParser(description="条件付き紐補正の検証")
     ap.add_argument("--db", default=str(DATA_DIR / "keirin.sqlite"))
     ap.add_argument("--folds", type=int, default=5)
+    ap.add_argument("--men", action="store_true",
+                    help="男子として解析（39特徴・7/9車）。既定=ガールズ")
     args = ap.parse_args()
 
-    base = load_samples(args.db, features=PL_FEATURES_FULL)
-    feats = list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES) + list(NARABI_KEYS)
+    from src.model.feature_sets import men_features
+    # 男子は本番と同じ39特徴（ライン8込み）。ガールズは並び5列を足した検証用セット。
+    feats = men_features() if args.men else (
+        list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES) + list(NARABI_KEYS))
+    base = load_samples(args.db, field_size=([7, 9] if args.men else 7),
+                        features=PL_FEATURES_FULL)
     samples = augment_samples(base, args.db, feats)
     narabi = compute_narabi_features(args.db)
     bounds = fold_boundaries(len(samples), n_folds=args.folds, warmup_frac=0.40, window="expanding")
