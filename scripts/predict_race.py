@@ -37,6 +37,10 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     odds = {k: v for k, v in odds.items() if v and v < 9999}
     deadline = parse_deadline(html)
     meta = parse_race_meta(html)      # 開催格/開催名/レース名（同じHTMLから。追加フェッチなし）
+    # 翌日ぶんは出走表が未公開のことがある（前日夕方に順次published）。空のまま進むと
+    # 特徴量組み立てが "None of ['car_number'] are in the columns" で落ち、原因が読めない。
+    if not entries:
+        raise ValueError("出走表が未公開（翌日ぶんの可能性）")
 
     # 現時点の選手成績（通算/直近5走/当地/中何日）と対戦成績を氏名で引く（本日レースはDB外＝混ざらない）
     from config.settings import DATA_DIR
