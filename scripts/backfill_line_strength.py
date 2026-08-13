@@ -5,9 +5,13 @@ build_predictions は**確定済みレースの予測を丸ごと据え置く**�
 過去レースには反映されない。
 
 line_strength は**公開済みの win_prob だけから再構成できる**:
-  男子は紐補正を掛けず素のPlackett-Luceなので、三連単分布は win_prob の関数として一意。
-  つまりこれは新しい予測ではなく、既に出した確率の別の見せ方でしかない。
-  → 予測値を一切変えずに後付けしてよい。
+  三連単分布は win_prob の関数として一意なので、新しい予測ではなく既に出した確率の
+  別の見せ方でしかない。→ 予測値を一切変えずに後付けしてよい。
+
+**素のPLで再構成する**（紐補正を掛けない）。対象は A-3 以前に予測された確定済みレースで、
+その `top_trifecta` は補正なしで作られているため。ここで補正を掛けると line_strength だけが
+表示中の三連単確率と別の分布になる。A-3以降に予測されたレースは predict_race が
+補正込みで line_strength を入れているので、この関数は触らない（既存はスキップする）。
 
   python scripts/backfill_line_strength.py                 # dashboard/data_men.json を更新
   python scripts/backfill_line_strength.py --dry-run
