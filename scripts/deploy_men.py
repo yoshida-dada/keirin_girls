@@ -42,47 +42,16 @@ MODELS = ROOT / "data" / "models"
 DEFAULT_DB = ROOT / "data" / "keirin_men.sqlite"
 
 
-def _ctx(db: str):
-    c = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
-    c.execute("PRAGMA query_only=1")
-    line_of = defaultdict(dict)
-    for rid, car, li, pi in c.execute(
-            "SELECT race_id,car_number,line_id,pos_in_line FROM narabi WHERE line_id IS NOT NULL"):
-        line_of[rid][car] = (li, pi)
-    scores = defaultdict(dict)
-    cls = defaultdict(list)
-    for rid, car, sc, cr in c.execute(
-            "SELECT race_id,car_number,racing_score,class_rank FROM entries"):
-        if sc:
-            scores[rid][car] = sc
-        if cr:
-            cls[rid].append(cr)
-    c.close()
-    return line_of, scores, cls
-
 
 def build_samples(db: str, field_size):
-    """男子39特徴のサンプルを作る（学習・評価で共通。列順は men_features() と一致）。"""
-    line_of, scores, cls = _ctx(db)
+    """男子39特徴のサンプルを作る（学習・評価で共通。列順は men_features() と一致）。
+
+    ライン列の付与も列順の整合も `augment_samples` が持つ。以前はここで列を挟み直して
+    いたが、同じ処理を二重に持った結果 analyze_dev_patterns が男子モデルを使うと
+    31列 vs 39列で落ちた。付与は必ず共通関数を通す（推論との skew 防止も同じ理由）。
+    """
     base = load_samples(db, field_size=field_size, features=PL_FEATURES_FULL)
-    tac = list(PL_FEATURES_FULL) + ["rel_elo"] + list(TACTIC_NAMES)
-    aug = augment_samples(base, db, tac)
-    out = []
-    for s in aug:
-        cars = list(s.car_numbers)
-        cols = line_columns(cars, line_of.get(s.race_id, {}), scores.get(s.race_id, {}),
-                            class_level(cls.get(s.race_id, [])))
-        # men_features() の並びは 拡張20 + rel_elo + ライン8 + 展開10。
-        # augment_samples は 拡張20 + rel_elo + 展開10 の順で返すので、ライン列を挟み直す。
-        names = list(s.feature_names)
-        i = names.index(TACTIC_NAMES[0])
-        X = np.hstack([s.X[:, :i],
-                       np.array([cols[c] for c in cars], dtype=float),
-                       s.X[:, i:]])
-        s.X = X
-        s.feature_names = names[:i] + list(LINE_KEYS) + names[i:]
-        out.append(s)
-    return out
+    return augment_samples(base, db, men_features())
 
 
 def _tri10(model, test) -> float:
