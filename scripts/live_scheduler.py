@@ -31,6 +31,7 @@ sys.path.insert(0, str(ROOT))   # src.notify を import するため
 JST = timezone(timedelta(hours=9))
 DASH = ROOT / "dashboard"
 DATA_JSON = DASH / "data.json"
+DATA_JSON_MEN = DASH / "data_men.json"   # 男子は別ページ・別データ
 NOTIFIED_PATH = ROOT / "data" / "notified.json"
 PY = sys.executable
 
@@ -159,12 +160,16 @@ def live_results() -> None:
 
 
 def _races() -> list:
-    if not DATA_JSON.exists():
-        return []
-    try:
-        return json.loads(DATA_JSON.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
-    except Exception:
-        return []
+    """ガールズ＋男子の全レース。締切判定・結果待ち判定・通知の共通入力。"""
+    out = []
+    for path in (DATA_JSON, DATA_JSON_MEN):
+        if not path.exists():
+            continue
+        try:
+            out += json.loads(path.read_text(encoding="utf-8")).get("predictions", {}).get("races", [])
+        except Exception:
+            pass
+    return out
 
 
 def _deadline_dt(r: dict, now: datetime) -> datetime | None:
@@ -306,10 +311,11 @@ def notify_lead(now: datetime) -> None:
 
 
 def git_push() -> None:
-    rc, out = _run(["git", "diff", "--quiet", "--", "dashboard/data.json"])
+    files = ["dashboard/data.json", "dashboard/data_men.json"]
+    rc, out = _run(["git", "diff", "--quiet", "--"] + files)
     if rc == 0:
         return  # 変更なし
-    _run(["git", "add", "dashboard/data.json"])
+    _run(["git", "add"] + files)
     _run(["git", "commit", "-m", "chore: live odds refresh"])
     _run(["git", "pull", "--rebase"])
     rc, out = _run(["git", "push"])

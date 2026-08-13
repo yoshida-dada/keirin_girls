@@ -33,6 +33,7 @@ from src.collect.snapshot import build_race_id
 from db.repository import DatasetRepo, combo_to_str
 
 DATA_JSON = ROOT / "dashboard" / "data.json"
+DATA_JSON_MEN = ROOT / "dashboard" / "data_men.json"   # 男子は別ページ・別データ
 DEFAULT_DB = ROOT / "data" / "keirin.sqlite"
 JST = timezone(timedelta(hours=9))
 
@@ -107,8 +108,13 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20,
         kaisai_list = [k for k in kaisai_list if k.is_girls]
     venues = _venue_map(res.text)
 
-    doc = json.loads(DATA_JSON.read_text(encoding="utf-8")) if DATA_JSON.exists() else {}
-    races = (doc.get("predictions") or {}).get("races") or []
+    # 男女でデータファイルが別なので両方開き、レースを跨いだ辞書で引く。
+    # 片方だけ見ると、もう一方の結果が永久に反映されない。
+    docs = []
+    for path in (DATA_JSON, DATA_JSON_MEN):
+        d = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        docs.append((path, d))
+    races = [r for _, d in docs for r in ((d.get("predictions") or {}).get("races") or [])]
     # data.json は前後1日を持つため (date, venue, race_no) で引く。日付を外すと
     # 同一会場のR番号が日をまたいで衝突し、別日のレースへ結果を書き込んでしまう。
     tstr = target.isoformat()
@@ -169,8 +175,12 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20,
             repo_men.close()
 
     if updated and races:
-        doc["predictions"]["results_updated"] = now.strftime("%Y-%m-%d %H:%M JST")
-        DATA_JSON.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+        # drace はどちらかの doc 内のオブジェクトを直接書き換えているので、両方保存する
+        for path, d in docs:
+            if not d.get("predictions"):
+                continue
+            d["predictions"]["results_updated"] = now.strftime("%Y-%m-%d %H:%M JST")
+            path.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
     return updated
 
 

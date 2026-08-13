@@ -189,6 +189,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="予測AIのdata.json生成")
     ap.add_argument("--db", default=str(bdd.DEFAULT_DB))
     ap.add_argument("--out", default=str(DEFAULT_OUT))
+    ap.add_argument("--out-men", help="男子の書き出し先（既定=--out と同じ場所の data_men.json）")
     ap.add_argument("--date", help="起点日 YYYY-MM-DD（既定=今日）")
     ap.add_argument("--predict", action="store_true", help="ガールズ予測を生成（ネットワーク）")
     ap.add_argument("--window", type=int, default=1,
@@ -221,9 +222,14 @@ def main() -> None:
         # fetch_results が記録した hit の整合も崩れる。
         prev = {}
         out_path = Path(args.out)
-        if out_path.exists():
+        men_path = Path(args.out_men) if args.out_men else out_path.with_name("data_men.json")
+        # 男子は別ファイルなので**両方**見る。片方だけだと男子の確定済み予測が毎朝
+        # 作り直され、発走後にモデルが変わると的中実績が遡って良く見えてしまう。
+        for p in (out_path, men_path):
+            if not p.exists():
+                continue
             try:
-                old = json.loads(out_path.read_text(encoding="utf-8"))
+                old = json.loads(p.read_text(encoding="utf-8"))
                 for r in (old.get("predictions") or {}).get("races") or []:
                     if r.get("result"):
                         prev[(r.get("date"), r.get("venue"), r.get("race_no"))] = r
@@ -252,10 +258,37 @@ def main() -> None:
 
     out = Path(args.out)
     kw = ({"separators": (",", ":")} if args.compact else {"indent": 2})
+
+    # 男子はダッシュボードもデータも独立させる。ガールズだけ見るときに男子ぶん（全体の約9割）を
+    # 読み込まずに済ませるため、また **ガールズ実測の分析セクションを男子ページに載せない**ため。
+    # race_type_dist / calibration / prediction_accuracy / accuracy_history / results_history は
+    # すべて keirin.sqlite（ガールズ）から作っている。男子ページに出すと、統計の取り違えを
+    # UI側で再発させることになる（stats_profile.py で潰したのと同じ誤り）。
+    men_doc = None
+    if args.include in ("men", "all"):
+        races = (doc.get("predictions") or {}).get("races") or []
+        girls_races = [r for r in races if r.get("is_girls") is not False]
+        men_races = [r for r in races if r.get("is_girls") is False]
+        men_pred = dict(doc.get("predictions") or {})
+        men_pred["races"] = men_races
+        men_doc = {"generated_at": doc.get("generated_at"),
+                   "model_ready": doc.get("model_ready"),
+                   "sex": "men",
+                   "predictions": men_pred,
+                   "note_analytics": "較正・レースタイプ分布・的中実績はガールズ実測のため"
+                                     "本ページには載せない（男子は未実測）。"}
+        if args.predict:
+            doc["predictions"]["races"] = girls_races
+
     out.write_text(json.dumps(doc, ensure_ascii=False, **kw), encoding="utf-8")
     rt = {c["type"]: c["n"] for c in doc["race_type_dist"]["counts"]}
     print(f"生成: {out}  {out.stat().st_size/1024/1024:.2f}MB"
           f"{'（compact）' if args.compact else ''}")
+    if men_doc is not None:
+        mout = Path(args.out_men) if args.out_men else out.with_name("data_men.json")
+        mout.write_text(json.dumps(men_doc, ensure_ascii=False, **kw), encoding="utf-8")
+        print(f"生成: {mout}  {mout.stat().st_size/1024/1024:.2f}MB "
+              f"（男子{len(men_doc['predictions']['races'])}レース）")
     print(f"  レースタイプ分布: {rt}  / Brier: {doc['calibration']['brier']}")
 
 
