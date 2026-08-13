@@ -495,6 +495,38 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 .foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
 .foot b{color:var(--ink)}
 
+
+/* 男子: ライン別の強さ */
+.ln{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  box-shadow:var(--shadow);margin:10px 0;overflow:hidden}
+.ln>summary{cursor:pointer;padding:10px 13px;font-size:.78rem;font-weight:800;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ln>summary::-webkit-details-marker{display:none}
+.ln-note{padding:0 13px 8px;font-size:.63rem;color:var(--muted);font-weight:600;line-height:1.55}
+.ln-row{border-top:1px solid var(--border2);padding:9px 13px}
+.ln-h{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
+.ln-rank{font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:999px;
+  background:var(--surface2);color:var(--muted)}
+.ln-rank.r1{background:var(--accent-soft);color:var(--accent)}
+.ln-size,.ln-sc{font-size:.6rem;font-weight:700;color:var(--muted)}
+.ln-cars{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.ln-link{color:var(--muted);font-size:.7rem;font-weight:800}
+.ln-node{display:inline-flex;align-items:center;gap:3px;background:var(--surface2);
+  border-radius:9px;padding:3px 7px 3px 4px}
+.ln-nm{font-size:.68rem;font-weight:800;color:var(--ink);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:5.5em}
+.ln-role{font-size:.55rem;font-weight:800;color:var(--muted);
+  background:var(--surface);border-radius:5px;padding:1px 4px}
+.ln-wp{font-size:.62rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.ln-bar{position:relative;display:flex;align-items:center;gap:8px;margin-top:7px}
+.ln-bar>span{display:block;height:8px;border-radius:999px;background:var(--accent);flex:none}
+.ln-bar>b{font-size:.66rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.ln-mets{display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;font-size:.63rem;
+  font-weight:700;color:var(--muted)}
+.ln-mets b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ln-hist{border-top:1px dashed var(--border2);margin-top:2px;padding:8px 13px 10px;
+  font-size:.62rem;color:var(--muted);font-weight:600;line-height:1.6}
+.ln-hist b{color:var(--ink)}
 .sexbadge{margin-left:8px;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:999px;
   background:var(--accent-soft);color:var(--accent);vertical-align:middle}
 a.theme-btn{text-decoration:none;display:inline-flex;align-items:center}
@@ -920,9 +952,54 @@ function predContent(r){
       +`<div class="tblwrap"><table class="t"><thead><tr>`
       +`<th class="l">着順</th><th>モデル確率</th><th>必要オッズ</th><th>市場オッズ</th>`
       +`</tr></thead><tbody>${tf}</tbody></table></div>` : "";
-  return riderTable(r) + devBlock(r) + h2hBlock(r) + tfBlock + refBlock(r) + evBlock(r) + omBlock(r);
+  // ライン表示は出走表の直後（並びを見てから展開を読む順序）
+  return riderTable(r) + lineBlock(r) + devBlock(r) + h2hBlock(r) + tfBlock
+       + refBlock(r) + evBlock(r) + omBlock(r);
 }
 // 展開予想（記者の並び予想=車番のみ1行 ＋ 明示的な展開パターン複数）。出走表と対戦成績の間。
+// 男子のライン表示。並びを「1本の隊列」ではなく**ライン単位**で組み、各ラインの強さを
+// このレースのモデル分布から出した数値で示す（1着確率の和・ライン決着・3着内）。
+// 別の物差し（得点合計など）を混ぜない＝表示と買い目確率が食い違わないようにする。
+function lineBlock(r){
+  const S = r.line_strength;
+  if(!S || !(S.lines||[]).length) return "";
+  const pc = v => v==null ? "—" : (v*100).toFixed(1)+"%";
+  const settle = S.settle_prob;
+  const sCls = settle==null ? "na" : (settle>=0.55 ? "hi" : (settle>=0.40 ? "mid" : "lo"));
+  const rows = S.lines.slice().sort((a,b)=>a.rank-b.rank).map(L=>{
+    const chips = L.cars.map((c,i)=>
+      `${i>0?`<span class="ln-link">－</span>`:""}`
+      +`<span class="ln-node">${carChip(c.car)}`
+      +`<span class="ln-nm">${esc(c.name||"")}</span>`
+      +`<span class="ln-role">${esc(c.pos_label)}</span>`
+      +`<span class="ln-wp">${pc(c.win_prob)}</span></span>`).join("");
+    // 強さバーは「1着確率」。ラインの合計＝1なので相互比較がそのまま成立する
+    const w = Math.max(2, Math.round((L.p_win||0)*100));
+    return `<div class="ln-row">`
+      +`<div class="ln-h"><span class="ln-rank r${L.rank}">${L.rank}位</span>`
+      +`<span class="ln-size">${L.size===1?"単騎":L.size+"車"}</span>`
+      +(L.score_avg!=null?`<span class="ln-sc">得点平均 ${L.score_avg}</span>`:"")+`</div>`
+      +`<div class="ln-cars">${chips}</div>`
+      +`<div class="ln-bar"><span style="width:${w}%"></span>`
+      +`<b>1着 ${pc(L.p_win)}</b></div>`
+      +`<div class="ln-mets">`
+      +`<span>ライン決着 <b>${pc(L.p_12)}</b></span>`
+      +`<span>3着内に1名以上 <b>${pc(L.p_top3_any)}</b></span></div>`
+      +`</div>`;
+  }).join("");
+  return `<details class="ln" open><summary>🔗 ライン別の強さ`
+    +(settle!=null?`<span class="upt ${sCls}">ライン決着 ${pc(settle)}</span>`:"")+`</summary>`
+    +`<div class="ln-note">1着確率＝ライン内の各車の1着確率の合計（全ライン合計＝100%）。`
+    +`ライン決着＝1着と2着をこのラインで独占する確率。`
+    +`いずれもこのレースのモデル三連単分布からの算出で、買い目の確率と同じ物差し。</div>`
+    +rows
+    +`<div class="ln-hist">📊 実測(男子25,134R): 1着は<b>強いラインの先頭</b>に集中（強度1位の先頭33.2%＝ランダムの2.3倍）。`
+    +`3着内では<b>最強ラインの番手65%が先頭66%とほぼ同格</b>＝紐として同価値。`
+    +`3番手はどのラインでも1着がほぼ無い(1.8〜3.7%)が、最強ラインなら3着内44%で紐にはなる。`
+    +`2名ラインは1人あたり1着率がランダム未満（有利になるのは3名以上）。</div>`
+    +`</details>`;
+}
+
 function devBlock(r){
   const D = r.development;
   if(!D) return "";
