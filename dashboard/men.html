@@ -497,6 +497,10 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 
 
 /* 男子: ライン別の強さ */
+.ln-warn{margin:0 13px 8px;padding:8px 10px;border-radius:9px;background:var(--loss-soft);
+  color:var(--ink);font-size:.63rem;font-weight:600;line-height:1.6}
+.ln-warn b{color:var(--loss)}
+
 .ln{background:var(--surface);border:1px solid var(--border);border-radius:12px;
   box-shadow:var(--shadow);margin:10px 0;overflow:hidden}
 .ln>summary{cursor:pointer;padding:10px 13px;font-size:.78rem;font-weight:800;color:var(--ink);
@@ -987,11 +991,16 @@ function lineBlock(r){
       +`<span>3着内に1名以上 <b>${pc(L.p_top3_any)}</b></span></div>`
       +`</div>`;
   }).join("");
+  const base = S.settle_baseline;
   return `<details class="ln" open><summary>🔗 ライン別の強さ`
     +(settle!=null?`<span class="upt ${sCls}">ライン決着 ${pc(settle)}</span>`:"")+`</summary>`
     +`<div class="ln-note">1着確率＝ライン内の各車の1着確率の合計（全ライン合計＝100%）。`
     +`ライン決着＝1着と2着をこのラインで独占する確率。`
     +`いずれもこのレースのモデル三連単分布からの算出で、買い目の確率と同じ物差し。</div>`
+    +(S.settle_bias_note?`<div class="ln-warn">⚠ <b>ライン決着確率は低めに出ます。</b>`
+      +esc(S.settle_bias_note)
+      +(base!=null?`<br>実測の全体基準: <b>${pc(base)}</b>（男子25,155レース）。`
+        +`このレースのモデル値 ${pc(settle)} と並べて読んでください。`:"")+`</div>`:"")
     +rows
     +`<div class="ln-hist">📊 実測(男子25,134R): 1着は<b>強いラインの先頭</b>に集中（強度1位の先頭33.2%＝ランダムの2.3倍）。`
     +`3着内では<b>最強ラインの番手65%が先頭66%とほぼ同格</b>＝紐として同価値。`
