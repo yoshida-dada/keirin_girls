@@ -28,7 +28,7 @@ class StatsProfile:
     is_girls: bool
     kimarite_stats: Path | None      # バンク別の決まり手実測（bank_profile / kimarite_hint）
     dev_pattern_stats: Path | None   # 展開6パターンの分岐比（dev_patterns）
-    himo_params: bool                # 紐補正(himo_adjust)を適用してよいか
+    himo_params: dict | None         # 紐補正(himo_adjust)のパラメータ。None=適用しない
     pocket_stats: bool               # 参考フォーメーションの過去実測(的中率/回収率)を出せるか
 
     def path(self, name: str) -> Path | None:
@@ -40,7 +40,7 @@ GIRLS = StatsProfile(
     is_girls=True,
     kimarite_stats=_MODEL_DIR / "kimarite_stats.json",        # 6,485R 実測
     dev_pattern_stats=_MODEL_DIR / "dev_pattern_stats.json",  # 5,795R 実測
-    himo_params=True,      # analyze_himo_conditional でガールズ実測・検証済み
+    himo_params=None,      # 下で DEFAULT_PARAMS を入れる（循環importを避けるため後段で設定）
     pocket_stats=True,     # validate_himo_roi out-of-sample 3,432R
 )
 
@@ -49,9 +49,8 @@ MEN = StatsProfile(
     is_girls=False,
     kimarite_stats=_MODEL_DIR / "kimarite_stats_men.json",        # 25,228R 実測
     dev_pattern_stats=_MODEL_DIR / "dev_pattern_stats_men.json",  # 男子DBで実測
-    # 紐補正は「PLは◎勝ち時の2着＝○を8pt過大評価」というガールズ実測に基づく。
-    # 男子はライン決着があり2着分布の構造が違うため、実測し直すまで適用しない。
-    himo_params=False,
+    # 男子実測で再推定済み（A-3, 2026-08-13）。番手は記者の並び予想のライン基準で判定する。
+    himo_params=None,      # 下で MEN_PARAMS を入れる
     # 参考フォーメーションの的中率/回収率はガールズのout-of-sample実測。男子では出さない。
     pocket_stats=False,
 )
@@ -59,3 +58,13 @@ MEN = StatsProfile(
 
 def profile(is_girls: bool) -> StatsProfile:
     return GIRLS if is_girls else MEN
+
+
+# 循環importを避けるためここで注入する（himo_adjust は stats_profile を参照しない）。
+def _init_params() -> None:
+    from src.model.himo_adjust import DEFAULT_PARAMS, MEN_PARAMS
+    object.__setattr__(GIRLS, "himo_params", DEFAULT_PARAMS)
+    object.__setattr__(MEN, "himo_params", MEN_PARAMS)
+
+
+_init_params()
