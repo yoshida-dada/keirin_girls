@@ -122,8 +122,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     _sp = _stats_profile(_girls)
     narabi_pos = ({car: i for i, car in enumerate(narabi_ctx["order"])}
                   if narabi_ctx and narabi_ctx.get("order") else None)
-    probs = (corrected_trifecta_probs(strengths, narabi_pos) if _sp.himo_params
-             else all_trifecta_probs(strengths))
+    # 番手は**記者の並び予想のライン構成**で判定する（男子）。隊列の直後で判定すると
+    # ラインの最後尾で次ラインの先頭＝敵を番手扱いしてしまう（marker_of 参照）。
+    _narabi_lines = (narabi_ctx or {}).get("lines") or None
+    probs = (corrected_trifecta_probs(strengths, narabi_pos, lines=_narabi_lines)
+             if _sp.himo_params else all_trifecta_probs(strengths))
 
     # 一着固定の合成オッズ: 車cを1着に固定した三連単(c,*,*)全通りを合成した実効オッズ
     #   合成オッズ_c = 1 / Σ(1/オッズ)   … cを1着で買い切ったときの実効配当倍率

@@ -20,9 +20,33 @@ PL_PARAMS = {"t2": 1.0, "t3": 1.0, "mark": 0.0}
 DEFAULT_PARAMS = {"t2": 1.5, "t3": 1.4, "mark": 0.25}
 
 
-def _marker_of(fav, narabi_pos):
-    """◎の並び直後(pos+1)の選手＝マーク(番手)。無ければ None。"""
-    if fav is None or not narabi_pos:
+def marker_of(fav, narabi_pos, lines=None):
+    """◎のマーク(番手)＝直後で追走する選手。無ければ None。
+
+    lines（記者の並び予想のライン構成 [[車番...], ...]）があれば**それを正とする**。
+    男子は複数ラインが1本の隊列として連結されるため、「隊列の直後」を番手とみなすと
+    ラインの最後尾では**次ラインの先頭（＝敵）**を番手として拾ってしまう。
+
+    実測（男子25,155R）:
+      ・真の番手（同一ライン・直後）が勝者の2着に来る率 41.0%（n=20,006）
+      ・勝者がライン最後尾/単騎のとき「隊列の直後」が2着に来る率 13.3%（n=3,948）
+        ← ランダムの16.5%を**下回る**。ここへ加点すると補正が逆方向に働く
+      ・隊列直後が真の番手と食い違うのは全選手の32.2%
+    → ラインの最後尾・単騎には番手がいない。誰も代わりに立てず None を返す。
+
+    lines が無い場合（ガールズ＝ラインの概念が無く line_id もほぼ空）は従来どおり
+    隊列の直後を返す。ガールズ本番モデルはこの定義で学習済みで、推論だけ変えると
+    train/inference skew になる。
+    """
+    if fav is None:
+        return None
+    if lines:
+        for mem in lines:
+            for i, car in enumerate(mem):
+                if car == fav:
+                    return mem[i + 1] if i + 1 < len(mem) else None
+        return None                      # ライン構成に◎がいない（欠場等）
+    if not narabi_pos:
         return None
     fp = narabi_pos.get(fav)
     if fp is None:
@@ -33,18 +57,26 @@ def _marker_of(fav, narabi_pos):
     return None
 
 
+# 旧名。既存の呼び出しを壊さないために残す。
+_marker_of = marker_of
+
+
 def _pow(s, t):
     return s ** (1.0 / t) if s > 0 else 0.0
 
 
-def combo_logprob(strengths: dict, narabi_pos: dict | None, order3, params: dict) -> float:
-    """観測三連単 order3=(a,b,c) の補正後 log 確率（チューニング用・単一combo・軽量）。"""
+def combo_logprob(strengths: dict, narabi_pos: dict | None, order3, params: dict,
+                  lines: list | None = None) -> float:
+    """観測三連単 order3=(a,b,c) の補正後 log 確率（チューニング用・単一combo・軽量）。
+
+    lines を渡すと番手をライン基準で判定する（男子）。marker_of の docstring を参照。
+    """
     riders = [r for r in strengths if strengths[r] > 0]
     a, b, c = order3
     if a not in strengths or b not in strengths or c not in strengths:
         return -50.0
     fav = max(strengths, key=strengths.get)
-    marker = _marker_of(fav, narabi_pos)
+    marker = marker_of(fav, narabi_pos, lines)
     t2, t3, mk = params["t2"], params["t3"], params["mark"]
     S = sum(strengths[r] for r in riders)
     if S <= 0 or strengths.get(a, 0) <= 0:
@@ -65,15 +97,19 @@ def combo_logprob(strengths: dict, narabi_pos: dict | None, order3, params: dict
 
 
 def corrected_trifecta_probs(strengths: dict, narabi_pos: dict | None = None,
-                             params: dict | None = None) -> dict[tuple, float]:
-    """補正後の三連単全210通り {(a,b,c): p}。params 既定は DEFAULT_PARAMS。"""
+                             params: dict | None = None,
+                             lines: list | None = None) -> dict[tuple, float]:
+    """補正後の三連単全210通り {(a,b,c): p}。params 既定は DEFAULT_PARAMS。
+
+    lines（記者の並び予想のライン構成）を渡すと番手をライン基準で判定する（男子）。
+    """
     p = params or DEFAULT_PARAMS
     t2, t3, mk = p["t2"], p["t3"], p["mark"]
     riders = [r for r in strengths if strengths[r] > 0]
     if len(riders) < 3:
         return {}
     fav = max(strengths, key=strengths.get)
-    marker = _marker_of(fav, narabi_pos)
+    marker = marker_of(fav, narabi_pos, lines)
     S = sum(strengths[r] for r in riders)
     pow2 = {r: _pow(strengths[r], t2) for r in riders}
     pow3 = {r: _pow(strengths[r], t3) for r in riders}

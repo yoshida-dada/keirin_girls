@@ -55,9 +55,30 @@ def main():
                         features=PL_FEATURES_FULL)
     samples = augment_samples(base, args.db, feats)
     narabi = compute_narabi_features(args.db)
+    # 男子の番手は**記者の並び予想のライン構成**で判定する。隊列の直後で判定すると
+    # ラインの最後尾で次ラインの先頭(=敵)を番手扱いし、実測で2着率13.3%（ランダム16.5%未満）の
+    # 相手へ加点することになる。ライン構成はDBの narabi.line_id/pos_in_line から復元する。
+    lines_of = {}
+    if args.men:
+        import sqlite3
+        from collections import defaultdict
+        _c = sqlite3.connect(f"file:{args.db}?mode=ro", uri=True)
+        _tmp = defaultdict(list)
+        for rid, car, li, pi in _c.execute(
+                "SELECT race_id,car_number,line_id,pos_in_line FROM narabi"
+                " WHERE line_id IS NOT NULL"):
+            _tmp[rid].append((li, pi, car))
+        _c.close()
+        for rid, rows in _tmp.items():
+            mx = max(li for li, _, _ in rows)
+            ls = [[] for _ in range(mx + 1)]
+            for li, pi, car in sorted(rows, key=lambda x: (x[0], x[1])):
+                ls[li].append(car)
+            lines_of[rid] = [x for x in ls if x]
+        print(f"ライン構成: {len(lines_of):,}レース分を narabi から復元")
     bounds = fold_boundaries(len(samples), n_folds=args.folds, warmup_frac=0.40, window="expanding")
 
-    recs = []   # (fold, strengths, npos, order3)
+    recs = []   # (fold, strengths, npos, order3, lines)
     for fi, (a, b, c) in enumerate(bounds):
         model = train_gbdt(samples[a:b])
         for s in samples[b:c]:
@@ -65,7 +86,7 @@ def main():
                 continue
             st = model.strengths(s.X, s.car_numbers)
             npos = {car: narabi.get((s.race_id, car), {}).get("narabi_pos") for car in s.car_numbers}
-            recs.append((fi, st, npos, tuple(s.order[:3])))
+            recs.append((fi, st, npos, tuple(s.order[:3]), lines_of.get(s.race_id)))
     nf = len(bounds)
     tune = [r for r in recs if r[0] < max(1, nf - 2)]      # fold 0..nf-3
     hold = [r for r in recs if r[0] >= max(1, nf - 2)]     # 後半2fold
@@ -76,7 +97,8 @@ def main():
             for t2, t3, mk in product([1.0, 1.15, 1.3, 1.5, 1.7], [1.0, 1.2, 1.4], [0.0, 0.25, 0.5])]
 
     def mean_ll(rs, params):
-        return -sum(combo_logprob(st, npos, o3, params) for _, st, npos, o3 in rs) / len(rs)
+        return -sum(combo_logprob(st, npos, o3, params, lines=ln)
+                    for _, st, npos, o3, ln in rs) / len(rs)
 
     best = min(grid, key=lambda p: mean_ll(tune, p))
     print(f"最良補正パラメータ(tune log-loss): t2={best['t2']} t3={best['t3']} mark={best['mark']}")
@@ -91,9 +113,9 @@ def main():
     agg = {"pl_2t1": 0, "pl_2t2": 0, "pl_2t3": 0, "pl_t10": 0,
            "cx_2t1": 0, "cx_2t2": 0, "cx_2t3": 0, "cx_t10": 0}
     per_fold = {}
-    for fi, st, npos, o3 in hold:
-        dpl = corrected_trifecta_probs(st, npos, PL_PARAMS)
-        dcx = corrected_trifecta_probs(st, npos, best)
+    for fi, st, npos, o3, ln in hold:
+        dpl = corrected_trifecta_probs(st, npos, PL_PARAMS, lines=ln)
+        dcx = corrected_trifecta_probs(st, npos, best, lines=ln)
         a2 = o3[1]
         vals = {
             "pl_2t1": _second_topk(dpl, a2, 1), "cx_2t1": _second_topk(dcx, a2, 1),
