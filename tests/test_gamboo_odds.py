@@ -42,3 +42,34 @@ def test_all_odds_positive(odds):
 def test_url_builder():
     url = build_odds_url("3520251228", "35202512280100", 11)
     assert url.endswith("/3520251228/35202512280100/11/3rentan/")
+
+
+# ---- 開催格・レース名（オッズページから追加フェッチ0で取る） ----
+
+RACECARD_FIXTURE = Path(__file__).parent / "fixtures" / "gamboo_racecard_7car.html"
+
+
+def test_race_meta_grade_from_fullwidth_text():
+    """h1の全角表記（Ｆ１）を第一情報源にする。GPは実フィクスチャで確認済み。"""
+    from src.collect.gamboo_odds import parse_race_meta
+    m = parse_race_meta(RACECARD_FIXTURE.read_text(encoding="utf-8"))
+    assert m["grade"] == "F1"
+    assert m["venue"] == "函館競輪"
+    assert m["race_name"] == "Ａ級予選"          # 生文字列（正規化は表示側）
+    gp = parse_race_meta(FIXTURE.read_text(encoding="utf-8"))
+    assert gp["grade"] == "GP"                   # 競輪グランプリ
+    assert gp["race_name"] == "ヤンググランプリ"
+
+
+def test_race_meta_falls_back_to_icon_class():
+    """全角表記が無いページでも icon_grade クラスから拾う（grN→格）。"""
+    from src.collect.gamboo_odds import parse_race_meta
+    html = '<h2 class="title"><span class="icon_grade gr5"></span></h2>'
+    assert parse_race_meta(html)["grade"] == "G1"
+
+
+def test_race_meta_missing_is_none():
+    """要素が無ければNone。取れないことを空文字で誤魔化さない。"""
+    from src.collect.gamboo_odds import parse_race_meta
+    m = parse_race_meta("<html><body></body></html>")
+    assert m == {"grade": None, "venue": None, "meet_name": None, "race_name": None}

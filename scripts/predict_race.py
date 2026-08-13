@@ -14,7 +14,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.collect.base import fetch, set_default_interval
-from src.collect.gamboo_odds import build_odds_url, parse_trifecta_odds, parse_deadline
+from src.collect.gamboo_odds import (
+    build_odds_url, parse_trifecta_odds, parse_deadline, parse_race_meta)
 from src.collect.gamboo_racecard import parse_race_card, parse_recent_form, is_girls_race
 from src.model.persist import load_model, strengths_from_model, load_elo_state
 from src.model.plackett_luce import all_trifecta_probs
@@ -35,6 +36,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     # 9999.9 はGambooBETの表示上限（実質オッズなし＝ほぼ無投票）なので除外する。
     odds = {k: v for k, v in odds.items() if v and v < 9999}
     deadline = parse_deadline(html)
+    meta = parse_race_meta(html)      # 開催格/開催名/レース名（同じHTMLから。追加フェッチなし）
 
     # 現時点の選手成績（通算/直近5走/当地/中何日）と対戦成績を氏名で引く（本日レースはDB外＝混ざらない）
     from config.settings import DATA_DIR
@@ -42,23 +44,28 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     from datetime import date as _date
     db_path = str(DATA_DIR / "keirin.sqlite")
     venue_code = kaisai_code[:2]
+    # 選手成績は氏名でDBを引く。**男子はガールズDBに1走も入っていない**ので、ここで
+    # DBを切り替えないと通算/直近5走/当地/S/B/決まり手が全員 None になり表が空になる。
+    _girls = is_girls_race(entries)
+    men_db = str(DATA_DIR / "keirin_men.sqlite")
+    hist_db = db_path if _girls else (men_db if Path(men_db).exists() else db_path)
     try:
-        stats = current_stats(db_path)
+        stats = current_stats(hist_db)
     except Exception:
         stats = {}
     car_name = {e.car_number: e.rider_name for e in entries}
     try:
-        h2h = head_to_head(db_path, car_name) if stats else None
+        h2h = head_to_head(hist_db, car_name) if stats else None
     except Exception:
         h2h = None
     try:
-        styles = style_counts(db_path) if stats else {}
+        styles = style_counts(hist_db) if stats else {}
     except Exception:
         styles = {}
     try:  # 今場所成績（当該開催の前日までの各走）。当日自身は除外（before=当該レース実施日）。
         from src.collect.gamboo_schedule import kaisai_race_date
         _rdate = kaisai_race_date(day_code).isoformat()
-        meets = meet_results(db_path, tuple(car_name.values()), kaisai_code,
+        meets = meet_results(hist_db, tuple(car_name.values()), kaisai_code,
                              before=_rdate) if stats else {}
     except Exception:
         meets = {}
@@ -74,12 +81,10 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
 
     # レース種別でモデルを切り替える。特徴セットが違う（ガールズ38列 / 男子39列）ので、
     # 取り違えると無言で誤った推論になる。男子モデルが無ければフォールバックせず落とす。
-    _girls = is_girls_race(entries)
     from src.model.feature_sets import load_for
     model, elo_state, _mlabel = load_for(_girls)
-    # 男子DBは別ファイル。展開特徴(as-of history)と Elo は同じ母集団から引く必要がある
-    men_db = str(DATA_DIR / "keirin_men.sqlite")
-    feat_db = db_path if _girls else (men_db if Path(men_db).exists() else db_path)
+    # 展開特徴(as-of history)と Elo も選手成績と同じ母集団から引く
+    feat_db = hist_db
 
     # 後続（展開予想・紐補正・展開AI）でも使うので、モデルの有無に関わらず先に用意する
     from src.collect.gamboo_racecard import parse_narabi
@@ -325,6 +330,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         # lines は並び予想のライン境界（ガールズは空になる）
         "class_group": "/".join(sorted({e.class_rank for e in entries if e.class_rank})) or None,
         "lines": (narabi_ctx or {}).get("lines") or [],
+        # 開催格(G1/F2等)・開催名・レース名。混戦度は格とレース名（決勝/予選）で傾向が変わる
+        "grade": meta.get("grade"), "meet_name": meta.get("meet_name"),
+        "race_name": meta.get("race_name"),
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
         "riders": riders, "top_trifecta": top_tri, "ev": ev,

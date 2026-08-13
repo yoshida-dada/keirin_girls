@@ -10,7 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from src.collect.base import fetch, detect_missing_trifecta
-from src.collect.gamboo_odds import build_odds_url, parse_trifecta_odds, parse_deadline
+from src.collect.gamboo_odds import (
+    build_odds_url, parse_trifecta_odds, parse_deadline, parse_race_meta)
 from src.collect.gamboo_racecard import (
     parse_race_card, parse_recent_form, is_girls_race, parse_narabi, Entry)
 from src.collect.gamboo_result import build_result_url, parse_results, parse_trifecta_payout
@@ -34,6 +35,9 @@ class RaceDataset:
     has_result: bool
     recent: dict = field(default_factory=dict)   # {車番: RecentForm} 直近4ヶ月as-osスタッツ
     narabi: dict = field(default_factory=dict)   # 記者の並び予想 {"order":[車番], "legs":{車番:脚質}}
+    grade: str | None = None       # 開催格 G1/G2/G3/F1/F2/GP（オッズページ同梱）
+    race_name: str | None = None   # "Ｓ級決勝"/"二次予選" 等の生文字列
+    meet_name: str | None = None   # 開催名 "オールスター競輪" 等
 
 
 def collect_race_dataset(kaisai: Kaisai, race_no: int,
@@ -49,6 +53,7 @@ def collect_race_dataset(kaisai: Kaisai, race_no: int,
     deadline = parse_deadline(odds_html)
     recent = parse_recent_form(odds_html)          # 直近4ヶ月as-osスタッツ（同梱）
     narabi = parse_narabi(odds_html)               # 記者の並び予想（同梱・事前の位置取り予想）
+    meta = parse_race_meta(odds_html)              # 開催格/開催名/レース名（同梱）
     field_size = max((max(c) for c in odds), default=len(entries))
     missing = detect_missing_trifecta(odds, field_size) if field_size else []
     girls = is_girls_race(entries)
@@ -60,7 +65,8 @@ def collect_race_dataset(kaisai: Kaisai, race_no: int,
             venue_code=kaisai.venue_code, race_no=race_no, is_girls=False,
             deadline=deadline, field_size=field_size, entries=entries, results=[],
             payout=None, odds_final=odds, missing_odds=missing, has_result=False,
-            recent=recent, narabi=narabi)
+            recent=recent, narabi=narabi, grade=meta["grade"],
+            race_name=meta["race_name"], meet_name=meta["meet_name"])
 
     # 結果ページ（着順＋三連単払戻）。未確定なら空。
     try:
@@ -77,4 +83,5 @@ def collect_race_dataset(kaisai: Kaisai, race_no: int,
         entries=entries, results=results, payout=payout,
         odds_final=odds, missing_odds=missing, has_result=bool(results),
         recent=recent, narabi=narabi,
+        grade=meta["grade"], race_name=meta["race_name"], meet_name=meta["meet_name"],
     )

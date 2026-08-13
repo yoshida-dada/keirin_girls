@@ -82,7 +82,9 @@ CREATE TABLE IF NOT EXISTS races (
     race_no     INTEGER,
     is_girls    INTEGER,
     deadline    TEXT,
-    field_size  INTEGER
+    field_size  INTEGER,
+    grade       TEXT,      -- G1/G2/G3/F1/F2/GP。バケット分析で格別に層別するのに要る
+    race_name   TEXT       -- "Ｓ級決勝"/"二次予選" 等の生文字列（正規化は表示側）
 );
 CREATE TABLE IF NOT EXISTS entries (
     race_id       TEXT NOT NULL,
@@ -159,14 +161,29 @@ class DatasetRepo:
     def __init__(self, db_path: str | Path = ":memory:"):
         self.conn = sqlite3.connect(str(db_path))
         self.conn.executescript(_DATASET_DDL)
+        self._add_missing_columns()
+
+    def _add_missing_columns(self) -> None:
+        """既存DBに後から足した列を補う（CREATE TABLE IF NOT EXISTS では増えないため）。
+
+        SQLite の ADD COLUMN は NULL許容なら既存行を書き換えずに済むので無停止で通る。
+        """
+        have = {r[1] for r in self.conn.execute("PRAGMA table_info(races)")}
+        for col, decl in (("grade", "TEXT"), ("race_name", "TEXT")):
+            if col not in have:
+                self.conn.execute(f"ALTER TABLE races ADD COLUMN {col} {decl}")
+        self.conn.commit()
 
     def save_race(self, race_id: str, race_date: str, venue_code: str, race_no: int,
-                  is_girls: bool, deadline: str | None, field_size: int) -> None:
+                  is_girls: bool, deadline: str | None, field_size: int,
+                  grade: str | None = None, race_name: str | None = None) -> None:
         self.conn.execute(
             "INSERT OR REPLACE INTO races"
-            " (race_id, race_date, venue_code, race_no, is_girls, deadline, field_size)"
-            " VALUES (?,?,?,?,?,?,?)",
-            (race_id, race_date, venue_code, race_no, int(is_girls), deadline, field_size))
+            " (race_id, race_date, venue_code, race_no, is_girls, deadline, field_size,"
+            "  grade, race_name)"
+            " VALUES (?,?,?,?,?,?,?,?,?)",
+            (race_id, race_date, venue_code, race_no, int(is_girls), deadline, field_size,
+             grade, race_name))
         self.conn.commit()
 
     def save_entries(self, race_id: str, entries: list) -> int:

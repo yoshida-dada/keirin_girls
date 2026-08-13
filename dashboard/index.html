@@ -1,4 +1,5 @@
-<title>ガールズケイリン 期待値AI</title>
+<meta charset="utf-8">
+<title>競輪予測AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7048e8">
 <link rel="manifest" href="./manifest.json">
@@ -6,7 +7,7 @@
 <link rel="icon" type="image/png" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ガールズEV">
+<meta name="apple-mobile-web-app-title" content="競輪予測AI">
 <style>
 :root{
   --bg:#f4f1fb; --surface:#ffffff; --surface2:#f7f4fd; --ink:#1e1633; --muted:#6b6480;
@@ -494,6 +495,53 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 .foot{font-size:.7rem;color:var(--muted);line-height:1.75;margin-top:30px;border-top:1px solid var(--border);padding-top:16px}
 .foot b{color:var(--ink)}
 
+/* 男子: 会場カード → レース一覧 → レース詳細の3階層 */
+.mv-back{position:sticky;top:52px;z-index:20;background:var(--bg);padding:6px 0 8px;display:flex;align-items:center;gap:8px}
+.mv-back button{background:var(--surface);border:1px solid var(--border);color:var(--ink);font-family:inherit;
+  font-size:.8rem;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
+.mv-back .cur{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:700}
+.daysum{display:flex;gap:14px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);
+  border-radius:11px;padding:9px 13px;margin-bottom:12px;font-size:.72rem;font-weight:700;color:var(--muted)}
+.daysum b{color:var(--ink);font-variant-numeric:tabular-nums}
+.vcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);
+  padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.vcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vc-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vc-name{font-size:1rem;font-weight:800;color:var(--ink)}
+.gbadge{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+.vc-cls{font-size:.62rem;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.vc-arrow{margin-left:auto;color:var(--muted);font-size:.9rem}
+.vc-spec{font-size:.63rem;color:var(--muted);font-weight:600;margin-top:4px}
+.prog{display:flex;height:6px;border-radius:999px;overflow:hidden;background:var(--surface2);margin-top:8px}
+.prog>span{display:block;height:100%}
+.prog .done{background:var(--good)} .prog .live{background:var(--edge)} .prog .yet{background:var(--border)}
+.vc-legend{display:flex;gap:12px;margin-top:5px;font-size:.6rem;font-weight:700;color:var(--muted)}
+.vc-legend i{font-style:normal;display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:3px}
+.vc-next{margin-top:7px;font-size:.68rem;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.vc-soon{font-size:.6rem;font-weight:800;padding:1px 7px;border-radius:999px;background:var(--loss-soft);color:var(--loss)}
+.vc-pick{margin-top:6px;padding-top:6px;border-top:1px dashed var(--border2);font-size:.68rem;
+  font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.vc-pick .lbl{font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--edge-soft);color:var(--edge)}
+.vhead{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:12px}
+.rrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--surface);
+  border:1px solid var(--border);border-radius:11px;padding:9px 12px;margin-bottom:7px;cursor:pointer}
+.rrow.live{border-left:3px solid var(--edge)}
+.rrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rr-no{text-align:center;min-width:2.6em}
+.rr-no b{font-size:1.05rem;font-weight:800;color:var(--ink)}
+.rr-no small{display:block;font-size:.58rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.rr-mid{min-width:0}
+.rr-l1{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.rr-nm{font-size:.76rem;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:7em}
+.rr-l2{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:3px;font-size:.63rem;font-weight:700;color:var(--muted)}
+.rr-st{font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.rr-st.done{background:var(--good-soft);color:var(--good)}
+.rr-st.live{background:var(--edge-soft);color:var(--edge)}
+.rr-st.wait{background:var(--surface2);color:var(--edge)}
+.rr-st.yet{background:var(--surface2);color:var(--muted)}
+.rr-pay{font-size:.66rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.backfoot{width:100%;margin:14px 0 4px;background:var(--surface);border:1px solid var(--border);color:var(--ink);
+  font-family:inherit;font-size:.85rem;font-weight:800;padding:13px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow)}
 /* トップレベルのタブ（予測・分析 / 成績） */
 .toptabs{display:flex;gap:8px;position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 0 8px;margin-bottom:2px}
 .toptab{flex:0 0 auto;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.92rem;font-weight:800;padding:9px 18px;border-radius:11px;cursor:pointer;box-shadow:var(--shadow)}
@@ -530,7 +578,7 @@ table.t.rh-t td{vertical-align:top}
 </style>
 
 <header>
-  <div class="brand"><span class="dot"></span>ガールズケイリン 期待値AI</div>
+  <div class="brand"><span class="dot"></span>競輪予測AI</div>
   <button class="theme-btn" id="notifyBtn" aria-label="発走前通知" title="発走前にスマホへ通知">🔔 通知</button>
   <button class="theme-btn" id="themeBtn" aria-label="テーマ切替">🌓 テーマ</button>
   <div class="gen" id="gen"></div>
@@ -539,7 +587,8 @@ table.t.rh-t td{vertical-align:top}
 
 <div class="wrap">
   <div class="toptabs" role="tablist" aria-label="表示切替">
-    <button class="toptab" type="button" role="tab" data-tab="main" aria-selected="true" tabindex="0">🏁 予測・分析</button>
+    <button class="toptab" type="button" role="tab" data-tab="main" aria-selected="true" tabindex="0">👩 ガールズ</button>
+    <button class="toptab" type="button" role="tab" data-tab="men" aria-selected="false" tabindex="-1">🚴 男子</button>
     <button class="toptab" type="button" role="tab" data-tab="results" aria-selected="false" tabindex="-1">📊 成績</button>
   </div>
   <div id="tab-main" class="tabpane" role="tabpanel">
@@ -592,6 +641,15 @@ table.t.rh-t td{vertical-align:top}
 
   </div><!-- /tab-main -->
 
+  <!-- 男子競輪。1日約90レース・十数会場になるため、ガールズの「会場タブ＋レース番号タブを
+       全部並べる」方式は破綻する。会場カード → レース一覧 → レース詳細の3階層にする。
+       ガールズ側の描画関数には一切手を入れない（条件分岐で共通化すると両方壊れやすい）。 -->
+  <div id="tab-men" class="tabpane" role="tabpanel" hidden>
+    <div class="secthead"><span class="sect" id="menTitle">男子競輪の予測</span><span class="sec-upd" id="menUpd"></span></div>
+    <div class="sub" id="menSub"></div>
+    <div id="menBody"></div>
+  </div><!-- /tab-men -->
+
   <div id="tab-results" class="tabpane" role="tabpanel" hidden>
     <!-- 成績（過去1ヶ月の開催結果） -->
     <div class="secthead"><span class="sect" id="rhTitle">成績（過去半年の開催結果）</span><span class="sec-upd" id="rhUpd"></span></div>
@@ -606,7 +664,7 @@ table.t.rh-t td{vertical-align:top}
 <script>
 // 画面(HTML)の版。機能を変えたら上げる。data.json は新しいのに外殻が古いキャッシュ、
 // という状態を画面上で切り分けるために表示する。
-const UI_VERSION = "2026-07-29b";
+const UI_VERSION = "2026-08-13";
 
 function boot(DB){
   const yen = v => v==null ? "—" : "¥"+Math.round(v).toLocaleString();
@@ -669,6 +727,10 @@ function boot(DB){
   }
   const roiTextCol = roi => roi==null?"var(--muted)":(roi>=1?"var(--good)":"var(--loss)");
 
+  // 男子セクションから使い回す描画部品。ガールズIIFE内で定義され、そこから代入される
+  // （レース詳細は男女で同じ形。ここを二重実装すると必ず片方が腐る）。
+  let sharedRaceBlock = null, sharedCarChip = null, sharedWireRace = null;
+
   // ---------- 本日のレース予測（着順確率・買い目ではない） ----------
   (function(){
     const P = DB.predictions||{};
@@ -677,10 +739,14 @@ function boot(DB){
       ((P.dates&&P.dates.length) ? `対象 ${P.dates[0]}〜${P.dates[P.dates.length-1]}　`
         : (P.date?`対象日 ${P.date}　`:"")) + (P.model?`モデル ${P.model}`:"");
     const host = document.getElementById("predBody");
-    const allRaces = P.races||[];
-    if(!isShown(P.status) || !allRaces.length){
+    // ガールズのみ。data.json に男子が混ざっても、このセクションの見え方は従来どおりにする
+    // （男子は会場数・レース数が桁違いで、この会場タブ方式では並びきらない）。
+    const allRaces = (P.races||[]).filter(r=>r.is_girls!==false);
+    // データが無くても即returnしない。以降の定義（raceBlock等）は男子セクションが使うため、
+    // 空表示フラグだけ立てて末尾の applyDate()/render() を飛ばす。
+    const noData = !isShown(P.status) || !allRaces.length;
+    if(noData){
       host.innerHTML = emptyBox("レース予測はまだ生成されていません。各車の1着確率と三連単モデル確率が会場ごとに表示されます。");
-      return;
     }
     // 車番→競走服の色（1白2黒3赤4青5黄6緑7橙8桃9紫）
     const CARCOL = {
@@ -1230,6 +1296,38 @@ function boot(DB){
       }
       return `<div class="pred-race">${raceHead(r)}${inner}</div>`;
     }
+    // raceBlock が出したセレクタ（EV買い目の1着車・三連単オッズ表の1着固定）の配線。
+    // 男子セクションも同じ raceBlock を描くので、ホスト要素を引数にして共有する。
+    function wireRaceControls(h){
+      h.querySelectorAll(".ev-tab").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const uid=btn.dataset.ev, car=+btn.dataset.car;
+          h.querySelectorAll(`.ev-tab[data-ev="${uid}"]`).forEach(b=>{
+            const on=(+b.dataset.car===car);
+            b.setAttribute("aria-selected", on?"true":"false");
+            b.tabIndex = on?0:-1;
+          });
+          const grid=h.querySelector("#ev-grid-"+uid);
+          if(grid) grid.innerHTML=renderEvGrid(uid,car);
+        });
+      });
+      h.querySelectorAll(".om-tab").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const uid=btn.dataset.om, car=+btn.dataset.car;
+          h.querySelectorAll(`.om-tab[data-om="${uid}"]`).forEach(b=>{
+            const on=(+b.dataset.car===car);
+            b.setAttribute("aria-selected", on?"true":"false");
+            b.tabIndex = on?0:-1;
+          });
+          const grid=h.querySelector("#om-grid-"+uid);
+          if(grid) grid.innerHTML=renderOmGrid(uid,car);
+          const lab=h.querySelector("#om-lab-"+uid);
+          if(lab) lab.textContent="1着 "+car+" 固定";
+        });
+      });
+    }
+    // 男子セクションへ受け渡す（レース詳細の中身は男女で同じ形）
+    sharedRaceBlock = raceBlock; sharedCarChip = carChip; sharedWireRace = wireRaceControls;
 
     // 本日のハイライト（妙味サマリ）: 全レース横断で本命・1着確率・妙味シグナルを締切順で一覧化
     function highlightCard(){
@@ -1310,7 +1408,7 @@ function boot(DB){
       venues.sort((a,b)=> vMinDeadline(a).localeCompare(vMinDeadline(b)));
       selVenue = 0; selRace = 0; raceTabOverride = null;
     }
-    applyDate();
+    if(!noData) applyDate();
 
     function render(){
       let html = `<div class="pred-disc">⚠ これは各車の着順（1着）確率と三連単モデル確率の提示です。`
@@ -1392,35 +1490,7 @@ function boot(DB){
         cfgOpen=true; saveCfg(); render();
       });
 
-      // EV買い目: 1着車セレクタの切替（車番順表示）
-      host.querySelectorAll(".ev-tab").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const uid=btn.dataset.ev, car=+btn.dataset.car;
-          host.querySelectorAll(`.ev-tab[data-ev="${uid}"]`).forEach(b=>{
-            const on=(+b.dataset.car===car);
-            b.setAttribute("aria-selected", on?"true":"false");
-            b.tabIndex = on?0:-1;
-          });
-          const grid=host.querySelector("#ev-grid-"+uid);
-          if(grid) grid.innerHTML=renderEvGrid(uid,car);
-        });
-      });
-
-      // 三連単オッズテーブル: 1着固定セレクタの切替
-      host.querySelectorAll(".om-tab").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const uid=btn.dataset.om, car=+btn.dataset.car;
-          host.querySelectorAll(`.om-tab[data-om="${uid}"]`).forEach(b=>{
-            const on=(+b.dataset.car===car);
-            b.setAttribute("aria-selected", on?"true":"false");
-            b.tabIndex = on?0:-1;
-          });
-          const grid=host.querySelector("#om-grid-"+uid);
-          if(grid) grid.innerHTML=renderOmGrid(uid,car);
-          const lab=host.querySelector("#om-lab-"+uid);
-          if(lab) lab.textContent="1着 "+car+" 固定";
-        });
-      });
+      wireRaceControls(host);
 
       // 会場タブ（開催時間順）→ 選ぶとレースは先頭にリセット
       host.querySelectorAll(".pred-vtab").forEach(t=>{
@@ -1450,6 +1520,218 @@ function boot(DB){
       arrowNav(".pred-rtab", i=>{ selRace=i; raceTabOverride=null; render(); });
     }
 
+    if(!noData) render();
+  })();
+
+  // ---------- 男子競輪: 会場カード → レース一覧 → レース詳細 ----------
+  // ガールズは1会場3〜5Rなので「会場タブ＋レース番号タブを全部並べる」で足りるが、男子は
+  // 1日約90R・十数会場になり同じ方式では並びきらない。よって一覧側は別実装にする。
+  // レース詳細だけは男女で同じ形なので sharedRaceBlock を使い回す。
+  (function(){
+    const P = DB.predictions||{};
+    const host = document.getElementById("menBody");
+    const all = (P.races||[]).filter(r=>r.is_girls===false);
+    document.getElementById("menTitle").innerHTML = "男子競輪の予測 "+badge(all.length?P.status:"pending");
+    if(!all.length || !sharedRaceBlock){
+      document.getElementById("menSub").textContent = "";
+      host.innerHTML = emptyBox("男子の予測はまだ生成されていません。"
+        + "build_predictions.py を --include all で実行すると、会場別のサマリとレース一覧が表示されます。");
+      return;
+    }
+    const raceBlock = sharedRaceBlock, carChip = sharedCarChip, wireRace = sharedWireRace;
+    document.getElementById("menSub").textContent =
+      ((P.dates&&P.dates.length)?`対象 ${P.dates[0]}〜${P.dates[P.dates.length-1]}　`:"")
+      + `${all.length}レース` + (P.model_men?`　モデル ${P.model_men}`:"");
+
+    const today = P.date||"";
+    const dates = [...new Set(all.map(r=>r.date).filter(Boolean))].sort();
+    let selDate = dates.includes(today) ? today : (dates[0]||null);
+    let view = "venues", selVenue = null, selRace = null, rcOverride = null;
+
+    const DOW=["日","月","火","水","木","金","土"];
+    const dlabel = d => { const t=new Date(d+"T00:00:00Z");
+      const rel = !today ? "" : (d===today?"今日":(d<today?"昨日":"明日"));
+      return `${rel} ${d.slice(5).replace("-","/")}(${DOW[t.getUTCDay()]})`; };
+    const short = v => String(v||"").replace(/競輪場?$/,"");
+    // 進行状況はデータに無い派生値。build時刻ではなく**閲覧時刻**で判定する。
+    function mins(r){
+      if(!r.deadline||!String(r.deadline).includes(":")) return null;
+      const [h,m]=String(r.deadline).split(":").map(Number);
+      const n=new Date();
+      let d=h*60+m-(n.getHours()*60+n.getMinutes());
+      if(r.date && today && r.date!==today) d += (r.date>today?1440:-1440);   // 日跨ぎ
+      return d;
+    }
+    // done=確定 / live=発売中 / wait=締切済だが結果未取得 / yet=発売前。
+    // wait を live に混ぜない: 締切を過ぎたレースを「発売中」と出すと買えると誤解させる。
+    function status(r){
+      if(r.result&&(r.result.order||[]).length) return "done";
+      const m=mins(r);
+      if(m==null) return "yet";
+      if(m<-5) return "wait";
+      return m<=60 ? "live" : "yet";
+    }
+    const relTime = m => m==null ? "" :
+      (m<0 ? "締切" : (m<=5 ? "締切間近" : (m<60 ? `あと${m}分` : `あと${Math.floor(m/60)}時間${m%60}分`)));
+
+    function byVenue(races){
+      const m=new Map();
+      races.forEach(r=>{ const k=r.venue||"—"; if(!m.has(k)) m.set(k,[]); m.get(k).push(r); });
+      for(const v of m.values()) v.sort((a,b)=>(a.race_no||0)-(b.race_no||0));
+      return [...m.entries()].sort((a,b)=>
+        String(a[1][0].deadline||"~").localeCompare(String(b[1][0].deadline||"~")));
+    }
+
+    function renderVenues(races){
+      const vs = byVenue(races);
+      const st = races.map(status);
+      const nSt = k => st.filter(x=>x===k).length;
+      let h = `<div class="daysum"><span>開催 <b>${vs.length}</b>場</span>`
+        + `<span>全 <b>${races.length}</b>R</span>`
+        + `<span>済 <b>${nSt("done")}</b></span>`
+        + `<span>発売中 <b>${nSt("live")}</b></span>`
+        + (nSt("wait")?`<span>結果待ち <b>${nSt("wait")}</b></span>`:"")
+        + `<span>未発売 <b>${nSt("yet")}</b></span></div>`;
+      h += vs.map(([v,rs])=>{
+        const s = rs.map(status);
+        // 進捗バーは3色。結果待ちは「進行中」側に入れる（発売前ではないため）
+        const d=s.filter(x=>x==="done").length, y=s.filter(x=>x==="yet").length,
+              l=s.length-d-y, nw=s.filter(x=>x==="wait").length;
+        const w = n => (n/rs.length*100).toFixed(2)+"%";
+        const byTime = rs.slice().sort((a,b)=>
+          String(a.deadline||"~").localeCompare(String(b.deadline||"~")));
+        // 「次のレース」は買えるものを指す。結果待ちを次扱いにしない
+        const nxt = byTime.find(r=>{ const t=status(r); return t==="live"||t==="yet"; });
+        const bp = rs[0].bank_profile||{};
+        // 注目レース: 未確定があれば波乱確率が最大のもの、全確定なら最高配当
+        let pick=null, plabel="", pval="";
+        const undone = rs.filter(r=>status(r)!=="done");
+        if(undone.length){
+          pick = undone.reduce((a,b)=>((b.top1_prob||1)<(a.top1_prob||1)?b:a));
+          plabel="注目"; pval=`<span class="upt ${uptCls(1-(pick.top1_prob||0))}">波乱 ${pct1(1-(pick.top1_prob||0))}</span>`;
+        } else {
+          const paid = rs.filter(r=>(r.result||{}).payout);
+          if(paid.length){ pick = paid.reduce((a,b)=>(((b.result.payout||{}).yen||0)>((a.result.payout||{}).yen||0)?b:a));
+            plabel="最高配当"; pval=`<b>¥${((pick.result.payout||{}).yen||0).toLocaleString()}</b>`; }
+        }
+        const rd0 = pick ? ((pick.riders||[])[0]||{}) : {};
+        return `<div class="vcard" role="button" tabindex="0" data-venue="${esc(v)}">`
+          +`<div class="vc-h"><span class="vc-name">${esc(short(v))}</span>`
+          +(rs[0].grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
+          +(rs[0].class_group?`<span class="vc-cls">${esc(rs[0].class_group)}</span>`:"")
+          +`<span class="vc-arrow">›</span></div>`
+          +(rs[0].meet_name?`<div class="vc-spec">${esc(rs[0].meet_name)}</div>`:"")
+          +`<div class="vc-spec">${bp.bank?`${esc(bp.bank)}mバンク・みなし直線${esc(bp.straight)}m・`:""}全${rs.length}R</div>`
+          +`<div class="prog"><span class="done" style="width:${w(d)}"></span>`
+          +`<span class="live" style="width:${w(l)}"></span><span class="yet" style="width:${w(y)}"></span></div>`
+          +`<div class="vc-legend"><span><i style="background:var(--good)"></i>済 ${d}</span>`
+          +`<span><i style="background:var(--edge)"></i>進行中 ${l}${nw?`(結果待ち${nw})`:""}</span>`
+          +`<span><i style="background:var(--border)"></i>未発売 ${y}</span></div>`
+          +(nxt?`<div class="vc-next">⏱ 次 <b>${nxt.race_no}R</b> 締切 ${esc(nxt.deadline||"--")}`
+            +(mins(nxt)!=null&&mins(nxt)<=15&&mins(nxt)>=-5?`<span class="vc-soon">締切間近</span>`
+              :`<span style="color:var(--muted);font-weight:600">${relTime(mins(nxt))}</span>`)+`</div>`
+            :`<div class="vc-next">🏁 本日の発売は終了${nw?`（結果待ち ${nw}R）`:""}</div>`)
+          +(pick?`<div class="vc-pick"><span class="lbl">${plabel}</span>`
+            +`<b>${pick.race_no}R</b>${pval}`
+            +(rd0.car!=null?`<span class="rtag ${rtagCls(pick.race_type)}">${esc(pick.race_type||"")}</span>`
+              +carChip(rd0.car)+`<span class="rr-nm">${esc(rd0.name||"")}</span>`:"")+`</div>`:"")
+          +`</div>`;
+      }).join("");
+      return h;
+    }
+
+    function renderRaces(races){
+      const rs = races.filter(r=>r.venue===selVenue).sort((a,b)=>(a.race_no||0)-(b.race_no||0));
+      if(!rs.length) return emptyBox("この会場のレースがありません。");
+      const bp = rs[0].bank_profile||{};
+      const done = rs.filter(r=>status(r)==="done");
+      const hit = done.filter(r=>((r.result||{}).hit||{}).win_hit).length;
+      let h = `<div class="mv-back"><button type="button" data-back="venues">← 会場一覧</button>`
+        +`<span class="cur">${esc(dlabel(selDate))}</span></div>`;
+      h += `<div class="vhead"><div class="vc-h"><span class="vc-name">${esc(short(selVenue))}</span>`
+        +(rs[0].grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
+        +(rs[0].class_group?`<span class="vc-cls">${esc(rs[0].class_group)}</span>`:"")
+        +`<span class="vc-cls">済 ${done.length}/${rs.length}R</span>`
+        +(done.length?`<span class="vc-cls">◎的中 ${hit}/${done.length}</span>`:"")+`</div>`
+        +(bp.bank?`<div class="vc-spec">${esc(bp.bank)}m周長・みなし直線${esc(bp.straight)}m`
+          +(bp.cant!=null?`・カント${esc(bp.cant)}°`:"")+`</div>`:"")
+        +`</div>`;
+      h += rs.map(r=>{
+        const s=status(r), rd0=(r.riders||[])[0]||{};
+        const lbl={done:"済",live:"発売中",wait:"結果待ち",yet:"未発売"}[s];
+        let mid;
+        if(s==="done"){
+          const o=(r.result.order||[]).slice(0,3), pay=(r.result.payout||{});
+          mid = `<div class="rr-l1">◎ ${carChip(rd0.car)}<span class="rr-nm">${esc(rd0.name||"")}</span>`
+            +(((r.result.hit||{}).win_hit)?`<span class="rr-st done">的中</span>`:"")+`</div>`
+            +`<div class="rr-l2">${o.map(x=>carChip(x.car)).join("")}`
+            +(pay.combo?`<span>${esc(pay.combo)}</span><span class="rr-pay">¥${(pay.yen||0).toLocaleString()}</span>`:"")+`</div>`;
+        } else {
+          mid = `<div class="rr-l1">${r.race_name?`<span class="vc-cls">${esc(r.race_name)}</span>`:""}`
+            +`◎ ${carChip(rd0.car)}<span class="rr-nm">${esc(rd0.name||"")}</span></div>`
+            +`<div class="rr-l2"><span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"")}</span>`
+            +`<span>1着 ${pct1(r.top1_prob)}</span>`
+            +`<span class="upt ${uptCls(1-(r.top1_prob||0))}">波乱 ${pct1(1-(r.top1_prob||0))}</span>`
+            +`<span>${r.field_size}車</span></div>`;
+        }
+        return `<div class="rrow ${s==='live'?'live':''}" role="button" tabindex="0" data-race="${r.race_no}">`
+          +`<div class="rr-no"><b>${r.race_no}</b><small>${esc(r.deadline||"--")}</small></div>`
+          +`<div class="rr-mid">${mid}</div>`
+          +`<div class="rr-st ${s}">${lbl}</div></div>`;
+      }).join("");
+      h += `<button class="backfoot" type="button" data-back="venues">← 会場一覧へ戻る</button>`;
+      return h;
+    }
+
+    function renderRace(races){
+      const r = races.find(x=>x.venue===selVenue && x.race_no===selRace);
+      if(!r) return emptyBox("レースが見つかりません。");
+      return `<div class="mv-back"><button type="button" data-back="races">← ${esc(short(selVenue))}</button>`
+        +`<button type="button" data-back="venues">会場一覧</button>`
+        +`<span class="cur">${r.race_no}R ${esc(r.deadline||"")}</span></div>`
+        + raceBlock(r, rcOverride || ((r.result&&(r.result.order||[]).length)?"res":"pred"))
+        + `<button class="backfoot" type="button" data-back="races">← ${esc(short(selVenue))}のレース一覧へ</button>`;
+    }
+
+    function render(){
+      const races = all.filter(r=>r.date===selDate);
+      let html = `<div class="pred-disc">⚠ 男子競輪の着順（1着）確率と三連単モデル確率の提示です。`
+        +`買い目の推奨ではありません。</div>`;
+      if(dates.length>1){
+        html += `<div class="pred-dtabs" role="tablist" aria-label="日付切替">`
+          + dates.map(d=>`<button class="pred-dtab" type="button" role="tab" data-mdate="${esc(d)}"`
+            +` aria-selected="${d===selDate?"true":"false"}">${esc(dlabel(d))}`
+            +`<span class="vc">${all.filter(r=>r.date===d).length}R</span></button>`).join("")
+          + `</div>`;
+      }
+      html += view==="venues" ? renderVenues(races)
+            : view==="races"  ? renderRaces(races)
+            : renderRace(races);
+      host.innerHTML = html;
+      attach();
+    }
+
+    function attach(){
+      host.querySelectorAll("[data-mdate]").forEach(b=>b.addEventListener("click",()=>{
+        selDate=b.dataset.mdate; view="venues"; selVenue=null; render(); window.scrollTo(0,0);
+      }));
+      const go=(el,fn)=>{ el.addEventListener("click",fn);
+        el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); fn(); } }); };
+      host.querySelectorAll("[data-venue]").forEach(el=>go(el,()=>{
+        selVenue=el.dataset.venue; view="races"; render(); window.scrollTo(0,0);
+      }));
+      host.querySelectorAll("[data-race]").forEach(el=>go(el,()=>{
+        selRace=+el.dataset.race; view="race"; rcOverride=null; render(); window.scrollTo(0,0);
+      }));
+      host.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>{
+        view=b.dataset.back; if(view==="venues") selVenue=null; rcOverride=null; render(); window.scrollTo(0,0);
+      }));
+      // 予測／確定結果 タブ（レース詳細内）。スクロール位置は動かさない
+      host.querySelectorAll(".rc-tab").forEach(t=>{
+        t.addEventListener("click",()=>{ rcOverride=t.dataset.rc; render(); });
+      });
+      if(wireRace) wireRace(host);
+    }
     render();
   })();
 
@@ -1825,7 +2107,7 @@ function boot(DB){
 
   // footer
   document.getElementById("foot").innerHTML =
-    "本ダッシュボードは<b>ガールズケイリン3連単の期待値予測AI</b>の可視化です。"
+    "本ダッシュボードは<b>ガールズケイリン・男子競輪の3連単予測AI</b>の可視化です。"
     +"3段構成＝①Plackett-Luceで210通り確率／②レースタイプ分類（軸堅・標準・混戦）／③「タイプ×オッズ帯」バケットで期待値ゾーンを特定。"
     +"核心は<b>Phase4のバケット分析</b>で、ROIが100%を超えるゾーンだけを実運用対象にします。"
     +"本日のレース予測・データ収集状況・レースタイプ分布・キャリブレーションは実データ、"
@@ -1852,7 +2134,9 @@ function boot(DB){
 // ---- トップレベルタブ（予測・分析 / 成績）の切替（静的DOM・データ非依存） ----
 (function(){
   const tabs=[...document.querySelectorAll(".toptab")];
-  const panes={main:document.getElementById("tab-main"), results:document.getElementById("tab-results")};
+  const panes={main:document.getElementById("tab-main"),
+               men:document.getElementById("tab-men"),
+               results:document.getElementById("tab-results")};
   function select(name){
     tabs.forEach(t=>{ const on=t.dataset.tab===name;
       t.setAttribute("aria-selected", on?"true":"false"); t.tabIndex=on?0:-1; });

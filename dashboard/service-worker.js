@@ -1,8 +1,8 @@
-/* ガールズケイリン 期待値AI ダッシュボード PWA サービスワーカー
+/* 競輪予測AI ダッシュボード PWA サービスワーカー
    - HTML(index.html/ナビゲーション) と data.json は network-first（更新を確実に反映、オフライン時はキャッシュ）
    - アイコン/マニフェスト等の静的アセットは cache-first
    キャッシュ名を上げると旧キャッシュを破棄して確実に更新できる。 */
-const CACHE = "girls-keirin-ev-v4";
+const CACHE = "keirin-ai-v5";
 const SHELL = [
   "./",
   "./index.html",
@@ -74,7 +74,7 @@ self.addEventListener("fetch", (e) => {
 self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : "" }; }
-  const title = d.title || "ガールズケイリンAI";
+  const title = d.title || "競輪予測AI";
   const opts = {
     body: d.body || "",
     tag: d.tag || "keirin",

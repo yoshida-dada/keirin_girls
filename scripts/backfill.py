@@ -37,7 +37,8 @@ def _daterange(d0: date, d1: date):
 def _persist(repo: DatasetRepo, ds, day: date) -> None:
     """1レース分の収集結果をDBへ（メインスレッドのみが呼ぶ＝SQLite安全）。"""
     repo.save_race(ds.race_id, day.isoformat(), ds.venue_code, ds.race_no,
-                   ds.is_girls, ds.deadline, ds.field_size)
+                   ds.is_girls, ds.deadline, ds.field_size,
+                   grade=ds.grade, race_name=ds.race_name)
     repo.save_entries(ds.race_id, ds.entries)
     repo.save_recent_form(ds.race_id, ds.recent)
     repo.save_results(ds.race_id, ds.results)

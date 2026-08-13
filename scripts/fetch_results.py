@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT))
 from bs4 import BeautifulSoup
 from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_schedule import (
-    build_kaisai_list_url, parse_kaisai_list, fetch_girls_race_numbers, kaisai_race_date,
+    build_kaisai_list_url, parse_kaisai_list, fetch_race_numbers_for, kaisai_race_date,
 )
 from src.collect.dataset import collect_race_dataset
 from src.collect.snapshot import build_race_id
@@ -90,13 +90,21 @@ def _result_section(rows: list, payout, drace: dict | None) -> dict:
     }
 
 
-def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
-    """締切+min_after分を過ぎた未取得ガールズ結果を取得・DB格納・data.json反映。件数を返す。"""
+def fetch_and_store(target: date, db_path: Path, min_after: int = 20,
+                    include: str = "girls", men_db: Path | None = None) -> int:
+    """締切+min_after分を過ぎた未取得結果を取得・DB格納・data.json反映。件数を返す。
+
+    include="men"/"all" のとき男子は **men_db（既定 data/keirin_men.sqlite）** へ入れる。
+    予測時の選手成績・展開特徴・Elo は男子DBから引くので、日々の結果が別DBに落ちると
+    男子の履歴だけ止まる。学習母集団を混ぜないためにもDBは分けたまま書き分ける。
+    """
     now = datetime.now(JST)
     set_default_interval(0.6)
     res = fetch(build_kaisai_list_url(target.year, target.month, target.day))
     kaisai_list = [k for k in parse_kaisai_list(res.text)
-                   if k.is_girls and kaisai_race_date(k.kaisai_day_code) == target]
+                   if kaisai_race_date(k.kaisai_day_code) == target]
+    if include == "girls":
+        kaisai_list = [k for k in kaisai_list if k.is_girls]
     venues = _venue_map(res.text)
 
     doc = json.loads(DATA_JSON.read_text(encoding="utf-8")) if DATA_JSON.exists() else {}
@@ -106,12 +114,14 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
     tstr = target.isoformat()
     by_key = {(r.get("date") or tstr, r.get("venue"), r.get("race_no")): r for r in races}
 
+    men_db = men_db or (Path(db_path).parent / "keirin_men.sqlite")
     repo = DatasetRepo(str(db_path))
+    repo_men = DatasetRepo(str(men_db)) if include != "girls" else None
     updated = 0
     try:
         for k in kaisai_list:
             venue = venues.get(k.kaisai_code, k.venue_code)
-            for rno in fetch_girls_race_numbers(k):
+            for rno in fetch_race_numbers_for(k, include):
                 drace = by_key.get((tstr, venue, rno))
                 if drace and drace.get("result"):
                     continue                                  # 取得済み
@@ -124,7 +134,7 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
                         continue                              # 締切+min_after分に未達
                 try:
                     # 完全収集: オッズページ(出走表/直近成績/確定オッズ)＋結果ページ(着順/払戻)を一括取得
-                    ds = collect_race_dataset(k, rno, require_girls=True)
+                    ds = collect_race_dataset(k, rno, require_girls=(include == "girls"))
                 except Exception as e:
                     print(f"  {venue} R{rno} 収集失敗: {e}")
                     continue
@@ -132,19 +142,22 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
                     continue                                  # 未確定
                 race_id = ds.race_id
                 race_date = kaisai_race_date(k.kaisai_day_code).isoformat()
+                # 男子はガールズDBに混ぜない（学習母集団が別・予測時も別DBを引く）
+                sink = repo if ds.is_girls or repo_men is None else repo_men
                 # 出走表/直近成績/確定オッズ/着順/払戻 を保存（リアルタイムvs最終の検証土台）
-                repo.save_race(race_id, race_date, k.venue_code, rno,
-                               ds.is_girls, ds.deadline, ds.field_size)
+                sink.save_race(race_id, race_date, k.venue_code, rno,
+                               ds.is_girls, ds.deadline, ds.field_size,
+                               grade=ds.grade, race_name=ds.race_name)
                 if ds.entries:
-                    repo.save_entries(race_id, ds.entries)
+                    sink.save_entries(race_id, ds.entries)
                 if ds.recent:
-                    repo.save_recent_form(race_id, ds.recent)
+                    sink.save_recent_form(race_id, ds.recent)
                 if ds.odds_final:
-                    repo.save_odds_final(race_id, ds.odds_final)
+                    sink.save_odds_final(race_id, ds.odds_final)
                 if ds.narabi and ds.narabi.get("order"):
-                    repo.save_narabi(race_id, ds.narabi)
-                repo.save_results(race_id, ds.results)
-                repo.save_payout(race_id, ds.payout)
+                    sink.save_narabi(race_id, ds.narabi)
+                sink.save_results(race_id, ds.results)
+                sink.save_payout(race_id, ds.payout)
                 if drace is not None:
                     drace["result"] = _result_section(ds.results, ds.payout, drace)
                     updated += 1
@@ -152,6 +165,8 @@ def fetch_and_store(target: date, db_path: Path, min_after: int = 20) -> int:
                       f"（出走{len(ds.entries)}/直近{len(ds.recent)}/確定オッズ{len(ds.odds_final)}）")
     finally:
         repo.close()
+        if repo_men is not None:
+            repo_men.close()
 
     if updated and races:
         doc["predictions"]["results_updated"] = now.strftime("%Y-%m-%d %H:%M JST")
@@ -166,12 +181,15 @@ def main() -> None:
     ap.add_argument("--min-after", type=int, default=20, help="締切から何分後以降を取得対象にするか")
     ap.add_argument("--window", type=int, default=0,
                     help="対象日の前後何日も取得するか（既定=0。1で昨日ぶんの取りこぼしも回収）")
+    ap.add_argument("--include", choices=["girls", "men", "all"], default="girls",
+                    help="取得対象（既定=girls）。男子は data/keirin_men.sqlite へ格納する")
     args = ap.parse_args()
     target = date.fromisoformat(args.date) if args.date else datetime.now(JST).date()
     total = 0
     for i in range(-args.window, 1):          # 過去側のみ（未来のレースに結果は無い）
         d = target + timedelta(days=i)
-        total += fetch_and_store(d, Path(args.db), min_after=args.min_after)
+        total += fetch_and_store(d, Path(args.db), min_after=args.min_after,
+                                 include=args.include)
     print(f"結果反映: {total}レース")
 
 

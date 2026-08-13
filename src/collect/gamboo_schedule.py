@@ -136,3 +136,17 @@ def fetch_girls_race_numbers(kaisai: Kaisai) -> list[int]:
     """開催のガールズ(L級)レース番号のみを取得する（レース一覧1ページのみ・ネットワークあり）。"""
     res = fetch(build_race_list_url(kaisai.kaisai_code, kaisai.kaisai_day_code))
     return parse_girls_race_numbers(res.text, kaisai.kaisai_code, kaisai.kaisai_day_code)
+
+
+def fetch_race_numbers_for(kaisai: Kaisai, include: str = "girls") -> list[int]:
+    """include に応じた対象レース番号を返す（"girls" / "men" / "all"）。
+
+    ガールズ／男子／両方を選ぶ処理が予測生成・オッズ更新・結果取得の3箇所に散っていたので
+    ここに集約する。**レース一覧ページの取得は1回**（男子＝全体からガールズを引く）。
+    """
+    res = fetch(build_race_list_url(kaisai.kaisai_code, kaisai.kaisai_day_code))
+    girls = set(parse_girls_race_numbers(res.text, kaisai.kaisai_code, kaisai.kaisai_day_code))
+    if include == "girls":
+        return sorted(girls)
+    allr = set(parse_race_numbers(res.text, kaisai.kaisai_code, kaisai.kaisai_day_code))
+    return sorted(allr - girls) if include == "men" else sorted(allr)
