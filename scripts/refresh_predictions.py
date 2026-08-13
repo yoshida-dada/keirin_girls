@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_schedule import (
-    build_kaisai_list_url, parse_kaisai_list, fetch_girls_race_numbers, kaisai_race_date,
+    build_kaisai_list_url, parse_kaisai_list, fetch_race_numbers_for, kaisai_race_date,
 )
 from predict_race import predict_race_dict
 from build_predictions import _venue_map
@@ -69,6 +69,11 @@ def main() -> None:
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     ap.add_argument("--only-near", type=float,
                     help="締切まで N 分以内のレースだけ更新（Actions定期実行用）")
+    ap.add_argument("--include", choices=["girls", "men", "all"], default="girls",
+                    help="更新対象（既定=girls）。data.json に男子を載せるなら all にする")
+    ap.add_argument("--men-only-near", type=float,
+                    help="男子だけ別の窓（分）にする。未指定なら --only-near と同じ。"
+                         "男子は同時進行の会場数が多く、広い窓で1分回すと取得数が跳ね上がる")
     args = ap.parse_args()
     set_default_interval(0.5)
 
@@ -83,33 +88,56 @@ def main() -> None:
 
     res = fetch(build_kaisai_list_url(target.year, target.month, target.day))
     kaisai_list = [k for k in parse_kaisai_list(res.text)
-                   if k.is_girls and kaisai_race_date(k.kaisai_day_code) == target]
+                   if kaisai_race_date(k.kaisai_day_code) == target]
+    if args.include == "girls":
+        kaisai_list = [k for k in kaisai_list if k.is_girls]
     venues = _venue_map(res.text)
 
     # 既存data.jsonの締切をキャッシュし、窓外レースは取得自体をスキップ（1分ループを軽くする）
     # キーは (date, venue, race_no)。日付を外すと同一会場のR番号が日をまたいで衝突する。
     tstr = target.isoformat()
-    dl_cache = {(r.get("date") or tstr, r.get("venue"), r.get("race_no")): r.get("deadline")
-                for r in doc.get("predictions", {}).get("races", [])}
+    known = {(r.get("date") or tstr, r.get("venue"), r.get("race_no")): r
+             for r in doc.get("predictions", {}).get("races", [])}
+    dl_cache = {k2: r.get("deadline") for k2, r in known.items()}
+
+    men_near = args.men_only_near if args.men_only_near is not None else args.only_near
+
+    def _plan(k) -> list[int]:
+        """この開催で今回見るレース番号。
+
+        --only-near のときは**レース一覧ページを取りに行かない**。朝のビルドが data.json に
+        全レースを入れてあるので、そこから開催中の会場のR番号を復元すれば足りる。
+        毎分×十数会場ぶんのレース一覧フェッチ（男子込みで1日1万回超）を丸ごと省ける。
+        """
+        v = venues.get(k.kaisai_code, k.venue_code)
+        if args.only_near is None:
+            return fetch_race_numbers_for(k, args.include)
+        nos = sorted(no for (d, vv, no) in known if d == tstr and vv == v and no is not None)
+        return nos or fetch_race_numbers_for(k, args.include)   # 朝のビルドが無い日は従来通り
 
     races = []
     for k in kaisai_list:
         venue = venues.get(k.kaisai_code, k.venue_code)
-        for rno in fetch_girls_race_numbers(k):
-            if args.only_near is not None:
+        for rno in _plan(k):
+            r0 = known.get((tstr, venue, rno))
+            if args.include == "men" and r0 is not None and r0.get("is_girls"):
+                continue
+            # 窓は男女で分けられる（男子は同時開催が多く、広い窓だと1分あたりの取得数が跳ねる）
+            near = men_near if (r0 is not None and r0.get("is_girls") is False) else args.only_near
+            if near is not None:
                 dl = dl_cache.get((tstr, venue, rno))
                 if dl:                                   # 締切既知→窓外なら取得しない
                     m = _minutes_to_deadline(dl, now, tstr)
-                    if m is None or m < -5 or m > args.only_near:
+                    if m is None or m < -5 or m > near:
                         continue
             try:
                 d = predict_race_dict(k.kaisai_code, k.kaisai_day_code, rno, venue=venue)
             except Exception as e:
                 print(f"  {venue} R{rno} 失敗: {e}")
                 continue
-            if args.only_near is not None:               # 取得後の締切で最終判定
+            if near is not None:                         # 取得後の締切で最終判定
                 mins = _minutes_to_deadline(d.get("deadline", ""), now, d.get("date"))
-                if mins is None or mins < -5 or mins > args.only_near:
+                if mins is None or mins < -5 or mins > near:
                     continue
             _store_snapshot(snap_repo, build_race_id(k.kaisai_day_code, rno), d, now)
             races.append(d)

@@ -136,7 +136,8 @@ def main() -> None:
                     fails[f"収集:{type(e).__name__}"] += 1
                     continue
                 repo.save_race(ds.race_id, d.isoformat(), k.venue_code, rno,
-                               ds.is_girls, ds.deadline, ds.field_size)
+                               ds.is_girls, ds.deadline, ds.field_size,
+                               grade=ds.grade, race_name=ds.race_name)
                 if ds.entries:
                     repo.save_entries(ds.race_id, ds.entries)
                 if getattr(ds, "recent", None):

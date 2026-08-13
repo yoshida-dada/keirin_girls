@@ -34,7 +34,8 @@ DATA_JSON = DASH / "data.json"
 NOTIFIED_PATH = ROOT / "data" / "notified.json"
 PY = sys.executable
 
-WINDOW_MIN = 30        # 発走何分前から1分更新を始めるか
+WINDOW_MIN = 30        # 発走何分前から1分更新を始めるか（ガールズ）
+MEN_WINDOW_MIN = 10    # 男子の1分更新窓。同時開催が十数会場あるので広げると取得数が跳ねる
 EARLY_WINDOW = 120     # 締切何分前から粗い間隔でオッズ時系列を取り始めるか（ソフトなオッズ捕捉）
 LIVE_SLEEP = 60        # 更新窓内のループ間隔(秒)=1分
 IDLE_SLEEP = 300       # 更新対象が無いときのループ間隔(秒)=5分（早期スナップショットにも使う）
@@ -43,6 +44,9 @@ IDLE_SLEEP = 300       # 更新対象が無いときのループ間隔(秒)=5分
 # Pagesビルド上限は適用されない（公式ドキュメント確認済み）。public リポは Actions 無料。
 # → ライブ窓では毎ループ(=1分)push＝最短。デプロイ完了+CDN反映で実効は約1〜2分遅れが下限。
 PUSH_INTERVAL_LIVE = LIVE_SLEEP   # 締切間際(ライブ窓)は1分ごとにpush
+# 男子だけがライブ窓のときのpush間隔。男子は同時開催が多く稼働時間が1日10時間規模になるため、
+# 1分pushのままだと1日600コミット超になる。ガールズが窓に入れば即座に1分pushへ戻る。
+PUSH_INTERVAL_LIVE_MEN = 180
 PUSH_INTERVAL = 420               # 結果反映など非緊急な更新のpush最短間隔(秒)
 PORT = 8787
 
@@ -112,14 +116,23 @@ def serve_dashboard() -> None:
 
 
 def morning_build() -> None:
-    _log("前後1日（昨日/今日/明日）の予測を算出中（build_predictions --predict）…")
+    """前後1日のガールズ＋男子の予測を作る。
+
+    男子込みで1日約140レース＝10分前後かかる（ガールズのみは約2分）。
+    最速の締切は概ね8:20台なので、日付が変わった直後に走らせる限り間に合う。
+    タイムアウトはガールズのみ時代の1800秒のままで十分（実測の約3倍の余裕）。
+    """
+    _log("前後1日（昨日/今日/明日）のガールズ＋男子の予測を算出中（build_predictions --predict）…")
     rc, out = _run([PY, "scripts/build_predictions.py", "--db", "data/keirin.sqlite",
-                    "--predict", "--window", "1"], timeout=1800)
+                    "--predict", "--window", "1", "--include", "all"], timeout=1800)
     _log(("朝の予測生成 完了" if rc == 0 else "朝の予測生成 失敗\n" + out[-500:]))
 
 
 def live_refresh() -> None:
-    rc, out = _run([PY, "scripts/refresh_predictions.py", "--only-near", str(WINDOW_MIN)])
+    # 男子は同時開催が十数会場あり、ガールズと同じ30分窓で1分回すと毎分20レース超を
+    # 取りに行くことになる（規約・負荷の両面で過大）。男子はオッズが動く締切10分前だけにする。
+    rc, out = _run([PY, "scripts/refresh_predictions.py", "--only-near", str(WINDOW_MIN),
+                    "--men-only-near", str(MEN_WINDOW_MIN), "--include", "all"], timeout=900)
     if rc == 0:
         last = out.strip().splitlines()[-1] if out.strip() else ""
         _log("オッズ更新 " + last)
@@ -136,7 +149,8 @@ def live_snapshot() -> None:
 
 def live_results() -> None:
     # --window 1 で前日ぶんの取りこぼしも回収する（前後1日を表示するため）
-    rc, out = _run([PY, "scripts/fetch_results.py", "--window", "1"])
+    rc, out = _run([PY, "scripts/fetch_results.py", "--window", "1", "--include", "all"],
+                   timeout=900)
     if rc == 0:
         last = out.strip().splitlines()[-1] if out.strip() else ""
         _log("結果取得 " + last)
@@ -191,10 +205,19 @@ def _pending_results(now: datetime) -> bool:
     return False
 
 
-def _next_deadline_min(now: datetime) -> float | None:
-    """まだ来ていない締切のうち最短の「分」を返す（日付込みで判定）。無ければNone。"""
+def _next_deadline_min(now: datetime, only: str = "all") -> float | None:
+    """まだ来ていない締切のうち最短の「分」を返す（日付込みで判定）。無ければNone。
+
+    only="girls"/"men" で対象を絞れる。男子を data.json に載せた結果、全体で見ると
+    ほぼ常時「30分以内に締切」になり、1分ループとpushが一日中回りっぱなしになるため、
+    ライブ窓の判定は男女別のしきい値で行う。
+    """
     mins = []
     for r in _races():
+        if only == "girls" and r.get("is_girls") is False:
+            continue
+        if only == "men" and r.get("is_girls") is not False:
+            continue
         d = _deadline_dt(r, now)
         if d is None:
             continue
@@ -238,7 +261,12 @@ def _notify_text(r: dict, dl: str) -> tuple[str, str]:
 
 
 def notify_lead(now: datetime) -> None:
-    """締切 NOTIFY_LEAD_MIN 分前になった当日レースを、スマホへ1回だけ通知する（全ガールズレース）。"""
+    """締切 NOTIFY_LEAD_MIN 分前になった当日レースを、スマホへ1回だけ通知する。
+
+    **通知はガールズのみ**（既定）。data.json に男子を載せた（--include all）ことで対象が
+    1日8件から約140件に増え、そのまま通知すると実用にならないため。
+    男子も通知したい場合は環境変数 NOTIFY_INCLUDE=all を設定する。
+    """
     try:
         from src.notify.webpush import send_all, enabled, load_subs
     except Exception:
@@ -250,9 +278,12 @@ def notify_lead(now: datetime) -> None:
     except ValueError:
         lead = 10
     today = now.strftime("%Y-%m-%d")
+    ninc = os.environ.get("NOTIFY_INCLUDE", "girls")
     done = _load_notified(today)
     changed = False
     for r in _races():
+        if ninc == "girls" and r.get("is_girls") is False:
+            continue
         dl = r.get("deadline")
         if not (dl and ":" in str(dl)):
             continue
@@ -326,10 +357,17 @@ def main() -> None:
 
         notify_lead(now)                          # 締切N分前になったレースをスマホへ通知（1回だけ）
 
-        nd = _next_deadline_min(now)              # 最短の未到来締切（分）
-        if nd is not None and nd <= WINDOW_MIN + 5:
+        # ライブ窓の判定は男女別。男子は同時開催が多く、全体で見ると一日中「30分以内」に
+        # なってしまうため、男子は10分窓・pushも緩めにして churn を抑える。
+        ndg = _next_deadline_min(now, "girls")
+        ndm = _next_deadline_min(now, "men")
+        g_live = ndg is not None and ndg <= WINDOW_MIN + 5
+        m_live = ndm is not None and ndm <= MEN_WINDOW_MIN + 5
+        nd = min([x for x in (ndg, ndm) if x is not None], default=None)
+        if g_live or m_live:
             live_refresh()                        # 締切30分前〜→1分更新（予測+オッズ、時系列も保存）
-            if not args.no_push and time.time() - last_push >= PUSH_INTERVAL_LIVE:
+            push_iv = PUSH_INTERVAL_LIVE if g_live else PUSH_INTERVAL_LIVE_MEN
+            if not args.no_push and time.time() - last_push >= push_iv:
                 git_push(); last_push = time.time()
             time.sleep(LIVE_SLEEP)
         elif nd is not None and nd <= EARLY_WINDOW:

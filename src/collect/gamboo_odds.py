@@ -89,6 +89,44 @@ def parse_deadline(html: str) -> str | None:
     return None
 
 
+# 開催格の表記ゆれ対策。h1/title に入る全角表記を第一情報源にする。
+# アイコンのCSSクラス(gr1..gr5)はフォールバック: 特殊開催（全プロ記念）で実態とズレる例を確認済み。
+_GRADE_TEXT_RE = re.compile(r"(ＧＰ|Ｇ[１２３]|Ｆ[１２])")
+_Z2H = str.maketrans("ＧＦＰ１２３", "GFP123")
+_GRADE_BY_CLASS = {"gr1": "F2", "gr2": "F1", "gr3": "G3", "gr4": "G2", "gr5": "G1"}
+
+
+def parse_race_meta(html: str) -> dict:
+    """オッズページから 格/会場/開催名/レース名 を返す。取れない項目は None。
+
+    オッズページは既に取得済みなので**追加フェッチ0**でグレードが付く。
+    レース名（"Ｓ級決勝"/"二次予選"等）は語彙が開催格で変わるため生文字列で返し、
+    正規化は表示側に任せる。
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    grade = None
+    h1 = soup.find("h1", class_="section_title")          # "出走表詳細 松山Ｇ１ レース情報"
+    if h1:
+        m = _GRADE_TEXT_RE.search(h1.get_text())
+        if m:
+            grade = m.group(1).translate(_Z2H)
+    if grade is None:
+        ic = soup.find("span", class_="icon_grade")
+        if ic:
+            grade = next((_GRADE_BY_CLASS[c] for c in ic.get("class", [])
+                          if c in _GRADE_BY_CLASS), None)
+    h2 = soup.find("h2", class_="title")                   # 会場 + 開催名
+    vd = h2.find("span", class_="velodrome") if h2 else None
+    rc = h2.find("span", class_="race") if h2 else None
+    st = soup.select_one("div.race_title_header p.status")  # レース名
+    return {
+        "grade": grade,
+        "venue": vd.get_text(strip=True) if vd else None,
+        "meet_name": rc.get_text(strip=True) if rc else None,
+        "race_name": st.get_text(strip=True) if st else None,
+    }
+
+
 def fetch_trifecta_odds(
     kaisai_code: str, kaisai_day_code: str, race_no: int
 ) -> tuple[dict[tuple[int, int, int], float], str | None]:
