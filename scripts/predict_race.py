@@ -213,6 +213,17 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         reference = build_reference(strengths, narabi_pos, venue_code,
                                     bool(riders and riders[0].get("home")))
 
+    # 男子のライン別の強さ（ライン形式の並び表示＋数値化）。ガールズは lines が空で None。
+    # 数値は上の probs（このレースのモデル三連単分布）から積み上げるので、表示の
+    # ライン評価と買い目確率が食い違わない。
+    from src.model.line_strength import build_lines
+    line_strength = build_lines(
+        (narabi_ctx or {}).get("lines") or [], strengths, probs,
+        names={e.car_number: e.rider_name for e in entries},
+        scores={e.car_number: e.racing_score for e in entries},
+        legs=(narabi_ctx or {}).get("legs") or {},
+        classes={e.car_number: e.class_rank for e in entries})
+
     # 展開予想（記者の並び予想の隊列＋モデルの一言読み）。ガールズは並び通りになるとは限らない。
     development = None
     if narabi_ctx and narabi_ctx.get("order"):
@@ -344,6 +355,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         # lines は並び予想のライン境界（ガールズは空になる）
         "class_group": "/".join(sorted({e.class_rank for e in entries if e.class_rank})) or None,
         "lines": (narabi_ctx or {}).get("lines") or [],
+        "line_strength": line_strength,        # 男子: ライン別の強さ（表示用）
         # 開催格(G1/F2等)・開催名・レース名。混戦度は格とレース名（決勝/予選）で傾向が変わる
         "grade": meta.get("grade"), "meet_name": meta.get("meet_name"),
         "race_name": meta.get("race_name"),
