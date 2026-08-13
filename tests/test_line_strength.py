@@ -79,3 +79,47 @@ def test_carries_display_fields():
     c0 = got["lines"][0]["cars"][0]
     assert (c0["name"], c0["leg"], c0["class_rank"]) == ("山田", "先行", "S1")
     assert got["lines"][0]["score_avg"] == 95.0
+
+
+# ---- 番手の判定（記者の並び予想のラインを正とする） ----
+
+from src.model.himo_adjust import marker_of, corrected_trifecta_probs
+
+
+def test_marker_uses_line_not_flat_order():
+    """男子: 番手は同一ライン内の直後。隊列の直後（＝次ラインの先頭）を拾わない。
+
+    表示例 5-2-1 / 6 / 3-7-4 のとき、隊列は 5,2,1,6,3,7,4。
+    1番はラインの最後尾なので番手はいない。隊列直後の6番は別ラインの単騎＝敵。
+    """
+    lines = [[5, 2, 1], [6], [3, 7, 4]]
+    npos = {c: i for i, c in enumerate([5, 2, 1, 6, 3, 7, 4])}
+    assert marker_of(5, npos, lines) == 2          # ライン先頭の番手
+    assert marker_of(2, npos, lines) == 1          # 番手の後ろは3番手
+    assert marker_of(1, npos, lines) is None       # 最後尾＝番手なし（6番を拾わない）
+    assert marker_of(6, npos, lines) is None       # 単騎＝番手なし（3番を拾わない）
+    assert marker_of(3, npos, lines) == 7
+    assert marker_of(4, npos, lines) is None
+    # ライン情報が無ければ従来どおり隊列の直後（ガールズ）
+    assert marker_of(1, npos, None) == 6
+
+
+def test_marker_absent_car_returns_none():
+    assert marker_of(9, {1: 0}, [[1, 2]]) is None
+    assert marker_of(None, {1: 0}, [[1, 2]]) is None
+
+
+def test_correction_targets_the_line_mate():
+    """加点が同一ラインの番手に向き、次ラインの先頭には向かないこと。"""
+    lines = [[1], [2, 3]]
+    st = {1: 0.5, 2: 0.3, 3: 0.2}
+    npos = {1: 0, 2: 1, 3: 2}
+    params = {"t2": 1.0, "t3": 1.0, "mark": 1.0}
+    # ◎=1 は単騎。ライン基準なら番手なし＝補正は掛からず素のPLと一致する
+    with_lines = corrected_trifecta_probs(st, npos, params, lines=lines)
+    plain = corrected_trifecta_probs(st, npos, {"t2": 1.0, "t3": 1.0, "mark": 0.0})
+    for k in plain:
+        assert with_lines[k] == pytest.approx(plain[k], abs=1e-9)
+    # ライン情報が無いと隊列直後の2番へ加点され、素のPLから乖離する（＝従来の誤り方）
+    flat = corrected_trifecta_probs(st, npos, params)
+    assert flat[(1, 2, 3)] > plain[(1, 2, 3)]
