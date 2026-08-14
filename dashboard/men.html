@@ -496,6 +496,40 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 .foot b{color:var(--ink)}
 
 
+
+/* 男子: 展開分岐と買い目 */
+.br{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  box-shadow:var(--shadow);margin:10px 0;overflow:hidden}
+.br>summary{cursor:pointer;padding:10px 13px;font-size:.78rem;font-weight:800;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.br>summary::-webkit-details-marker{display:none}
+.br-note{padding:0 13px 8px;font-size:.63rem;color:var(--muted);font-weight:600;line-height:1.6}
+.br-note b{color:var(--ink)}
+.br-row{border-top:1px solid var(--border2);padding:10px 13px}
+.br-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.br-tag{font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent)}
+.br-lbl{font-size:.75rem;font-weight:800;color:var(--ink)}
+.br-p{margin-left:auto;font-size:.82rem;font-weight:800;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.br-bar{height:6px;border-radius:999px;background:var(--surface2);margin:6px 0 8px;overflow:hidden}
+.br-bar>span{display:block;height:100%;background:var(--accent)}
+.br-cars{display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-bottom:7px}
+.br-node{display:inline-flex;align-items:center;gap:3px;background:var(--surface2);
+  border-radius:9px;padding:3px 7px 3px 4px}
+.br-buy{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 9px;
+  background:var(--surface2);border-radius:9px}
+.br-buylbl{font-size:.58rem;font-weight:800;padding:1px 7px;border-radius:999px;
+  background:var(--edge-soft);color:var(--edge)}
+.br-form{font-size:.9rem;font-weight:800;color:var(--ink);letter-spacing:.02em;
+  font-variant-numeric:tabular-nums}
+.br-pts,.br-cov{font-size:.62rem;font-weight:700;color:var(--muted)}
+.br-win{margin-top:7px;font-size:.65rem;font-weight:700;color:var(--muted);
+  display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.br-wp{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;margin-right:6px}
+.br-warn{border-top:1px dashed var(--border2);padding:9px 13px 11px;font-size:.63rem;
+  color:var(--muted);font-weight:600;line-height:1.6;background:var(--loss-soft)}
+.br-warn b{color:var(--loss)}
 /* 男子: ライン別の強さ */
 .ln-warn{margin:0 13px 8px;padding:8px 10px;border-radius:9px;background:var(--loss-soft);
   color:var(--ink);font-size:.63rem;font-weight:600;line-height:1.6}
@@ -957,9 +991,55 @@ function predContent(r){
       +`<th class="l">着順</th><th>モデル確率</th><th>必要オッズ</th><th>市場オッズ</th>`
       +`</tr></thead><tbody>${tf}</tbody></table></div>` : "";
   // ライン表示は出走表の直後（並びを見てから展開を読む順序）
-  return riderTable(r) + lineBlock(r) + devBlock(r) + h2hBlock(r) + tfBlock
+  // ライン→展開分岐→従来の展開予想 の順（並びを見て、分岐を読み、詳細へ）
+  return riderTable(r) + lineBlock(r) + branchBlock(r) + devBlock(r) + h2hBlock(r) + tfBlock
        + refBlock(r) + evBlock(r) + omBlock(r);
 }
+// 展開分岐（男子）: 「誰が主導権を取るか」で場合分けし、分岐ごとに買い目を出す。
+// 主導権の確率は展開AI(62.5%的中)、分岐内の着順は実測の役割別シェアへ合わせた条件付き分布。
+// **買い目の推奨ではない**（期待値ゾーンは検証済みで存在しない）。展開の読み・紐選びの材料。
+function branchBlock(r){
+  const B = r.dev_branches;
+  if(!B || !(B.branches||[]).length) return "";
+  const pc = v => v==null ? "—" : Math.round(v*100)+"%";
+  const nm = {};
+  (r.riders||[]).forEach(x=>{ nm[x.car]=x.name; });
+  const rows = B.branches.map((b,i)=>{
+    const f = b.formation||{};
+    const line = (b.line||[]).map(c=>
+      `<span class="br-node">${carChip(c)}<span class="ln-nm">${esc(nm[c]||"")}</span></span>`)
+      .join(`<span class="ln-link">－</span>`);
+    // 分岐内の1着上位3人。展開が変わると誰が浮上するかが読める
+    const win = Object.entries(b.win||{}).map(([c,p])=>[+c,p])
+      .sort((a,b2)=>b2[1]-a[1]).slice(0,3);
+    return `<div class="br-row">`
+      +`<div class="br-h"><span class="br-tag">展開${"ABCDE"[i]||""}</span>`
+      +`<span class="br-lbl">${esc(b.label||"")}</span>`
+      +`<span class="br-p">${pc(b.prob)}</span></div>`
+      +`<div class="br-bar"><span style="width:${Math.max(2,Math.round((b.prob||0)*100))}%"></span></div>`
+      +`<div class="br-cars">${line}</div>`
+      +(f.text?`<div class="br-buy"><span class="br-buylbl">買い目</span>`
+        +`<b class="br-form">${esc(f.text)}</b>`
+        +`<span class="br-pts">${f.points}点</span>`
+        +`<span class="br-cov">この展開の${pc(f.cover)}をカバー</span></div>`:"")
+      +`<div class="br-win">分岐内1着: `
+      + win.map(([c,p])=>`${carChip(c)}<span class="ln-nm">${esc(nm[c]||"")}</span>`
+          +`<span class="br-wp">${pc(p)}</span>`).join("　")
+      +`</div></div>`;
+  }).join("");
+  return `<details class="br" open><summary>🔀 展開分岐と買い目`
+    +`<span class="upt mid">上位${B.branches.length}分岐で${pc(B.covered)}</span></summary>`
+    +`<div class="br-note">主導権を誰が取るかで場合分けし、その展開を条件にした着順分布から`
+    +`買い目を組んでいます。主導権の予測は<b>${pc(B.hit_rate)}的中</b>`
+    +`（記者の並び予想の先頭49%・直近B回数の最大56%を上回る）。`
+    +`買い目の「カバー」は<b>その買い方でその展開が当たる確率</b>で、回収率ではありません。</div>`
+    +rows
+    +`<div class="br-warn">⚠ <b>これは買い目の推奨ではありません。</b>`
+    +`回収率が100%を超えるゾーンは検証済みで存在しません`
+    +`（全点均等買いROI 58.0%・控除率25%で上限75%）。展開の読みと紐選びの材料としてご覧ください。</div>`
+    +`</details>`;
+}
+
 // 展開予想（記者の並び予想=車番のみ1行 ＋ 明示的な展開パターン複数）。出走表と対戦成績の間。
 // 男子のライン表示。並びを「1本の隊列」ではなく**ライン単位**で組み、各ラインの強さを
 // このレースのモデル分布から出した数値で示す（1着確率の和・ライン決着・3着内）。
