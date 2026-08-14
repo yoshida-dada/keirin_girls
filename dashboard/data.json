@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-14T00:00:57",
+  "generated": "2026-08-14T15:10:51",
   "schema_version": 1,
   "model_ready": true,
   "notice": "モデル未学習のため、推奨買い目・バケットROI・レースタイプ分布・キャリブレーション・累積ROIは未算出です。データ収集状況のみ実データ集計です。",
@@ -31221,7 +31221,7 @@
     ],
     "model": "LightGBM lambdarank(拡張20+Elo+展開10+並び5:中団込)",
     "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
-    "last_updated": "2026-08-14 00:06 JST",
+    "last_updated": "2026-08-14 15:24 JST",
     "races": [
       {
         "date": "2026-08-13",
@@ -38728,15 +38728,184 @@
         "is_girls": true,
         "field_size": 7,
         "class_group": "L1",
-        "lines": [],
-        "line_strength": null,
+        "lines": [
+          [
+            3
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ]
+        ],
+        "line_strength": {
+          "lines": [
+            {
+              "line_id": 0,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 3,
+                  "name": "山本 さくら",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "先行",
+                  "class_rank": "L1",
+                  "win_prob": 0.1113
+                }
+              ],
+              "p_win": 0.1113,
+              "p_12": 0.0,
+              "p_top3_any": 0.479,
+              "score_avg": 48.1,
+              "rank": 3
+            },
+            {
+              "line_id": 1,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 1,
+                  "name": "清水 彩那",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.5088
+                }
+              ],
+              "p_win": 0.5088,
+              "p_12": 0.0,
+              "p_top3_any": 0.8762,
+              "score_avg": 51.1,
+              "rank": 1
+            },
+            {
+              "line_id": 2,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 2,
+                  "name": "佐々木 綾",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.1993
+                }
+              ],
+              "p_win": 0.1993,
+              "p_12": 0.0,
+              "p_top3_any": 0.6477,
+              "score_avg": 49.0,
+              "rank": 2
+            },
+            {
+              "line_id": 3,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 4,
+                  "name": "杉沢 毛伊子",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0968
+                }
+              ],
+              "p_win": 0.0968,
+              "p_12": 0.0,
+              "p_top3_any": 0.4404,
+              "score_avg": 47.3,
+              "rank": 4
+            },
+            {
+              "line_id": 4,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 5,
+                  "name": "田中 千尋",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0504
+                }
+              ],
+              "p_win": 0.0504,
+              "p_12": 0.0,
+              "p_top3_any": 0.2888,
+              "score_avg": 46.9,
+              "rank": 5
+            },
+            {
+              "line_id": 5,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 6,
+                  "name": "溝口 香奈",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0145
+                }
+              ],
+              "p_win": 0.0145,
+              "p_12": 0.0,
+              "p_top3_any": 0.1216,
+              "score_avg": 46.6,
+              "rank": 7
+            },
+            {
+              "line_id": 6,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 7,
+                  "name": "三宅 玲奈",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0189
+                }
+              ],
+              "p_win": 0.0189,
+              "p_12": 0.0,
+              "p_top3_any": 0.1462,
+              "score_avg": 46.3,
+              "rank": 6
+            }
+          ],
+          "settle_prob": 0.0,
+          "settle_baseline": 0.562,
+          "settle_bias_note": "モデルはライン内の連携を表現しきれないため、ライン決着確率を実測より約21pt低く見積もる（hold-out 5,498Rで補正後35.1% vs 実測55.8%）。紐補正でも絶対値はほとんど直らない。割り引いて読み、ライン間の相対比較に使ってください。",
+          "note": "数値はこのレースのモデル分布から算出（1着確率の和・ライン決着確率）。実測では1着は強いラインの先頭に集中し、3着内では最強ラインの番手が先頭とほぼ同格＝紐として同価値。3番手は1着がほぼ無い。"
+        },
         "dev_branches": null,
         "grade": "F2",
         "meet_name": "前検日コメならウィンチケット杯",
-        "race_name": "Ｌ級戦ガ一般",
+        "race_name": "ガールズ一般",
         "race_type": "標準",
-        "top1_prob": 0.497,
-        "entropy": 0.7423,
+        "top1_prob": 0.5088,
+        "entropy": 0.7311,
         "source": "学習済みモデル(ガールズ・LightGBM 38特徴)",
         "riders": [
           {
@@ -38745,17 +38914,17 @@
             "score": 51.12,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 1,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "静岡",
             "home": false,
             "home_dist": false,
             "win_rate": 0.08,
-            "win_prob": 0.497,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 2.01,
-            "win_ev": null,
+            "win_prob": 0.5088,
+            "synth_odds_1st": 1.85,
+            "fair_odds_1st": 1.97,
+            "win_ev": 0.94,
             "career_win_rate": 0.0916,
             "career_starts": 273,
             "recent5_finish": 3.2,
@@ -38789,17 +38958,17 @@
             "score": 49.0,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 2,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "東京",
             "home": false,
             "home_dist": false,
             "win_rate": 0.037000000000000005,
-            "win_prob": 0.2061,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 4.85,
-            "win_ev": null,
+            "win_prob": 0.1993,
+            "synth_odds_1st": 3.99,
+            "fair_odds_1st": 5.02,
+            "win_ev": 0.8,
             "career_win_rate": 0.0367,
             "career_starts": 300,
             "recent5_finish": 4.6,
@@ -38833,17 +39002,17 @@
             "score": 48.07,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 0,
+            "narabi_leg": "先行",
             "pref": "愛知",
             "home": false,
             "home_dist": false,
             "win_rate": 0.111,
-            "win_prob": 0.1084,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 9.23,
-            "win_ev": null,
+            "win_prob": 0.1113,
+            "synth_odds_1st": 2.74,
+            "fair_odds_1st": 8.98,
+            "win_ev": 0.3,
             "career_win_rate": 0.035,
             "career_starts": 257,
             "recent5_finish": 5.2,
@@ -38877,17 +39046,17 @@
             "score": 47.32,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 3,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "静岡",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.1001,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 9.99,
-            "win_ev": null,
+            "win_prob": 0.0968,
+            "synth_odds_1st": 13.28,
+            "fair_odds_1st": 10.33,
+            "win_ev": 1.29,
             "career_win_rate": 0.0722,
             "career_starts": 277,
             "recent5_finish": 5.8,
@@ -38921,17 +39090,17 @@
             "score": 46.93,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 4,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "愛知",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0513,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 19.49,
-            "win_ev": null,
+            "win_prob": 0.0504,
+            "synth_odds_1st": 17.99,
+            "fair_odds_1st": 19.84,
+            "win_ev": 0.91,
             "career_win_rate": 0.0091,
             "career_starts": 220,
             "recent5_finish": 4.0,
@@ -38965,17 +39134,17 @@
             "score": 46.26,
             "leg": "追",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 6,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "岡山",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0206,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 48.54,
-            "win_ev": null,
+            "win_prob": 0.0189,
+            "synth_odds_1st": 39.19,
+            "fair_odds_1st": 52.91,
+            "win_ev": 0.74,
             "career_win_rate": 0.0102,
             "career_starts": 293,
             "recent5_finish": 6.8,
@@ -39009,17 +39178,17 @@
             "score": 46.61,
             "leg": "追",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 5,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "大分",
             "home": false,
             "home_dist": true,
             "win_rate": 0.0,
-            "win_prob": 0.0166,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 60.24,
-            "win_ev": null,
+            "win_prob": 0.0145,
+            "synth_odds_1st": 38.76,
+            "fair_odds_1st": 68.97,
+            "win_ev": 0.56,
             "career_win_rate": 0.0118,
             "career_starts": 170,
             "recent5_finish": 5.6,
@@ -39051,124 +39220,245 @@
         "top_trifecta": [
           {
             "combo": "1→2→3",
-            "prob": 0.0523,
-            "odds": null,
-            "need_odds": 19.1
+            "prob": 0.0553,
+            "odds": 9.6,
+            "need_odds": 18.1
           },
           {
             "combo": "1→2→4",
-            "prob": 0.0494,
-            "odds": null,
-            "need_odds": 20.2
+            "prob": 0.0501,
+            "odds": 53.8,
+            "need_odds": 20.0
           },
           {
             "combo": "1→3→2",
-            "prob": 0.0454,
-            "odds": null,
-            "need_odds": 22.0
+            "prob": 0.0485,
+            "odds": 8.7,
+            "need_odds": 20.6
           },
           {
             "combo": "1→4→2",
-            "prob": 0.0424,
-            "odds": null,
-            "need_odds": 23.6
+            "prob": 0.043,
+            "odds": 26.8,
+            "need_odds": 23.2
           },
           {
             "combo": "2→1→3",
-            "prob": 0.0309,
-            "odds": null,
-            "need_odds": 32.3
+            "prob": 0.0316,
+            "odds": 26.1,
+            "need_odds": 31.7
           },
           {
             "combo": "1→2→5",
-            "prob": 0.0306,
-            "odds": null,
-            "need_odds": 32.6
-          },
-          {
-            "combo": "2→1→4",
-            "prob": 0.0292,
-            "odds": null,
-            "need_odds": 34.2
+            "prob": 0.0314,
+            "odds": 80.1,
+            "need_odds": 31.8
           },
           {
             "combo": "1→3→4",
-            "prob": 0.0271,
-            "odds": null,
-            "need_odds": 36.9
+            "prob": 0.029,
+            "odds": 44.6,
+            "need_odds": 34.5
+          },
+          {
+            "combo": "2→1→4",
+            "prob": 0.0286,
+            "odds": 92.8,
+            "need_odds": 35.0
           }
         ],
         "ev": {
-          "status": "no_odds",
+          "status": "ok",
           "threshold": 1.1,
-          "n_buy": 0,
-          "buys": [],
+          "n_buy": 18,
+          "buys": [
+            {
+              "combo": "1→2→7",
+              "prob": 0.0106,
+              "odds": 415.0,
+              "ev": 4.42
+            },
+            {
+              "combo": "1→4→5",
+              "prob": 0.012,
+              "odds": 261.3,
+              "ev": 3.14
+            },
+            {
+              "combo": "1→2→6",
+              "prob": 0.0099,
+              "odds": 282.2,
+              "ev": 2.79
+            },
+            {
+              "combo": "2→1→6",
+              "prob": 0.0059,
+              "odds": 415.0,
+              "ev": 2.43
+            },
+            {
+              "combo": "4→1→2",
+              "prob": 0.014,
+              "odds": 172.0,
+              "ev": 2.41
+            },
+            {
+              "combo": "1→2→4",
+              "prob": 0.0408,
+              "odds": 53.8,
+              "ev": 2.19
+            },
+            {
+              "combo": "2→1→4",
+              "prob": 0.0233,
+              "odds": 92.8,
+              "ev": 2.17
+            },
+            {
+              "combo": "1→2→5",
+              "prob": 0.026,
+              "odds": 80.1,
+              "ev": 2.08
+            }
+          ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
         },
-        "development": null,
+        "development": {
+          "source": "並び予想（記者予想の隊列, 発走前確定情報）",
+          "line": [
+            {
+              "car": 3,
+              "leg": "先行",
+              "is_fav": false,
+              "pos": 0
+            },
+            {
+              "car": 1,
+              "leg": "自在",
+              "is_fav": true,
+              "pos": 1
+            },
+            {
+              "car": 2,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 2
+            },
+            {
+              "car": 4,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 3
+            },
+            {
+              "car": 5,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 4
+            },
+            {
+              "car": 6,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 5
+            },
+            {
+              "car": 7,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 6
+            }
+          ],
+          "fav": 1,
+          "marker": 2,
+          "patterns": [
+            {
+              "label": "番手抜け出し型",
+              "icon": "🔗",
+              "prob": 0.5088,
+              "lead_car": 1,
+              "cars": [
+                1
+              ],
+              "has_fav": true
+            },
+            {
+              "label": "中団抜け出し型(捲り)",
+              "icon": "🌀",
+              "prob": 0.3465,
+              "lead_car": 2,
+              "cars": [
+                2,
+                4,
+                5
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "先行・主導権型",
+              "icon": "🚴",
+              "prob": 0.1113,
+              "lead_car": 3,
+              "cars": [
+                3
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "後方一気型",
+              "icon": "⚡",
+              "prob": 0.0334,
+              "lead_car": 7,
+              "cars": [
+                7,
+                6
+              ],
+              "has_fav": false
+            }
+          ],
+          "backstretch": {
+            "lead_car": 3,
+            "lead_p": 0.4524,
+            "second_car": 1,
+            "second_p": 0.3417,
+            "reporter_front": 3,
+            "diverges": false,
+            "hit_rate": 0.552,
+            "probs": {
+              "3": 0.4524,
+              "1": 0.3417,
+              "2": 0.1091,
+              "4": 0.0544,
+              "5": 0.0213,
+              "6": 0.0109,
+              "7": 0.0103
+            }
+          },
+          "pace": {
+            "n_front": 2,
+            "level": "スロー〜ミドル",
+            "note": "捲り・差しがやや優勢",
+            "kimarite_hint": {
+              "逃": 21,
+              "捲": 46,
+              "差": 32
+            },
+            "b_reliability": {
+              "rentai": 63,
+              "gaiji": 23,
+              "note": "主導権はそのまま残りやすい"
+            },
+            "basis": "ペース(スロー)×バンク400m 実測n=3287",
+            "bank": 400
+          },
+          "note": "◎1番は隊列2番手。前の3番の主導権をどう捉えるかがカギ。◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。",
+          "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。"
+        },
         "dev_patterns": {
           "top": [
             {
-              "key": "②◎捲り",
-              "prob": 0.2699,
-              "fav_wins": true,
-              "n": 2259,
-              "second": [
-                {
-                  "mark": "○",
-                  "car": "2佐々木 綾",
-                  "p": 0.483
-                },
-                {
-                  "mark": "▲",
-                  "car": "3山本 さくら",
-                  "p": 0.243
-                },
-                {
-                  "mark": "△",
-                  "car": "4杉沢 毛伊子",
-                  "p": 0.148
-                },
-                {
-                  "mark": "×",
-                  "car": "人気薄(5,7,6)",
-                  "p": 0.124
-                }
-              ],
-              "third": [
-                {
-                  "mark": "▲",
-                  "car": "3山本 さくら",
-                  "p": 0.298
-                },
-                {
-                  "mark": "○",
-                  "car": "2佐々木 綾",
-                  "p": 0.268
-                },
-                {
-                  "mark": "×",
-                  "car": "人気薄(5,7,6)",
-                  "p": 0.235
-                },
-                {
-                  "mark": "△",
-                  "car": "4杉沢 毛伊子",
-                  "p": 0.199
-                }
-              ],
-              "winner": [
-                {
-                  "mark": "◎",
-                  "car": "1清水 彩那",
-                  "p": 1.0
-                }
-              ],
-              "b_second": 0.13
-            },
-            {
               "key": "⑥差し/マーク",
-              "prob": 0.2535,
+              "prob": 0.2736,
               "fav_wins": false,
               "n": 790,
               "second": [
@@ -39256,8 +39546,66 @@
               "fav_top3": 0.818
             },
             {
+              "key": "②◎捲り",
+              "prob": 0.2611,
+              "fav_wins": true,
+              "n": 2259,
+              "second": [
+                {
+                  "mark": "○",
+                  "car": "2佐々木 綾",
+                  "p": 0.483
+                },
+                {
+                  "mark": "▲",
+                  "car": "3山本 さくら",
+                  "p": 0.243
+                },
+                {
+                  "mark": "△",
+                  "car": "4杉沢 毛伊子",
+                  "p": 0.148
+                },
+                {
+                  "mark": "×",
+                  "car": "人気薄(5,7,6)",
+                  "p": 0.124
+                }
+              ],
+              "third": [
+                {
+                  "mark": "▲",
+                  "car": "3山本 さくら",
+                  "p": 0.298
+                },
+                {
+                  "mark": "○",
+                  "car": "2佐々木 綾",
+                  "p": 0.268
+                },
+                {
+                  "mark": "×",
+                  "car": "人気薄(5,7,6)",
+                  "p": 0.235
+                },
+                {
+                  "mark": "△",
+                  "car": "4杉沢 毛伊子",
+                  "p": 0.199
+                }
+              ],
+              "winner": [
+                {
+                  "mark": "◎",
+                  "car": "1清水 彩那",
+                  "p": 1.0
+                }
+              ],
+              "b_second": 0.13
+            },
+            {
               "key": "⑤捲り台頭",
-              "prob": 0.1672,
+              "prob": 0.1371,
               "fav_wins": false,
               "n": 443,
               "second": [
@@ -39347,43 +39695,43 @@
           ],
           "insights": [
             "◎1清水 彩那が勝つ形（上位1つ）では、2着は○2佐々木 綾が48%で最有力。◎-○の1-2着が軸になる。",
-            "◎1清水 彩那が負ける形では勝ち頭は○2佐々木 綾が56%。ただしその時も◎は3着以内に79%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
+            "◎1清水 彩那が負ける形では勝ち頭は○2佐々木 綾が55%。ただしその時も◎は3着以内に79%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
             "最も割れるのは3着。上位3形の加重では ▲3山本 さくら 26% / ×人気薄(5,7,6) 24% / ○2佐々木 綾 18%。穴を拾うならここで、人気薄(5,7,6)が24%を占める。"
           ],
           "all": [
             {
               "key": "①◎逃げ切り",
-              "prob": 0.0892,
+              "prob": 0.1262,
               "fav_wins": true
             },
             {
               "key": "②◎捲り",
-              "prob": 0.2699,
+              "prob": 0.2611,
               "fav_wins": true
             },
             {
               "key": "③◎差し",
-              "prob": 0.1364,
+              "prob": 0.1192,
               "fav_wins": true
             },
             {
               "key": "④別の逃げ残り",
-              "prob": 0.0822,
+              "prob": 0.0805,
               "fav_wins": false
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.1672,
+              "prob": 0.1371,
               "fav_wins": false
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.2535,
+              "prob": 0.2736,
               "fav_wins": false
             }
           ],
           "n_races": 5795,
-          "pace": "ミドル",
+          "pace": "スロー",
           "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、分岐の目安として読む（回収率の根拠にはならない）。"
         },
         "bank_profile": {
@@ -39433,7 +39781,7 @@
             "1-2-5",
             "1-3-4"
           ],
-          "model_hit_pct": 24.7,
+          "model_hit_pct": 27.0,
           "pockets": [],
           "primary": "全体",
           "hist": {
@@ -39698,8 +40046,8 @@
             }
           }
         },
-        "has_odds": false,
-        "updated_at": "2026-08-14 00:06",
+        "has_odds": true,
+        "updated_at": "2026-08-14 15:23",
         "combos_pruned": true
       },
       {
@@ -39711,15 +40059,184 @@
         "is_girls": true,
         "field_size": 7,
         "class_group": "L1",
-        "lines": [],
-        "line_strength": null,
+        "lines": [
+          [
+            3
+          ],
+          [
+            2
+          ],
+          [
+            1
+          ],
+          [
+            5
+          ],
+          [
+            4
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ]
+        ],
+        "line_strength": {
+          "lines": [
+            {
+              "line_id": 0,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 3,
+                  "name": "橋本 佳耶",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.0565
+                }
+              ],
+              "p_win": 0.0565,
+              "p_12": 0.0,
+              "p_top3_any": 0.3321,
+              "score_avg": 52.5,
+              "rank": 4
+            },
+            {
+              "line_id": 1,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 2,
+                  "name": "西脇 美唯奈",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "押え先",
+                  "class_rank": "L1",
+                  "win_prob": 0.2071
+                }
+              ],
+              "p_win": 0.2071,
+              "p_12": 0.0,
+              "p_top3_any": 0.681,
+              "score_avg": 52.9,
+              "rank": 2
+            },
+            {
+              "line_id": 2,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 1,
+                  "name": "吉岡 詩織",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "押え先",
+                  "class_rank": "L1",
+                  "win_prob": 0.5633
+                }
+              ],
+              "p_win": 0.5633,
+              "p_12": 0.0,
+              "p_top3_any": 0.9045,
+              "score_avg": 54.5,
+              "rank": 1
+            },
+            {
+              "line_id": 3,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 5,
+                  "name": "田中 月菜",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.0512
+                }
+              ],
+              "p_win": 0.0512,
+              "p_12": 0.0,
+              "p_top3_any": 0.311,
+              "score_avg": 50.9,
+              "rank": 5
+            },
+            {
+              "line_id": 4,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 4,
+                  "name": "東 美月",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.0697
+                }
+              ],
+              "p_win": 0.0697,
+              "p_12": 0.0,
+              "p_top3_any": 0.3806,
+              "score_avg": 52.4,
+              "rank": 3
+            },
+            {
+              "line_id": 5,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 6,
+                  "name": "豊岡 英子",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.0319
+                }
+              ],
+              "p_win": 0.0319,
+              "p_12": 0.0,
+              "p_top3_any": 0.226,
+              "score_avg": 50.7,
+              "rank": 6
+            },
+            {
+              "line_id": 6,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 7,
+                  "name": "川路 遥香",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.0203
+                }
+              ],
+              "p_win": 0.0203,
+              "p_12": 0.0,
+              "p_top3_any": 0.165,
+              "score_avg": 49.7,
+              "rank": 7
+            }
+          ],
+          "settle_prob": 0.0,
+          "settle_baseline": 0.562,
+          "settle_bias_note": "モデルはライン内の連携を表現しきれないため、ライン決着確率を実測より約21pt低く見積もる（hold-out 5,498Rで補正後35.1% vs 実測55.8%）。紐補正でも絶対値はほとんど直らない。割り引いて読み、ライン間の相対比較に使ってください。",
+          "note": "数値はこのレースのモデル分布から算出（1着確率の和・ライン決着確率）。実測では1着は強いラインの先頭に集中し、3着内では最強ラインの番手が先頭とほぼ同格＝紐として同価値。3番手は1着がほぼ無い。"
+        },
         "dev_branches": null,
         "grade": "F2",
         "meet_name": "前検日コメならウィンチケット杯",
-        "race_name": "Ｌ級戦ガ決勝",
+        "race_name": "ガールズ決勝",
         "race_type": "標準",
-        "top1_prob": 0.579,
-        "entropy": 0.6772,
+        "top1_prob": 0.5633,
+        "entropy": 0.6879,
         "source": "学習済みモデル(ガールズ・LightGBM 38特徴)",
         "riders": [
           {
@@ -39728,17 +40245,17 @@
             "score": 54.54,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 2,
+            "pos_in_line": 0,
+            "narabi_leg": "押え先",
             "pref": "広島",
             "home": false,
             "home_dist": false,
             "win_rate": 0.354,
-            "win_prob": 0.579,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 1.73,
-            "win_ev": null,
+            "win_prob": 0.5633,
+            "synth_odds_1st": 1.07,
+            "fair_odds_1st": 1.78,
+            "win_ev": 0.6,
             "career_win_rate": 0.2778,
             "career_starts": 270,
             "recent5_finish": 1.0,
@@ -39772,17 +40289,17 @@
             "score": 52.85,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 1,
+            "pos_in_line": 0,
+            "narabi_leg": "押え先",
             "pref": "愛知",
             "home": false,
             "home_dist": false,
             "win_rate": 0.133,
-            "win_prob": 0.1972,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 5.07,
-            "win_ev": null,
+            "win_prob": 0.2071,
+            "synth_odds_1st": 5.61,
+            "fair_odds_1st": 4.83,
+            "win_ev": 1.16,
             "career_win_rate": 0.1455,
             "career_starts": 268,
             "recent5_finish": 2.8,
@@ -39816,17 +40333,17 @@
             "score": 52.4,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 4,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "兵庫",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0671,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 14.9,
-            "win_ev": null,
+            "win_prob": 0.0697,
+            "synth_odds_1st": 22.51,
+            "fair_odds_1st": 14.35,
+            "win_ev": 1.57,
             "career_win_rate": 0.0697,
             "career_starts": 244,
             "recent5_finish": 3.2,
@@ -39860,17 +40377,17 @@
             "score": 52.54,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "熊本",
             "home": false,
             "home_dist": true,
             "win_rate": 0.032,
-            "win_prob": 0.0546,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 18.32,
-            "win_ev": null,
+            "win_prob": 0.0565,
+            "synth_odds_1st": 14.55,
+            "fair_odds_1st": 17.7,
+            "win_ev": 0.82,
             "career_win_rate": 0.0241,
             "career_starts": 290,
             "recent5_finish": 2.8,
@@ -39904,17 +40421,17 @@
             "score": 50.94,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 3,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "佐賀",
             "home": true,
             "home_dist": true,
             "win_rate": 0.111,
-            "win_prob": 0.0465,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 21.51,
-            "win_ev": null,
+            "win_prob": 0.0512,
+            "synth_odds_1st": 15.97,
+            "fair_odds_1st": 19.53,
+            "win_ev": 0.82,
             "career_win_rate": 0.0783,
             "career_starts": 230,
             "recent5_finish": 3.0,
@@ -39948,17 +40465,17 @@
             "score": 50.7,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 5,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "大阪",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0316,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 31.65,
-            "win_ev": null,
+            "win_prob": 0.0319,
+            "synth_odds_1st": 38.74,
+            "fair_odds_1st": 31.35,
+            "win_ev": 1.24,
             "career_win_rate": 0.0674,
             "career_starts": 267,
             "recent5_finish": 2.8,
@@ -39992,17 +40509,17 @@
             "score": 49.66,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 6,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "埼玉",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.024,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 41.67,
-            "win_ev": null,
+            "win_prob": 0.0203,
+            "synth_odds_1st": 49.35,
+            "fair_odds_1st": 49.26,
+            "win_ev": 1.0,
             "career_win_rate": 0.0462,
             "career_starts": 195,
             "recent5_finish": 4.2,
@@ -40034,66 +40551,245 @@
         "top_trifecta": [
           {
             "combo": "1→2→4",
-            "prob": 0.0553,
-            "odds": null,
+            "prob": 0.0552,
+            "odds": 29.0,
             "need_odds": 18.1
           },
           {
             "combo": "1→2→3",
-            "prob": 0.0477,
-            "odds": null,
-            "need_odds": 21.0
-          },
-          {
-            "combo": "1→4→2",
-            "prob": 0.0443,
-            "odds": null,
-            "need_odds": 22.6
+            "prob": 0.0475,
+            "odds": 12.0,
+            "need_odds": 21.1
           },
           {
             "combo": "1→2→5",
-            "prob": 0.0425,
-            "odds": null,
-            "need_odds": 23.5
+            "prob": 0.0442,
+            "odds": 23.0,
+            "need_odds": 22.6
+          },
+          {
+            "combo": "1→4→2",
+            "prob": 0.0439,
+            "odds": 11.5,
+            "need_odds": 22.8
           },
           {
             "combo": "1→3→2",
-            "prob": 0.0376,
-            "odds": null,
-            "need_odds": 26.6
+            "prob": 0.0371,
+            "odds": 8.3,
+            "need_odds": 26.9
           },
           {
             "combo": "1→5→2",
-            "prob": 0.0331,
-            "odds": null,
-            "need_odds": 30.2
+            "prob": 0.0343,
+            "odds": 14.7,
+            "need_odds": 29.1
           },
           {
             "combo": "1→2→6",
-            "prob": 0.0323,
-            "odds": null,
-            "need_odds": 31.0
+            "prob": 0.0316,
+            "odds": 47.4,
+            "need_odds": 31.7
           },
           {
             "combo": "2→1→4",
-            "prob": 0.0282,
-            "odds": null,
-            "need_odds": 35.5
+            "prob": 0.0295,
+            "odds": 122.1,
+            "need_odds": 33.9
           }
         ],
         "ev": {
-          "status": "no_odds",
+          "status": "ok",
           "threshold": 1.1,
-          "n_buy": 0,
-          "buys": [],
+          "n_buy": 12,
+          "buys": [
+            {
+              "combo": "4→1→2",
+              "prob": 0.0107,
+              "odds": 277.1,
+              "ev": 2.96
+            },
+            {
+              "combo": "2→1→4",
+              "prob": 0.0224,
+              "odds": 122.1,
+              "ev": 2.73
+            },
+            {
+              "combo": "2→1→6",
+              "prob": 0.0128,
+              "odds": 211.9,
+              "ev": 2.72
+            },
+            {
+              "combo": "1→2→7",
+              "prob": 0.0183,
+              "odds": 120.0,
+              "ev": 2.19
+            },
+            {
+              "combo": "2→1→5",
+              "prob": 0.0196,
+              "odds": 97.3,
+              "ev": 1.91
+            },
+            {
+              "combo": "2→1→3",
+              "prob": 0.0214,
+              "odds": 82.8,
+              "ev": 1.78
+            },
+            {
+              "combo": "4→2→1",
+              "prob": 0.0088,
+              "odds": 184.7,
+              "ev": 1.63
+            },
+            {
+              "combo": "5→1→2",
+              "prob": 0.0087,
+              "odds": 180.1,
+              "ev": 1.56
+            }
+          ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
         },
-        "development": null,
+        "development": {
+          "source": "並び予想（記者予想の隊列, 発走前確定情報）",
+          "line": [
+            {
+              "car": 3,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 0
+            },
+            {
+              "car": 2,
+              "leg": "押え先",
+              "is_fav": false,
+              "pos": 1
+            },
+            {
+              "car": 1,
+              "leg": "押え先",
+              "is_fav": true,
+              "pos": 2
+            },
+            {
+              "car": 5,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 3
+            },
+            {
+              "car": 4,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 4
+            },
+            {
+              "car": 6,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 5
+            },
+            {
+              "car": 7,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 6
+            }
+          ],
+          "fav": 1,
+          "marker": 5,
+          "patterns": [
+            {
+              "label": "中団抜け出し型(捲り)",
+              "icon": "🌀",
+              "prob": 0.6842,
+              "lead_car": 1,
+              "cars": [
+                1,
+                4,
+                5
+              ],
+              "has_fav": true
+            },
+            {
+              "label": "番手抜け出し型",
+              "icon": "🔗",
+              "prob": 0.2071,
+              "lead_car": 2,
+              "cars": [
+                2
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "先行・主導権型",
+              "icon": "🚴",
+              "prob": 0.0565,
+              "lead_car": 3,
+              "cars": [
+                3
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "後方一気型",
+              "icon": "⚡",
+              "prob": 0.0522,
+              "lead_car": 6,
+              "cars": [
+                6,
+                7
+              ],
+              "has_fav": false
+            }
+          ],
+          "backstretch": {
+            "lead_car": 1,
+            "lead_p": 0.557,
+            "second_car": 2,
+            "second_p": 0.197,
+            "reporter_front": 3,
+            "diverges": true,
+            "hit_rate": 0.552,
+            "probs": {
+              "1": 0.557,
+              "2": 0.197,
+              "3": 0.1455,
+              "6": 0.0392,
+              "5": 0.027,
+              "4": 0.0221,
+              "7": 0.0122
+            }
+          },
+          "pace": {
+            "n_front": 1,
+            "level": "スロー〜ミドル",
+            "note": "捲り・差しがやや優勢",
+            "kimarite_hint": {
+              "逃": 21,
+              "捲": 46,
+              "差": 32
+            },
+            "b_reliability": {
+              "rentai": 63,
+              "gaiji": 23,
+              "note": "主導権はそのまま残りやすい"
+            },
+            "basis": "ペース(スロー)×バンク400m 実測n=3287",
+            "bank": 400
+          },
+          "note": "◎1番は隊列3番手。前の3番の主導権をどう捉えるかがカギ。◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。",
+          "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。"
+        },
         "dev_patterns": {
           "top": [
             {
               "key": "②◎捲り",
-              "prob": 0.3145,
+              "prob": 0.289,
               "fav_wins": true,
               "n": 2259,
               "second": [
@@ -40151,7 +40847,7 @@
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.2122,
+              "prob": 0.2433,
               "fav_wins": false,
               "n": 790,
               "second": [
@@ -40239,52 +40935,52 @@
               "fav_top3": 0.818
             },
             {
-              "key": "③◎差し",
-              "prob": 0.159,
+              "key": "①◎逃げ切り",
+              "prob": 0.1397,
               "fav_wins": true,
-              "n": 1080,
+              "n": 950,
               "second": [
                 {
                   "mark": "○",
                   "car": "2西脇 美唯奈",
-                  "p": 0.538
+                  "p": 0.42
                 },
                 {
                   "mark": "▲",
                   "car": "4東 美月",
-                  "p": 0.248
+                  "p": 0.247
                 },
                 {
                   "mark": "△",
                   "car": "3橋本 佳耶",
-                  "p": 0.114
+                  "p": 0.167
                 },
                 {
                   "mark": "×",
                   "car": "人気薄(5,6,7)",
-                  "p": 0.099
+                  "p": 0.162
                 }
               ],
               "third": [
                 {
-                  "mark": "▲",
-                  "car": "4東 美月",
-                  "p": 0.291
-                },
-                {
                   "mark": "○",
                   "car": "2西脇 美唯奈",
-                  "p": 0.242
+                  "p": 0.28
+                },
+                {
+                  "mark": "▲",
+                  "car": "4東 美月",
+                  "p": 0.275
                 },
                 {
                   "mark": "×",
                   "car": "人気薄(5,6,7)",
-                  "p": 0.241
+                  "p": 0.251
                 },
                 {
                   "mark": "△",
                   "car": "3橋本 佳耶",
-                  "p": 0.223
+                  "p": 0.194
                 }
               ],
               "winner": [
@@ -40293,49 +40989,49 @@
                   "car": "1吉岡 詩織",
                   "p": 1.0
                 }
-              ],
-              "b_second": 0.341
+              ]
             }
           ],
           "insights": [
-            "◎1吉岡 詩織が勝つ形（上位2つ）では、2着は○2西脇 美唯奈が48%〜54%で最有力。◎-○の1-2着が軸になる。",
-            "◎1吉岡 詩織が負ける形では勝ち頭は○2西脇 美唯奈が56%。ただしその時も◎は3着以内に79%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
-            "最も割れるのは3着。上位3形の加重では ▲4東 美月 28% / ×人気薄(5,6,7) 24% / ○2西脇 美唯奈 22%。穴を拾うならここで、人気薄(5,6,7)が24%を占める。"
+            "◎1吉岡 詩織が勝つ形（上位2つ）では、2着は○2西脇 美唯奈が42%〜48%で最有力。◎-○の1-2着が軸になる。",
+            "◎1吉岡 詩織が負ける形では勝ち頭は○2西脇 美唯奈が55%。ただしその時も◎は3着以内に79%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
+            "最も割れるのは3着。上位3形の加重では ▲4東 美月 27% / ×人気薄(5,6,7) 24% / ○2西脇 美唯奈 23%。穴を拾うならここで、人気薄(5,6,7)が24%を占める。",
+            "①◎逃げ切り（14%）は2着に人気薄が16%と他の形（11〜13%）より荒れる。ここだけは3着だけでなく2着も広げたい。"
           ],
           "all": [
             {
               "key": "①◎逃げ切り",
-              "prob": 0.1039,
+              "prob": 0.1397,
               "fav_wins": true
             },
             {
               "key": "②◎捲り",
-              "prob": 0.3145,
+              "prob": 0.289,
               "fav_wins": true
             },
             {
               "key": "③◎差し",
-              "prob": 0.159,
+              "prob": 0.1319,
               "fav_wins": true
             },
             {
               "key": "④別の逃げ残り",
-              "prob": 0.0688,
+              "prob": 0.0716,
               "fav_wins": false
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.1399,
+              "prob": 0.1219,
               "fav_wins": false
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.2122,
+              "prob": 0.2433,
               "fav_wins": false
             }
           ],
           "n_races": 5795,
-          "pace": "ミドル",
+          "pace": "スロー",
           "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、分岐の目安として読む（回収率の根拠にはならない）。"
         },
         "bank_profile": {
@@ -40380,12 +41076,12 @@
           "combos": [
             "1-2-4",
             "1-2-3",
-            "1-4-2",
             "1-2-5",
-            "1-3-2",
-            "1-5-2"
+            "1-4-2",
+            "1-5-2",
+            "1-3-2"
           ],
-          "model_hit_pct": 26.0,
+          "model_hit_pct": 26.2,
           "pockets": [],
           "primary": "全体",
           "hist": {
@@ -40650,8 +41346,8 @@
             }
           }
         },
-        "has_odds": false,
-        "updated_at": "2026-08-14 00:06",
+        "has_odds": true,
+        "updated_at": "2026-08-14 15:24",
         "combos_pruned": true
       },
       {
@@ -40857,9 +41553,9 @@
             "home_dist": true,
             "win_rate": 0.047,
             "win_prob": 0.5063,
-            "synth_odds_1st": 1.38,
+            "synth_odds_1st": 1.57,
             "fair_odds_1st": 1.98,
-            "win_ev": 0.7,
+            "win_ev": 0.79,
             "career_win_rate": 0.3566,
             "career_starts": 244,
             "recent5_finish": 3.8,
@@ -40895,9 +41591,9 @@
             "home_dist": false,
             "win_rate": 0.12,
             "win_prob": 0.2213,
-            "synth_odds_1st": 2.7,
+            "synth_odds_1st": 2.32,
             "fair_odds_1st": 4.52,
-            "win_ev": 0.6,
+            "win_ev": 0.51,
             "career_win_rate": 0.1081,
             "career_starts": 259,
             "recent5_finish": 3.0,
@@ -40933,9 +41629,9 @@
             "home_dist": false,
             "win_rate": 0.0,
             "win_prob": 0.181,
-            "synth_odds_1st": 9.2,
+            "synth_odds_1st": 5.57,
             "fair_odds_1st": 5.52,
-            "win_ev": 1.67,
+            "win_ev": 1.01,
             "career_win_rate": 0.0664,
             "career_starts": 271,
             "recent5_finish": 5.0,
@@ -40971,9 +41667,9 @@
             "home_dist": false,
             "win_rate": 0.071,
             "win_prob": 0.0544,
-            "synth_odds_1st": 28.37,
+            "synth_odds_1st": 16.61,
             "fair_odds_1st": 18.38,
-            "win_ev": 1.54,
+            "win_ev": 0.9,
             "career_win_rate": 0.0588,
             "career_starts": 255,
             "recent5_finish": 3.4,
@@ -41009,9 +41705,9 @@
             "home_dist": false,
             "win_rate": 0.0,
             "win_prob": 0.0171,
-            "synth_odds_1st": 21.28,
+            "synth_odds_1st": 70.31,
             "fair_odds_1st": 58.48,
-            "win_ev": 0.36,
+            "win_ev": 1.2,
             "career_win_rate": 0.0222,
             "career_starts": 270,
             "recent5_finish": 4.2,
@@ -41047,9 +41743,9 @@
             "home_dist": false,
             "win_rate": 0.0,
             "win_prob": 0.0124,
-            "synth_odds_1st": 37.83,
+            "synth_odds_1st": 129.36,
             "fair_odds_1st": 80.65,
-            "win_ev": 0.47,
+            "win_ev": 1.6,
             "career_win_rate": 0.0058,
             "career_starts": 172,
             "recent5_finish": 4.6,
@@ -41085,9 +41781,9 @@
             "home_dist": true,
             "win_rate": 0.0,
             "win_prob": 0.0073,
-            "synth_odds_1st": 42.56,
+            "synth_odds_1st": 145.53,
             "fair_odds_1st": 136.99,
-            "win_ev": 0.31,
+            "win_ev": 1.06,
             "career_win_rate": 0.0128,
             "career_starts": 156,
             "recent5_finish": 5.8,
@@ -41114,104 +41810,104 @@
           {
             "combo": "4→6→1",
             "prob": 0.101,
-            "odds": 8.5,
+            "odds": 11.3,
             "need_odds": 9.9
           },
           {
             "combo": "4→1→6",
             "prob": 0.0941,
-            "odds": 5.7,
+            "odds": 6.1,
             "need_odds": 10.6
           },
           {
             "combo": "6→4→1",
             "prob": 0.0602,
-            "odds": 28.3,
+            "odds": 22.7,
             "need_odds": 16.6
           },
           {
             "combo": "1→4→6",
             "prob": 0.0506,
-            "odds": 113.5,
+            "odds": 29.2,
             "need_odds": 19.7
           },
           {
             "combo": "4→6→7",
             "prob": 0.0428,
-            "odds": 37.8,
+            "odds": 35.1,
             "need_odds": 23.4
           },
           {
             "combo": "6→1→4",
             "prob": 0.0399,
-            "odds": 15.4,
+            "odds": 8.1,
             "need_odds": 25.0
           },
           {
             "combo": "1→6→4",
             "prob": 0.036,
-            "odds": 68.1,
+            "odds": 27.3,
             "need_odds": 27.8
           },
           {
             "combo": "4→1→7",
             "prob": 0.0346,
-            "odds": 37.8,
+            "odds": 55.3,
             "need_odds": 28.9
           }
         ],
         "ev": {
           "status": "ok",
           "threshold": 1.1,
-          "n_buy": 17,
+          "n_buy": 13,
           "buys": [
             {
+              "combo": "4→1→2",
+              "prob": 0.0066,
+              "odds": 316.1,
+              "ev": 2.1
+            },
+            {
               "combo": "1→4→7",
-              "prob": 0.0138,
-              "odds": 340.5,
-              "ev": 4.7
+              "prob": 0.0151,
+              "odds": 134.6,
+              "ev": 2.04
             },
             {
-              "combo": "1→4→6",
-              "prob": 0.0383,
-              "odds": 113.5,
-              "ev": 4.35
+              "combo": "4→6→2",
+              "prob": 0.0083,
+              "odds": 236.3,
+              "ev": 1.97
             },
             {
-              "combo": "1→7→4",
-              "prob": 0.0093,
-              "odds": 340.5,
-              "ev": 3.16
+              "combo": "4→1→5",
+              "prob": 0.0101,
+              "odds": 180.2,
+              "ev": 1.82
             },
             {
-              "combo": "6→4→7",
-              "prob": 0.0222,
-              "odds": 113.5,
-              "ev": 2.51
+              "combo": "6→4→5",
+              "prob": 0.0075,
+              "odds": 241.5,
+              "ev": 1.8
             },
             {
               "combo": "1→4→3",
-              "prob": 0.0071,
-              "odds": 340.5,
-              "ev": 2.43
+              "prob": 0.007,
+              "odds": 240.9,
+              "ev": 1.68
             },
             {
-              "combo": "4→6→5",
-              "prob": 0.0133,
-              "odds": 170.2,
-              "ev": 2.26
+              "combo": "7→4→1",
+              "prob": 0.0077,
+              "odds": 213.7,
+              "ev": 1.65
             },
             {
-              "combo": "1→6→4",
-              "prob": 0.0323,
-              "odds": 68.1,
-              "ev": 2.2
-            },
-            {
-              "combo": "7→1→4",
-              "prob": 0.0061,
-              "odds": 340.5,
-              "ev": 2.07
+              "combo": "4→1→7",
+              "prob": 0.0297,
+              "odds": 55.3,
+              "ev": 1.64
             }
           ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
@@ -41942,7 +42638,7 @@
           }
         },
         "has_odds": true,
-        "updated_at": "2026-08-14 00:06",
+        "updated_at": "2026-08-14 15:24",
         "combos_pruned": true
       },
       {
@@ -42148,9 +42844,9 @@
             "home_dist": false,
             "win_rate": 0.23800000000000002,
             "win_prob": 0.4412,
-            "synth_odds_1st": 3.61,
+            "synth_odds_1st": 3.58,
             "fair_odds_1st": 2.27,
-            "win_ev": 1.59,
+            "win_ev": 1.58,
             "career_win_rate": 0.1429,
             "career_starts": 266,
             "recent5_finish": 3.4,
@@ -42186,9 +42882,9 @@
             "home_dist": false,
             "win_rate": 0.38,
             "win_prob": 0.4397,
-            "synth_odds_1st": 1.06,
+            "synth_odds_1st": 1.04,
             "fair_odds_1st": 2.27,
-            "win_ev": 0.47,
+            "win_ev": 0.46,
             "career_win_rate": 0.2658,
             "career_starts": 79,
             "recent5_finish": 2.2,
@@ -42224,9 +42920,9 @@
             "home_dist": false,
             "win_rate": 0.03,
             "win_prob": 0.0637,
-            "synth_odds_1st": 51.25,
+            "synth_odds_1st": 20.81,
             "fair_odds_1st": 15.7,
-            "win_ev": 3.26,
+            "win_ev": 1.33,
             "career_win_rate": 0.0503,
             "career_starts": 298,
             "recent5_finish": 3.0,
@@ -42262,9 +42958,9 @@
             "home_dist": false,
             "win_rate": 0.0,
             "win_prob": 0.0378,
-            "synth_odds_1st": 23.64,
+            "synth_odds_1st": 48.23,
             "fair_odds_1st": 26.46,
-            "win_ev": 0.89,
+            "win_ev": 1.82,
             "career_win_rate": 0.0361,
             "career_starts": 194,
             "recent5_finish": 3.6,
@@ -42300,9 +42996,9 @@
             "home_dist": false,
             "win_rate": 0.040999999999999995,
             "win_prob": 0.0109,
-            "synth_odds_1st": 38.44,
+            "synth_odds_1st": 43.41,
             "fair_odds_1st": 91.74,
-            "win_ev": 0.42,
+            "win_ev": 0.47,
             "career_win_rate": 0.0129,
             "career_starts": 232,
             "recent5_finish": 2.6,
@@ -42338,9 +43034,9 @@
             "home_dist": false,
             "win_rate": 0.0,
             "win_prob": 0.0043,
-            "synth_odds_1st": 307.5,
+            "synth_odds_1st": 623.93,
             "fair_odds_1st": 232.56,
-            "win_ev": 1.32,
+            "win_ev": 2.68,
             "career_win_rate": 0.0079,
             "career_starts": 127,
             "recent5_finish": 5.2,
@@ -42376,9 +43072,9 @@
             "home_dist": false,
             "win_rate": 0.0,
             "win_prob": 0.0024,
-            "synth_odds_1st": 34.16,
+            "synth_odds_1st": 278.78,
             "fair_odds_1st": 416.67,
-            "win_ev": 0.08,
+            "win_ev": 0.67,
             "career_win_rate": 0.009,
             "career_starts": 223,
             "recent5_finish": 5.6,
@@ -42405,49 +43101,49 @@
           {
             "combo": "5→1→7",
             "prob": 0.1221,
-            "odds": 38.4,
+            "odds": 35.2,
             "need_odds": 8.2
           },
           {
             "combo": "1→5→7",
             "prob": 0.1218,
-            "odds": 12.3,
+            "odds": 10.8,
             "need_odds": 8.2
           },
           {
             "combo": "5→1→2",
             "prob": 0.0841,
-            "odds": 51.2,
+            "odds": 38.8,
             "need_odds": 11.9
           },
           {
             "combo": "1→5→2",
             "prob": 0.0839,
-            "odds": 10.9,
+            "odds": 12.7,
             "need_odds": 11.9
           },
           {
             "combo": "5→7→1",
             "prob": 0.0571,
-            "odds": 25.6,
+            "odds": 17.1,
             "need_odds": 17.5
           },
           {
             "combo": "1→7→5",
             "prob": 0.0569,
-            "odds": 7.8,
+            "odds": 4.6,
             "need_odds": 17.6
           },
           {
             "combo": "5→2→1",
             "prob": 0.038,
-            "odds": 25.6,
+            "odds": 22.4,
             "need_odds": 26.3
           },
           {
             "combo": "1→2→5",
             "prob": 0.0379,
-            "odds": 7.8,
+            "odds": 7.5,
             "need_odds": 26.4
           }
         ],
@@ -42457,52 +43153,52 @@
           "n_buy": 12,
           "buys": [
             {
-              "combo": "7→1→5",
-              "prob": 0.0168,
-              "odds": 307.5,
-              "ev": 5.16
-            },
-            {
-              "combo": "5→1→3",
-              "prob": 0.0291,
-              "odds": 153.7,
-              "ev": 4.48
+              "combo": "1→5→6",
+              "prob": 0.0127,
+              "odds": 367.1,
+              "ev": 4.67
             },
             {
               "combo": "5→1→7",
-              "prob": 0.1052,
-              "odds": 38.4,
-              "ev": 4.04
-            },
-            {
-              "combo": "5→1→2",
-              "prob": 0.0737,
-              "odds": 51.2,
-              "ev": 3.77
+              "prob": 0.0947,
+              "odds": 35.2,
+              "ev": 3.33
             },
             {
               "combo": "1→5→4",
-              "prob": 0.0105,
-              "odds": 307.5,
-              "ev": 3.24
+              "prob": 0.0091,
+              "odds": 343.6,
+              "ev": 3.13
+            },
+            {
+              "combo": "5→1→2",
+              "prob": 0.0689,
+              "odds": 38.8,
+              "ev": 2.67
             },
             {
               "combo": "2→1→5",
-              "prob": 0.0103,
-              "odds": 307.5,
-              "ev": 3.16
-            },
-            {
-              "combo": "5→6→1",
-              "prob": 0.008,
-              "odds": 307.5,
-              "ev": 2.45
+              "prob": 0.0093,
+              "odds": 265.3,
+              "ev": 2.48
             },
             {
               "combo": "2→5→1",
-              "prob": 0.0118,
-              "odds": 153.7,
-              "ev": 1.81
+              "prob": 0.0095,
+              "odds": 247.8,
+              "ev": 2.35
+            },
+            {
+              "combo": "5→1→3",
+              "prob": 0.0302,
+              "odds": 69.8,
+              "ev": 2.11
+            },
+            {
+              "combo": "7→1→5",
+              "prob": 0.0183,
+              "odds": 108.1,
+              "ev": 1.98
             }
           ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
@@ -43233,7 +43929,7 @@
           }
         },
         "has_odds": true,
-        "updated_at": "2026-08-14 00:06",
+        "updated_at": "2026-08-14 15:24",
         "combos_pruned": true
       },
       {
@@ -43245,15 +43941,184 @@
         "is_girls": true,
         "field_size": 7,
         "class_group": "L1",
-        "lines": [],
-        "line_strength": null,
+        "lines": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ]
+        ],
+        "line_strength": {
+          "lines": [
+            {
+              "line_id": 0,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 1,
+                  "name": "池原 杏",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.2333
+                }
+              ],
+              "p_win": 0.2333,
+              "p_12": 0.0,
+              "p_top3_any": 0.6157,
+              "score_avg": 48.3,
+              "rank": 2
+            },
+            {
+              "line_id": 1,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 2,
+                  "name": "鈴木 樹里",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.2058
+                }
+              ],
+              "p_win": 0.2058,
+              "p_12": 0.0,
+              "p_top3_any": 0.5784,
+              "score_avg": 48.1,
+              "rank": 3
+            },
+            {
+              "line_id": 2,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 3,
+                  "name": "松下 彩也香",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.291
+                }
+              ],
+              "p_win": 0.291,
+              "p_12": 0.0,
+              "p_top3_any": 0.6808,
+              "score_avg": 47.9,
+              "rank": 1
+            },
+            {
+              "line_id": 3,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 4,
+                  "name": "濱田 芽生",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0758
+                }
+              ],
+              "p_win": 0.0758,
+              "p_12": 0.0,
+              "p_top3_any": 0.3154,
+              "score_avg": 46.4,
+              "rank": 5
+            },
+            {
+              "line_id": 4,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 5,
+                  "name": "中原 恭恵",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.065
+                }
+              ],
+              "p_win": 0.065,
+              "p_12": 0.0,
+              "p_top3_any": 0.2842,
+              "score_avg": 46.4,
+              "rank": 6
+            },
+            {
+              "line_id": 5,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 6,
+                  "name": "松崎 光優",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.1086
+                }
+              ],
+              "p_win": 0.1086,
+              "p_12": 0.0,
+              "p_top3_any": 0.3987,
+              "score_avg": 46.3,
+              "rank": 4
+            },
+            {
+              "line_id": 6,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 7,
+                  "name": "日野 友葵",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0205
+                }
+              ],
+              "p_win": 0.0205,
+              "p_12": 0.0,
+              "p_top3_any": 0.1268,
+              "score_avg": 45.5,
+              "rank": 7
+            }
+          ],
+          "settle_prob": 0.0,
+          "settle_baseline": 0.562,
+          "settle_bias_note": "モデルはライン内の連携を表現しきれないため、ライン決着確率を実測より約21pt低く見積もる（hold-out 5,498Rで補正後35.1% vs 実測55.8%）。紐補正でも絶対値はほとんど直らない。割り引いて読み、ライン間の相対比較に使ってください。",
+          "note": "数値はこのレースのモデル分布から算出（1着確率の和・ライン決着確率）。実測では1着は強いラインの先頭に集中し、3着内では最強ラインの番手が先頭とほぼ同格＝紐として同価値。3番手は1着がほぼ無い。"
+        },
         "dev_branches": null,
         "grade": "F2",
         "meet_name": "ＡＩ競輪も大人気チャリロト杯",
         "race_name": "ガールズ一般",
         "race_type": "混戦",
-        "top1_prob": 0.2856,
-        "entropy": 0.8922,
+        "top1_prob": 0.291,
+        "entropy": 0.883,
         "source": "学習済みモデル(ガールズ・LightGBM 38特徴)",
         "riders": [
           {
@@ -43262,17 +44127,17 @@
             "score": 47.88,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 2,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "青森",
             "home": true,
             "home_dist": true,
             "win_rate": 0.055,
-            "win_prob": 0.2856,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 3.5,
-            "win_ev": null,
+            "win_prob": 0.291,
+            "synth_odds_1st": 2.9,
+            "fair_odds_1st": 3.44,
+            "win_ev": 0.84,
             "career_win_rate": 0.05,
             "career_starts": 20,
             "recent5_finish": 5.2,
@@ -43306,17 +44171,17 @@
             "score": 48.33,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "沖縄",
             "home": false,
             "home_dist": false,
             "win_rate": 0.055,
-            "win_prob": 0.2252,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 4.44,
-            "win_ev": null,
+            "win_prob": 0.2333,
+            "synth_odds_1st": 2.06,
+            "fair_odds_1st": 4.29,
+            "win_ev": 0.48,
             "career_win_rate": 0.0108,
             "career_starts": 93,
             "recent5_finish": 3.4,
@@ -43350,17 +44215,17 @@
             "score": 48.11,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 1,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "福島",
             "home": false,
             "home_dist": true,
             "win_rate": 0.0,
-            "win_prob": 0.202,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 4.95,
-            "win_ev": null,
+            "win_prob": 0.2058,
+            "synth_odds_1st": 4.06,
+            "fair_odds_1st": 4.86,
+            "win_ev": 0.84,
             "career_win_rate": 0.0339,
             "career_starts": 118,
             "recent5_finish": 4.4,
@@ -43394,17 +44259,17 @@
             "score": 46.26,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 5,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "新潟",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.1249,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 8.01,
-            "win_ev": null,
+            "win_prob": 0.1086,
+            "synth_odds_1st": 23.23,
+            "fair_odds_1st": 9.21,
+            "win_ev": 2.52,
             "career_win_rate": 0.0,
             "career_starts": 17,
             "recent5_finish": 7.0,
@@ -43438,17 +44303,17 @@
             "score": 46.42,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 3,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "福井",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0744,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 13.44,
-            "win_ev": null,
+            "win_prob": 0.0758,
+            "synth_odds_1st": 8.22,
+            "fair_odds_1st": 13.19,
+            "win_ev": 0.62,
             "career_win_rate": 0.0116,
             "career_starts": 173,
             "recent5_finish": 5.2,
@@ -43482,17 +44347,17 @@
             "score": 46.37,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 4,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "広島",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0627,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 15.95,
-            "win_ev": null,
+            "win_prob": 0.065,
+            "synth_odds_1st": 15.12,
+            "fair_odds_1st": 15.38,
+            "win_ev": 0.98,
             "career_win_rate": 0.0178,
             "career_starts": 169,
             "recent5_finish": 4.6,
@@ -43526,17 +44391,17 @@
             "score": 45.47,
             "leg": "追",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 6,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "愛媛",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0251,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 39.84,
-            "win_ev": null,
+            "win_prob": 0.0205,
+            "synth_odds_1st": 36.69,
+            "fair_odds_1st": 48.78,
+            "win_ev": 0.75,
             "career_win_rate": 0.0,
             "career_starts": 270,
             "recent5_finish": 6.2,
@@ -43568,66 +44433,245 @@
         "top_trifecta": [
           {
             "combo": "3→1→2",
-            "prob": 0.0267,
-            "odds": null,
-            "need_odds": 37.4
+            "prob": 0.0292,
+            "odds": 25.6,
+            "need_odds": 34.3
           },
           {
             "combo": "3→2→1",
-            "prob": 0.0261,
-            "odds": null,
-            "need_odds": 38.3
+            "prob": 0.0284,
+            "odds": 19.6,
+            "need_odds": 35.2
           },
           {
             "combo": "1→3→2",
-            "prob": 0.0236,
-            "odds": null,
-            "need_odds": 42.4
-          },
-          {
-            "combo": "2→3→1",
-            "prob": 0.0219,
-            "odds": null,
-            "need_odds": 45.8
+            "prob": 0.026,
+            "odds": 13.7,
+            "need_odds": 38.5
           },
           {
             "combo": "1→2→3",
-            "prob": 0.0218,
-            "odds": null,
-            "need_odds": 45.8
+            "prob": 0.024,
+            "odds": 11.9,
+            "need_odds": 41.7
+          },
+          {
+            "combo": "2→3→1",
+            "prob": 0.0237,
+            "odds": 32.4,
+            "need_odds": 42.1
           },
           {
             "combo": "2→1→3",
-            "prob": 0.0207,
-            "odds": null,
-            "need_odds": 48.3
+            "prob": 0.0225,
+            "odds": 35.0,
+            "need_odds": 44.4
           },
           {
             "combo": "3→1→6",
-            "prob": 0.0189,
-            "odds": null,
-            "need_odds": 52.8
+            "prob": 0.0185,
+            "odds": 137.4,
+            "need_odds": 54.1
           },
           {
-            "combo": "3→6→1",
-            "prob": 0.0172,
-            "odds": null,
-            "need_odds": 58.0
+            "combo": "1→3→6",
+            "prob": 0.0165,
+            "odds": 161.4,
+            "need_odds": 60.8
           }
         ],
         "ev": {
-          "status": "no_odds",
+          "status": "ok",
           "threshold": 1.1,
-          "n_buy": 0,
-          "buys": [],
+          "n_buy": 18,
+          "buys": [
+            {
+              "combo": "2→3→6",
+              "prob": 0.01,
+              "odds": 339.9,
+              "ev": 3.39
+            },
+            {
+              "combo": "3→2→6",
+              "prob": 0.0123,
+              "odds": 239.1,
+              "ev": 2.95
+            },
+            {
+              "combo": "6→2→1",
+              "prob": 0.0057,
+              "odds": 496.7,
+              "ev": 2.82
+            },
+            {
+              "combo": "6→3→1",
+              "prob": 0.008,
+              "odds": 307.5,
+              "ev": 2.47
+            },
+            {
+              "combo": "2→1→6",
+              "prob": 0.0088,
+              "odds": 269.0,
+              "ev": 2.37
+            },
+            {
+              "combo": "1→3→6",
+              "prob": 0.0134,
+              "odds": 161.4,
+              "ev": 2.16
+            },
+            {
+              "combo": "6→1→3",
+              "prob": 0.008,
+              "odds": 269.0,
+              "ev": 2.14
+            },
+            {
+              "combo": "3→1→6",
+              "prob": 0.0151,
+              "odds": 137.4,
+              "ev": 2.08
+            }
+          ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
         },
-        "development": null,
+        "development": {
+          "source": "並び予想（記者予想の隊列, 発走前確定情報）",
+          "line": [
+            {
+              "car": 1,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 0
+            },
+            {
+              "car": 2,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 1
+            },
+            {
+              "car": 3,
+              "leg": "自在",
+              "is_fav": true,
+              "pos": 2
+            },
+            {
+              "car": 4,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 3
+            },
+            {
+              "car": 5,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 4
+            },
+            {
+              "car": 6,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 5
+            },
+            {
+              "car": 7,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 6
+            }
+          ],
+          "fav": 3,
+          "marker": 4,
+          "patterns": [
+            {
+              "label": "中団抜け出し型(捲り)",
+              "icon": "🌀",
+              "prob": 0.4318,
+              "lead_car": 3,
+              "cars": [
+                3,
+                4,
+                5
+              ],
+              "has_fav": true
+            },
+            {
+              "label": "先行・主導権型",
+              "icon": "🚴",
+              "prob": 0.2333,
+              "lead_car": 1,
+              "cars": [
+                1
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "番手抜け出し型",
+              "icon": "🔗",
+              "prob": 0.2058,
+              "lead_car": 2,
+              "cars": [
+                2
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "後方一気型",
+              "icon": "⚡",
+              "prob": 0.1292,
+              "lead_car": 6,
+              "cars": [
+                6,
+                7
+              ],
+              "has_fav": false
+            }
+          ],
+          "backstretch": {
+            "lead_car": 3,
+            "lead_p": 0.5976,
+            "second_car": 1,
+            "second_p": 0.1733,
+            "reporter_front": 1,
+            "diverges": true,
+            "hit_rate": 0.552,
+            "probs": {
+              "3": 0.5976,
+              "1": 0.1733,
+              "4": 0.0683,
+              "2": 0.067,
+              "5": 0.04,
+              "6": 0.0332,
+              "7": 0.0205
+            }
+          },
+          "pace": {
+            "n_front": 1,
+            "level": "スロー〜ミドル",
+            "note": "捲り・差しがやや優勢",
+            "kimarite_hint": {
+              "逃": 21,
+              "捲": 46,
+              "差": 32
+            },
+            "b_reliability": {
+              "rentai": 63,
+              "gaiji": 23,
+              "note": "主導権はそのまま残りやすい"
+            },
+            "basis": "ペース(スロー)×バンク400m 実測n=3287",
+            "bank": 400
+          },
+          "note": "◎3番は隊列3番手。前の1番の主導権をどう捉えるかがカギ。◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。",
+          "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。"
+        },
         "dev_patterns": {
           "top": [
             {
               "key": "⑥差し/マーク",
-              "prob": 0.3601,
+              "prob": 0.395,
               "fav_wins": false,
               "n": 790,
               "second": [
@@ -43716,7 +44760,7 @@
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.2375,
+              "prob": 0.1979,
               "fav_wins": false,
               "n": 443,
               "second": [
@@ -43805,7 +44849,7 @@
             },
             {
               "key": "②◎捲り",
-              "prob": 0.1551,
+              "prob": 0.1493,
               "fav_wins": true,
               "n": 2259,
               "second": [
@@ -43864,43 +44908,43 @@
           ],
           "insights": [
             "◎3松下 彩也香が勝つ形（上位1つ）では、2着は○1池原 杏が48%で最有力。◎-○の1-2着が軸になる。",
-            "◎3松下 彩也香が負ける形では勝ち頭は○1池原 杏が56%。ただしその時も◎は3着以内に79%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
+            "◎3松下 彩也香が負ける形では勝ち頭は○1池原 杏が55%。ただしその時も◎は3着以内に79%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
             "最も割れるのは3着。上位3形の加重では ▲2鈴木 樹里 25% / ×人気薄(4,5,7) 24% / ◎3松下 彩也香 18%。穴を拾うならここで、人気薄(4,5,7)が24%を占める。"
           ],
           "all": [
             {
               "key": "①◎逃げ切り",
-              "prob": 0.0512,
+              "prob": 0.0721,
               "fav_wins": true
             },
             {
               "key": "②◎捲り",
-              "prob": 0.1551,
+              "prob": 0.1493,
               "fav_wins": true
             },
             {
               "key": "③◎差し",
-              "prob": 0.0784,
+              "prob": 0.0682,
               "fav_wins": true
             },
             {
               "key": "④別の逃げ残り",
-              "prob": 0.1168,
+              "prob": 0.1162,
               "fav_wins": false
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.2375,
+              "prob": 0.1979,
               "fav_wins": false
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.3601,
+              "prob": 0.395,
               "fav_wins": false
             }
           ],
           "n_races": 5795,
-          "pace": "ミドル",
+          "pace": "スロー",
           "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、分岐の目安として読む（回収率の根拠にはならない）。"
         },
         "bank_profile": {
@@ -43946,11 +44990,11 @@
             "3-1-2",
             "3-2-1",
             "3-1-6",
-            "3-6-1",
             "3-2-6",
-            "3-6-2"
+            "3-6-1",
+            "3-4-1"
           ],
-          "model_hit_pct": 12.2,
+          "model_hit_pct": 12.1,
           "pockets": [
             "地元◎"
           ],
@@ -44167,8 +45211,8 @@
             }
           }
         },
-        "has_odds": false,
-        "updated_at": "2026-08-14 00:05",
+        "has_odds": true,
+        "updated_at": "2026-08-14 15:23",
         "combos_pruned": true
       },
       {
@@ -44180,15 +45224,184 @@
         "is_girls": true,
         "field_size": 7,
         "class_group": "L1",
-        "lines": [],
-        "line_strength": null,
+        "lines": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ]
+        ],
+        "line_strength": {
+          "lines": [
+            {
+              "line_id": 0,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 1,
+                  "name": "村田 奈穂",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "先行",
+                  "class_rank": "L1",
+                  "win_prob": 0.5313
+                }
+              ],
+              "p_win": 0.5313,
+              "p_12": 0.0,
+              "p_top3_any": 0.8924,
+              "score_avg": 54.3,
+              "rank": 1
+            },
+            {
+              "line_id": 1,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 2,
+                  "name": "小泉 夢菜",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.1347
+                }
+              ],
+              "p_win": 0.1347,
+              "p_12": 0.0,
+              "p_top3_any": 0.5503,
+              "score_avg": 52.2,
+              "rank": 3
+            },
+            {
+              "line_id": 2,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 3,
+                  "name": "宇野 紅音",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "自在",
+                  "class_rank": "L1",
+                  "win_prob": 0.1739
+                }
+              ],
+              "p_win": 0.1739,
+              "p_12": 0.0,
+              "p_top3_any": 0.6249,
+              "score_avg": 51.9,
+              "rank": 2
+            },
+            {
+              "line_id": 3,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 4,
+                  "name": "増茂 るるこ",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.086
+                }
+              ],
+              "p_win": 0.086,
+              "p_12": 0.0,
+              "p_top3_any": 0.4235,
+              "score_avg": 51.1,
+              "rank": 4
+            },
+            {
+              "line_id": 4,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 5,
+                  "name": "平子 結菜",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0484
+                }
+              ],
+              "p_win": 0.0484,
+              "p_12": 0.0,
+              "p_top3_any": 0.2915,
+              "score_avg": 50.3,
+              "rank": 5
+            },
+            {
+              "line_id": 5,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 6,
+                  "name": "土井 柚姫",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0222
+                }
+              ],
+              "p_win": 0.0222,
+              "p_12": 0.0,
+              "p_top3_any": 0.1706,
+              "score_avg": 49.9,
+              "rank": 6
+            },
+            {
+              "line_id": 6,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 7,
+                  "name": "野寺 梓",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "leg": "追上",
+                  "class_rank": "L1",
+                  "win_prob": 0.0036
+                }
+              ],
+              "p_win": 0.0036,
+              "p_12": 0.0,
+              "p_top3_any": 0.0469,
+              "score_avg": 46.1,
+              "rank": 7
+            }
+          ],
+          "settle_prob": 0.0,
+          "settle_baseline": 0.562,
+          "settle_bias_note": "モデルはライン内の連携を表現しきれないため、ライン決着確率を実測より約21pt低く見積もる（hold-out 5,498Rで補正後35.1% vs 実測55.8%）。紐補正でも絶対値はほとんど直らない。割り引いて読み、ライン間の相対比較に使ってください。",
+          "note": "数値はこのレースのモデル分布から算出（1着確率の和・ライン決着確率）。実測では1着は強いラインの先頭に集中し、3着内では最強ラインの番手が先頭とほぼ同格＝紐として同価値。3番手は1着がほぼ無い。"
+        },
         "dev_branches": null,
         "grade": "F2",
         "meet_name": "ＡＩ競輪も大人気チャリロト杯",
         "race_name": "ガールズ決勝",
         "race_type": "標準",
-        "top1_prob": 0.5153,
-        "entropy": 0.7195,
+        "top1_prob": 0.5313,
+        "entropy": 0.7053,
         "source": "学習済みモデル(ガールズ・LightGBM 38特徴)",
         "riders": [
           {
@@ -44197,17 +45410,17 @@
             "score": 54.33,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 0,
+            "narabi_leg": "先行",
             "pref": "熊本",
             "home": false,
             "home_dist": false,
             "win_rate": 0.322,
-            "win_prob": 0.5153,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 1.94,
-            "win_ev": null,
+            "win_prob": 0.5313,
+            "synth_odds_1st": 1.34,
+            "fair_odds_1st": 1.88,
+            "win_ev": 0.71,
             "career_win_rate": 0.1797,
             "career_starts": 256,
             "recent5_finish": 2.0,
@@ -44241,17 +45454,17 @@
             "score": 51.92,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 2,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "岐阜",
             "home": false,
             "home_dist": false,
             "win_rate": 0.076,
-            "win_prob": 0.1793,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 5.58,
-            "win_ev": null,
+            "win_prob": 0.1739,
+            "synth_odds_1st": 3.15,
+            "fair_odds_1st": 5.75,
+            "win_ev": 0.55,
             "career_win_rate": 0.1014,
             "career_starts": 286,
             "recent5_finish": 2.4,
@@ -44285,17 +45498,17 @@
             "score": 52.16,
             "leg": "追",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 1,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "埼玉",
             "home": false,
             "home_dist": false,
             "win_rate": 0.033,
-            "win_prob": 0.1389,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 7.2,
-            "win_ev": null,
+            "win_prob": 0.1347,
+            "synth_odds_1st": 10.13,
+            "fair_odds_1st": 7.42,
+            "win_ev": 1.36,
             "career_win_rate": 0.0677,
             "career_starts": 266,
             "recent5_finish": 4.0,
@@ -44329,17 +45542,17 @@
             "score": 51.06,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 3,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "東京",
             "home": false,
             "home_dist": false,
             "win_rate": 0.133,
-            "win_prob": 0.0887,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 11.27,
-            "win_ev": null,
+            "win_prob": 0.086,
+            "synth_odds_1st": 23.71,
+            "fair_odds_1st": 11.63,
+            "win_ev": 2.04,
             "career_win_rate": 0.0859,
             "career_starts": 163,
             "recent5_finish": 3.2,
@@ -44373,17 +45586,17 @@
             "score": 50.32,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 4,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "三重",
             "home": false,
             "home_dist": false,
             "win_rate": 0.142,
-            "win_prob": 0.0499,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 20.04,
-            "win_ev": null,
+            "win_prob": 0.0484,
+            "synth_odds_1st": 19.77,
+            "fair_odds_1st": 20.66,
+            "win_ev": 0.96,
             "career_win_rate": 0.0753,
             "career_starts": 186,
             "recent5_finish": 4.2,
@@ -44417,17 +45630,17 @@
             "score": 49.9,
             "leg": "両",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 5,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "岡山",
             "home": false,
             "home_dist": false,
             "win_rate": 0.047,
-            "win_prob": 0.0237,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 42.19,
-            "win_ev": null,
+            "win_prob": 0.0222,
+            "synth_odds_1st": 19.59,
+            "fair_odds_1st": 45.05,
+            "win_ev": 0.43,
             "career_win_rate": 0.0345,
             "career_starts": 29,
             "recent5_finish": 3.6,
@@ -44461,17 +45674,17 @@
             "score": 46.08,
             "leg": "追",
             "class_rank": "L1",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 6,
+            "pos_in_line": 0,
+            "narabi_leg": "追上",
             "pref": "静岡",
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.0042,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 238.1,
-            "win_ev": null,
+            "win_prob": 0.0036,
+            "synth_odds_1st": 33.56,
+            "fair_odds_1st": 277.78,
+            "win_ev": 0.12,
             "career_win_rate": 0.0,
             "career_starts": 148,
             "recent5_finish": 5.4,
@@ -44503,66 +45716,245 @@
         "top_trifecta": [
           {
             "combo": "1→3→2",
-            "prob": 0.0619,
-            "odds": null,
-            "need_odds": 16.2
+            "prob": 0.0644,
+            "odds": 13.4,
+            "need_odds": 15.5
           },
           {
             "combo": "1→2→3",
-            "prob": 0.0581,
-            "odds": null,
-            "need_odds": 17.2
+            "prob": 0.0605,
+            "odds": 9.3,
+            "need_odds": 16.5
           },
           {
             "combo": "1→3→4",
-            "prob": 0.0449,
-            "odds": null,
-            "need_odds": 22.2
+            "prob": 0.0468,
+            "odds": 29.8,
+            "need_odds": 21.4
           },
           {
             "combo": "1→4→3",
-            "prob": 0.0392,
-            "odds": null,
-            "need_odds": 25.5
+            "prob": 0.0408,
+            "odds": 14.6,
+            "need_odds": 24.5
           },
           {
             "combo": "1→2→4",
-            "prob": 0.0352,
-            "odds": null,
-            "need_odds": 28.4
+            "prob": 0.0366,
+            "odds": 43.0,
+            "need_odds": 27.3
+          },
+          {
+            "combo": "1→4→2",
+            "prob": 0.034,
+            "odds": 29.0,
+            "need_odds": 29.4
           },
           {
             "combo": "3→1→2",
             "prob": 0.0331,
-            "odds": null,
-            "need_odds": 30.2
-          },
-          {
-            "combo": "1→4→2",
-            "prob": 0.0327,
-            "odds": null,
-            "need_odds": 30.6
+            "odds": 44.5,
+            "need_odds": 30.3
           },
           {
             "combo": "1→3→5",
-            "prob": 0.0298,
-            "odds": null,
-            "need_odds": 33.6
+            "prob": 0.031,
+            "odds": 47.4,
+            "need_odds": 32.2
           }
         ],
         "ev": {
-          "status": "no_odds",
+          "status": "ok",
           "threshold": 1.1,
-          "n_buy": 0,
-          "buys": [],
+          "n_buy": 19,
+          "buys": [
+            {
+              "combo": "2→1→4",
+              "prob": 0.0119,
+              "odds": 297.4,
+              "ev": 3.55
+            },
+            {
+              "combo": "4→1→3",
+              "prob": 0.0115,
+              "odds": 251.6,
+              "ev": 2.89
+            },
+            {
+              "combo": "4→2→1",
+              "prob": 0.0071,
+              "odds": 297.4,
+              "ev": 2.12
+            },
+            {
+              "combo": "4→3→1",
+              "prob": 0.0089,
+              "odds": 225.6,
+              "ev": 2.02
+            },
+            {
+              "combo": "2→1→5",
+              "prob": 0.0091,
+              "odds": 218.1,
+              "ev": 1.99
+            },
+            {
+              "combo": "2→1→3",
+              "prob": 0.0228,
+              "odds": 86.1,
+              "ev": 1.97
+            },
+            {
+              "combo": "2→1→6",
+              "prob": 0.0053,
+              "odds": 363.5,
+              "ev": 1.92
+            },
+            {
+              "combo": "2→4→1",
+              "prob": 0.0092,
+              "odds": 186.9,
+              "ev": 1.71
+            }
+          ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
         },
-        "development": null,
+        "development": {
+          "source": "並び予想（記者予想の隊列, 発走前確定情報）",
+          "line": [
+            {
+              "car": 1,
+              "leg": "先行",
+              "is_fav": true,
+              "pos": 0
+            },
+            {
+              "car": 2,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 1
+            },
+            {
+              "car": 3,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 2
+            },
+            {
+              "car": 4,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 3
+            },
+            {
+              "car": 5,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 4
+            },
+            {
+              "car": 6,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 5
+            },
+            {
+              "car": 7,
+              "leg": "追上",
+              "is_fav": false,
+              "pos": 6
+            }
+          ],
+          "fav": 1,
+          "marker": 2,
+          "patterns": [
+            {
+              "label": "先行・主導権型",
+              "icon": "🚴",
+              "prob": 0.5313,
+              "lead_car": 1,
+              "cars": [
+                1
+              ],
+              "has_fav": true
+            },
+            {
+              "label": "中団抜け出し型(捲り)",
+              "icon": "🌀",
+              "prob": 0.3083,
+              "lead_car": 3,
+              "cars": [
+                3,
+                4,
+                5
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "番手抜け出し型",
+              "icon": "🔗",
+              "prob": 0.1347,
+              "lead_car": 2,
+              "cars": [
+                2
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "後方一気型",
+              "icon": "⚡",
+              "prob": 0.0258,
+              "lead_car": 6,
+              "cars": [
+                6,
+                7
+              ],
+              "has_fav": false
+            }
+          ],
+          "backstretch": {
+            "lead_car": 1,
+            "lead_p": 0.3039,
+            "second_car": 5,
+            "second_p": 0.3005,
+            "reporter_front": 1,
+            "diverges": false,
+            "hit_rate": 0.552,
+            "probs": {
+              "1": 0.3039,
+              "5": 0.3005,
+              "3": 0.2215,
+              "4": 0.0749,
+              "2": 0.0456,
+              "6": 0.0362,
+              "7": 0.0173
+            }
+          },
+          "pace": {
+            "n_front": 3,
+            "level": "ミドル〜ハイ",
+            "note": "逃げは残りにくく差し・捲りが台頭",
+            "kimarite_hint": {
+              "逃": 15,
+              "捲": 50,
+              "差": 34
+            },
+            "b_reliability": {
+              "rentai": 53,
+              "gaiji": 32,
+              "note": "主導権はやや不安定"
+            },
+            "basis": "ペース(ミドル)×バンク400m 実測n=1116",
+            "bank": 400
+          },
+          "note": "◎1番が予想先頭＝主導権を握る展開が本線。番手2番が連れて2着有力。◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。",
+          "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。"
+        },
         "dev_patterns": {
           "top": [
             {
               "key": "②◎捲り",
-              "prob": 0.2799,
+              "prob": 0.29,
               "fav_wins": true,
               "n": 2259,
               "second": [
@@ -44620,7 +46012,7 @@
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.2443,
+              "prob": 0.2297,
               "fav_wins": false,
               "n": 790,
               "second": [
@@ -44709,7 +46101,7 @@
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.1611,
+              "prob": 0.1578,
               "fav_wins": false,
               "n": 443,
               "second": [
@@ -44805,37 +46197,37 @@
           "all": [
             {
               "key": "①◎逃げ切り",
-              "prob": 0.0924,
+              "prob": 0.0821,
               "fav_wins": true
             },
             {
               "key": "②◎捲り",
-              "prob": 0.2799,
+              "prob": 0.29,
               "fav_wins": true
             },
             {
               "key": "③◎差し",
-              "prob": 0.1415,
+              "prob": 0.1541,
               "fav_wins": true
             },
             {
               "key": "④別の逃げ残り",
-              "prob": 0.0792,
+              "prob": 0.0812,
               "fav_wins": false
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.1611,
+              "prob": 0.1578,
               "fav_wins": false
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.2443,
+              "prob": 0.2297,
               "fav_wins": false
             }
           ],
           "n_races": 5795,
-          "pace": "ミドル",
+          "pace": "ハイ",
           "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、分岐の目安として読む（回収率の根拠にはならない）。"
         },
         "bank_profile": {
@@ -44878,28 +46270,30 @@
           "fav": 1,
           "points": 6,
           "combos": [
-            "1-3-2",
             "1-2-3",
+            "1-3-2",
             "1-3-4",
-            "1-4-3",
             "1-2-4",
+            "1-4-3",
             "1-4-2"
           ],
-          "model_hit_pct": 27.2,
-          "pockets": [],
-          "primary": "全体",
+          "model_hit_pct": 28.8,
+          "pockets": [
+            "予想先頭◎"
+          ],
+          "primary": "予想先頭◎",
           "hist": {
             "4": {
-              "hit": 36.5,
-              "roi": 74.3
+              "hit": 30.6,
+              "roi": 69.1
             },
             "6": {
-              "hit": 45.0,
-              "roi": 77.4
+              "hit": 39.2,
+              "roi": 79.2
             },
             "8": {
-              "hit": 51.0,
-              "roi": 82.7
+              "hit": 45.2,
+              "roi": 79.1
             }
           },
           "note": "参考・実弾非推奨（回収率<100%）。過去実測はポケット平均。"
@@ -45150,8 +46544,8 @@
             }
           }
         },
-        "has_odds": false,
-        "updated_at": "2026-08-14 00:06",
+        "has_odds": true,
+        "updated_at": "2026-08-14 15:23",
         "combos_pruned": true
       }
     ]
