@@ -23,7 +23,7 @@ from src.model.training_data import PL_FEATURES_FULL
 from src.features.tactics_features import TACTIC_NAMES
 from src.features.rider_narabi import NARABI_KEYS
 from src.features.bank_features import BANK_KEYS
-from src.features.line_features import LINE_KEYS, LEGOH_KEYS
+from src.features.line_features import LINE_KEYS, LEGOH_KEYS, SERI_KEYS
 
 
 def girls_features() -> list[str]:
@@ -43,6 +43,12 @@ def men_features() -> list[str]:
     符号化の問題で、LEG_AGGR_MEN が 先行/押え先/カマシ を全て2.0に潰していた
     （実測のライン先頭主導権率は 55.2%/34.7%/33.0% と20pt違う）。
     効果量はライン特徴の1/18と小さいが、事前基準は充足している。
+
+    競り(SERI_KEYS + ライン内位置の共有)は **不採用**（2026-08-15, scripts/validate_seri.py）。
+    競りレースの tri10 は 1/5fold 改善・平均 -3.52pt で事前基準の主基準を満たさなかった。
+    ただし競りレースはテストfoldあたり35〜43件しかなく、この検証はそもそも検定力が足りない
+    （tri10 の1レース = 約2.7pt）。「差が無い」ことを示せたわけではなく「測れなかった」。
+    データ自体（narabi.seri_group）は収集済みなので、母数が増えたら再検証する。
     """
     return (list(PL_FEATURES_FULL) + ["rel_elo"] + list(LINE_KEYS)
             + list(TACTIC_NAMES) + list(LEGOH_KEYS))

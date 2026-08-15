@@ -227,7 +227,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         names={e.car_number: e.rider_name for e in entries},
         scores={e.car_number: e.racing_score for e in entries},
         legs=(narabi_ctx or {}).get("legs") or {},
-        classes={e.car_number: e.class_rank for e in entries})
+        classes={e.car_number: e.class_rank for e in entries},
+        seri=(narabi_ctx or {}).get("seri") or [])
 
     # 展開予想（記者の並び予想の隊列＋モデルの一言読み）。ガールズは並び通りになるとは限らない。
     development = None
@@ -371,6 +372,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         # lines は並び予想のライン境界（ガールズは空になる）
         "class_group": "/".join(sorted({e.class_rank for e in entries if e.class_rank})) or None,
         "lines": (narabi_ctx or {}).get("lines") or [],
+        # 競り＝同じ位置を争うグループ。並び予想でカッコに入っている選手。
+        # 直列に描くと番手が1人に確定して見えてしまうので、表示でカッコを復元する。
+        "seri": (narabi_ctx or {}).get("seri") or [],
         "line_strength": line_strength,        # 男子: ライン別の強さ（表示用）
         "dev_branches": dev_branches,          # 男子: 展開分岐＋分岐ごとの買い目
         # 開催格(G1/F2等)・開催名・レース名。混戦度は格とレース名（決勝/予選）で傾向が変わる

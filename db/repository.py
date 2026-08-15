@@ -150,6 +150,7 @@ CREATE TABLE IF NOT EXISTS narabi (
     leg         TEXT,              -- 脚質(先行/自在/追込/押え先 等)
     line_id     INTEGER,           -- 何本目のラインか(0起点)。単騎も1本として数える
     pos_in_line INTEGER,           -- ライン内の位置(0=ライン先頭, 1=番手, 2=3番手…)
+    seri_group  INTEGER,           -- 競り(同じ位置を争うグループ)の通し番号。競り以外はNULL
     PRIMARY KEY (race_id, car_number)
 );
 """
@@ -169,7 +170,8 @@ class DatasetRepo:
     #  結果取得が丸ごと落ちた）。
     _ADDED_COLUMNS = {
         "races": (("grade", "TEXT"), ("race_name", "TEXT")),
-        "narabi": (("line_id", "INTEGER"), ("pos_in_line", "INTEGER")),
+        "narabi": (("line_id", "INTEGER"), ("pos_in_line", "INTEGER"),
+                   ("seri_group", "INTEGER")),
     }
 
     def _add_missing_columns(self) -> None:
@@ -245,16 +247,23 @@ class DatasetRepo:
         for li, line in enumerate(lines):
             for pi, car in enumerate(line):
                 pos_of[car] = (li, pi)
+        # 競り（同じ位置を争うグループ）。「連続する競り＝1グループ」では復元できない
+        # （4人連続の競りは実ページ8件すべてが2グループだった）ので、パース時に必ず保存する。
+        seri_of: dict[int, int] = {}
+        for gi, g in enumerate((narabi or {}).get("seri") or []):
+            for car in g:
+                seri_of[car] = gi
         rows = [(race_id, car, pos, legs.get(car),
-                 pos_of.get(car, (None, None))[0], pos_of.get(car, (None, None))[1])
+                 pos_of.get(car, (None, None))[0], pos_of.get(car, (None, None))[1],
+                 seri_of.get(car))
                 for pos, car in enumerate(order)]
         if rows:
             # 列名を明示する。VALUES(?,?,…) の位置指定だと列を足すたびに旧DBで
             # 「N columns but M values」で落ちる（実際にそれで結果取得が止まった）。
             self.conn.executemany(
                 "INSERT OR REPLACE INTO narabi"
-                " (race_id, car_number, position, leg, line_id, pos_in_line)"
-                " VALUES (?,?,?,?,?,?)", rows)
+                " (race_id, car_number, position, leg, line_id, pos_in_line, seri_group)"
+                " VALUES (?,?,?,?,?,?,?)", rows)
             self.conn.commit()
         return len(rows)
 

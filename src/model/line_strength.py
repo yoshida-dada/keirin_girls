@@ -40,10 +40,16 @@ def build_lines(lines: list[list[int]], strengths: dict[int, float],
                 names: dict[int, str] | None = None,
                 scores: dict[int, float] | None = None,
                 legs: dict[int, str] | None = None,
-                classes: dict[int, str] | None = None) -> dict | None:
+                classes: dict[int, str] | None = None,
+                seri: list[list[int]] | None = None) -> dict | None:
     """並び予想のライン構成 → ライン別の強さ。lines が空なら None（ガールズ）。
 
     probs は三連単の全通り確率 {(1着,2着,3着): p}。無ければ p_12 / p_top3_any は None。
+
+    seri は「同じ位置を争うグループ」（記者の並び予想でカッコに入っている選手）。
+    直列に並べると `2(7 1)4 5` が「7=番手, 1=3番手, 4=4番手」になるが、実際は
+    7と1のどちらかが番手で、4は3番手。**どちらが番手かは走ってみないと分からない**ので
+    位置を共有させ、表示でも競りであることを明示する。
     """
     if not lines:
         return None
@@ -68,16 +74,22 @@ def build_lines(lines: list[list[int]], strengths: dict[int, float],
             for li in hit:
                 top3_any[li] += p
 
+    from src.features.line_features import positions_with_seri
+    inseri = {c for g in (seri or []) for c in g}
+
     out = []
     for li, mem in enumerate(lines):
         sc = [scores[c] for c in mem if scores.get(c) is not None]
+        gs = [g for g in (seri or []) if all(c in mem for c in g)]
+        pos = positions_with_seri(mem, gs)      # 競りの選手は同じ位置を共有
         out.append({
             "line_id": li,
             "size": len(mem),
-            "cars": [{"car": c, "name": names.get(c), "pos": i,
-                      "pos_label": _pos_label(i, len(mem)),
+            "cars": [{"car": c, "name": names.get(c), "pos": pos[c],
+                      "pos_label": _pos_label(pos[c], len(mem)),
+                      "seri": c in inseri,
                       "leg": legs.get(c), "class_rank": classes.get(c),
-                      "win_prob": round(strengths.get(c, 0.0), 4)} for i, c in enumerate(mem)],
+                      "win_prob": round(strengths.get(c, 0.0), 4)} for c in mem],
             "p_win": round(sum(strengths.get(c, 0.0) for c in mem), 4),
             "p_12": round(p12[li], 4) if probs else None,
             "p_top3_any": round(min(top3_any[li], 1.0), 4) if probs else None,
