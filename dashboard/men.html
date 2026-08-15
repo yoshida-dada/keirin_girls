@@ -1033,7 +1033,9 @@ function predContent(r){
       +`</tr></thead><tbody>${tf}</tbody></table></div>` : "";
   // ライン表示は出走表の直後（並びを見てから展開を読む順序）
   // ライン→展開分岐→従来の展開予想 の順（並びを見て、分岐を読み、詳細へ）
-  return riderTable(r) + lineBlock(r) + branchBlock(r) + devBlock(r) + h2hBlock(r) + tfBlock
+  // 出走表 → 並び予想（誰がどのラインか）→ ライン別の強さ → 展開分岐 の順。
+  // 並びを最初に見せないと、以降のライン評価や分岐が何を指しているか読めない。
+  return riderTable(r) + devBlock(r) + lineBlock(r) + branchBlock(r) + h2hBlock(r) + tfBlock
        + refBlock(r) + evBlock(r) + omBlock(r);
 }
 // 展開分岐（男子）: 「誰が主導権を取るか」で場合分けし、分岐ごとに買い目を出す。
