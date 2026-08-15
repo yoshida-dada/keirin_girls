@@ -185,29 +185,52 @@ def parse_narabi(html: str) -> dict:
     誰が番手(マーク)につく予定か」を数値化する土台になる。実際に誰が主導権を取ったかは結果の
     S/B マーカー(results.sb)で分かるので、事前(並び予想)×事後(S/B)を突き合わせられる。
 
-    返り値: {"order": [車番...(前→後)], "legs": {車番: 脚質}}。無ければ空。
+    返り値: {"order": [...], "legs": {車番: 脚質}, "lines": [[...]], "seri": [[車番,...],...]}
+
+    **競り（カッコ）**: 表示 `← 2先行 ( 7競り 1競り ) 4追込 5追込` は
+    「2が先頭、7と1が**番手を争う**、その後ろに4・5」という意味で、7と1は直列の
+    番手と3番手ではない。HTMLは `<span class="icon_p bracket_open">(</span>` …
+    `bracket_close` で明示している。これを読み飛ばすと5車の直列ラインに潰れ、
+    実測で「記録上の番手が2着」が 41.1%→33.7%（−7.4pt）と精度が落ちる。
+    競りは全体の1.54%（392/25,383レース）だが、ライン崩れが起きやすく妙味に直結する。
+
+    `lines` は従来どおり前→後の車番リスト（競りの2人も並んで入る）。
+    `seri` に「同じ位置を争っているグループ」を別途返し、位置の解釈は利用側に委ねる。
     """
     import re
     soup = BeautifulSoup(html, "html.parser")
     dt = soup.find("dt", string=re.compile("並び予想"))
+    empty = {"order": [], "legs": {}, "lines": [], "seri": []}
     if dt is None:
-        return {"order": [], "legs": {}, "lines": []}
+        return empty
     dl = dt.find_parent("dl")
     dd = dl.find("dd") if dl else None
     if dd is None:
-        return {"order": [], "legs": {}, "lines": []}
+        return empty
     order: list[int] = []
     legs: dict[int, str] = {}
     lines: list[list[int]] = []
     cur: list[int] = []
+    seri: list[list[int]] = []
+    in_bracket = False
+    bracket: list[int] = []
     for grp in dd.find_all("span", class_="icon_p"):
+        cls = grp.get("class") or []
         # ラインの切れ目は数字を持たない <span class="icon_p space">。これを読み飛ばすと
         # 全ラインが1本のフラットな隊列に潰れる（男子はライン構造が精度を決めるので致命的）。
         # 末尾にはレイアウト用の space が連続して並ぶが、cur が空なので空ラインは作られない。
-        if "space" in (grp.get("class") or []):
+        if "space" in cls:
             if cur:
                 lines.append(cur)
                 cur = []
+            continue
+        if "bracket_open" in cls:
+            in_bracket, bracket = True, []
+            continue
+        if "bracket_close" in cls:
+            if len(bracket) >= 2:
+                seri.append(bracket)
+            in_bracket, bracket = False, []
             continue
         num = None
         leg = None
@@ -223,6 +246,8 @@ def parse_narabi(html: str) -> dict:
         if leg:
             legs[num] = leg
         cur.append(num)
+        if in_bracket:
+            bracket.append(num)
     if cur:
         lines.append(cur)
-    return {"order": order, "legs": legs, "lines": lines}
+    return {"order": order, "legs": legs, "lines": lines, "seri": seri}
