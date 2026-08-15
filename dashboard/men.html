@@ -72,7 +72,7 @@ table.t tr:last-child td{border-bottom:none}
 .rtag.axis{background:var(--good-soft);color:var(--good)}
 .rtag.std{background:var(--edge-soft);color:var(--edge)}
 .rtag.chaos{background:var(--accent-soft);color:var(--accent)}
-/* 波乱確率バッジ。しきい値は実測波乱率（軸堅16.4%/標準43.9%/混戦63.9%）に合わせた */
+/* 万車券率バッジ。しきいは実測（男子7車27.1%）を中心に lo<21% / mid<34% / hi */
 .upt{display:inline-block;font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;
   white-space:nowrap;font-variant-numeric:tabular-nums}
 .upt.lo{background:var(--good-soft);color:var(--good)}
@@ -291,6 +291,16 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .rtab.done{opacity:.55}
 .rtab.live{border-color:var(--edge);box-shadow:inset 0 0 0 1px var(--edge)}
 .rtab[aria-selected="true"].live{box-shadow:none}
+/* 万車券率のバッジ。選択中タブでも読めるよう背景は自前で持つ（親の反転色に負けない） */
+.rtab .rt-up{margin-top:1px;font-size:.56rem;font-weight:800;border-radius:999px;
+  padding:0 4px;font-variant-numeric:tabular-nums}
+.rtab .rt-up.lo{background:var(--good-soft);color:var(--good)}
+.rtab .rt-up.mid{background:var(--edge-soft);color:var(--edge)}
+.rtab .rt-up.hi{background:var(--accent-soft);color:var(--accent)}
+.rtab .rt-up.na{background:var(--surface2);color:var(--muted)}
+.tablegend{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:0 0 6px;
+  font-size:.6rem;color:var(--muted);font-weight:700}
+.tablegend .upt{font-size:.55rem;padding:1px 6px}
 .tabhead{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:2px 0 7px;
   font-size:.7rem;color:var(--muted);font-weight:700}
 .tabhead .nm{font-size:.92rem;font-weight:800;color:var(--ink)}
@@ -1615,11 +1625,22 @@ function bootMen(DB){
             +`<small>${nx?`次${nx.race_no}R ${esc(nx.deadline||"")}`:"終了"}</small></button>`;
         }).join("")
       + `</div>`;
+    // レースタブに万車券率を出す。どのレースが荒れやすいかを開かずに俯瞰するため。
+    // 色は .upt と同じ lo/mid/hi。検証を通していない層（9車）は値が無いので「—」。
     h += `<div class="tabbar" role="tablist" aria-label="レース切替">`
-      + rs.map(r=>`<button class="rtab ${status(r)}" type="button" role="tab" data-race="${r.race_no}"`
-          +` aria-selected="${r.race_no===selRace?"true":"false"}">${r.race_no}R`
-          +`<small>${esc(r.deadline||"--")}</small></button>`).join("")
+      + rs.map(r=>{
+          const u = upsetOf(r);
+          return `<button class="rtab ${status(r)}" type="button" role="tab" data-race="${r.race_no}"`
+            +` aria-selected="${r.race_no===selRace?"true":"false"}"`
+            +` title="${r.race_no}R 締切${esc(r.deadline||"--")}｜万車券率 ${u==null?"—":pct1(u)}">`
+            +`${r.race_no}R<small>${esc(r.deadline||"--")}</small>`
+            +`<small class="rt-up ${uptCls(u)}">${u==null?"—":Math.round(u*100)+"%"}</small>`
+            +`</button>`;
+        }).join("")
       + `</div>`;
+    h += `<div class="tablegend">レース番号の下は<b>万車券率</b>（払戻1万円以上の確率・実測較正）`
+      + `<span class="upt lo">低</span><span class="upt mid">中</span><span class="upt hi">高</span>`
+      + `<span class="upt na">—</span>9車は未検証</div>`;
     h += `<div class="tabhead"><span class="nm">${esc(short(selVenue||""))}</span>`
       + ((rs[0]||{}).grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
       + ((rs[0]||{}).class_group?`<span>${esc(rs[0].class_group)}</span>`:"")
