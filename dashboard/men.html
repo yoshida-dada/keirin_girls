@@ -773,20 +773,19 @@ function badge(st){ const b=STATUS_BADGE[st]||STATUS_BADGE.pending;
   return `<span class="badge ${b[0]}">${b[1]}</span>`; }
 function isShown(st){ return st==="sample"||st==="ready"||st==="ok"; }
 const rtagCls = t => t==="軸堅"?"axis":(t==="混戦"?"chaos":"std");
-// これは 1−P(◎1着)＝**◎が1着を外す確率**であって「万車券になる確率」ではない。
-// 以前は「波乱確率」と表示していたが、男子25,335Rの実測と突き合わせると
-// 平均57.97% に対し万車券率の実測は28.91%＝**約2倍を波乱として出していた**。
-// 量として間違っていたのではなく、名前が量と食い違っていた。名前を実体に合わせる。
-// 万車券率そのもの（upset_prob）は src/model/upset.py で計算しているが、
-// 車立てで層別すると9車が実測45.4%に対し65.8%と過大で、まだ検証を通していない。
-// 通るまでは万車券率として表示しない（scripts/validate_upset_prob.py）。
-const upsetOf = r => { const t = (r.top1_prob!=null) ? r.top1_prob
-    : ((r.riders && r.riders[0] && r.riders[0].win_prob) != null ? r.riders[0].win_prob : null);
-  return t==null ? null : 1-t; };
-const uptCls = u => u==null ? "na" : (u<0.30 ? "lo" : (u<0.55 ? "mid" : "hi"));
-const UPT_TIP = "◎（1着確率トップ）が1着を外す確率。"
-  + "過去3477レースの検証で較正済み（実勢は表示値より約2pt低め）。"
-  + "**万車券になる確率ではない**（万車券率の実測は全体28.4%で、この値とは別物）。";
+// 波乱確率＝**万車券率**（三連単の払戻が1万円以上になる確率）。
+// 旧表示は 1−P(◎1着)＝「◎が1着を外す確率」を「波乱確率」と称していた。男子25,335Rの
+// 実測に対し 平均57.98% vs 万車券率の実測28.92% ＝ 約2倍を波乱として出していた。
+// 現行は モデルの三連単分布のうち、実測から推定したしきい値以下の目の確率を合計する。
+// **検証を通していない層（男子9車）は upset_prob 自体が入らない** ので「—」になる。
+// 男子7車: 予測26.8% / 実測27.0% / ECE 0.0148（src/model/upset.py）
+const upsetOf = r => (r.upset_prob!=null ? r.upset_prob : null);
+// しきいは実測の万車券率（男子7車 27.0%）を中心に置く。旧しきい0.30/0.55は旧指標の尺度
+const uptCls = u => u==null ? "na" : (u<0.21 ? "lo" : (u<0.34 ? "mid" : "hi"));
+const UPT_TIP = "万車券率＝三連単の払戻が1万円以上になる確率。"
+  + "男子7車20,722レースの実測(27.1%)から較正（walk-forward: ECE 0.015・定数予測よりBrier良）。"
+  + "9車は標本が薄く事前基準を満たさなかったため表示しない（—）。"
+  + "高い＝荒れやすいが、その荒れはオッズにも織り込み済みで穴狙いの根拠にはならない。";
 const uptTag = u => u==null ? `<span class="upt na">—</span>`
   : `<span class="upt ${uptCls(u)}" title="${UPT_TIP}">${pct1(u)}</span>`;
 function emptyBox(msg){ return `<div class="empty">${esc(msg)}</div>`; }
@@ -1074,7 +1073,7 @@ function raceHead(r){
     +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
     +`<span class="pred-src">${esc(r.source||"")}</span>`
     +`</div>`
-    +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　◎が1着を外す確率 ${uptTag(up)}`
+    +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　万車券率 ${uptTag(up)}`
     +`　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`;
 }
 // 予測タブの中身（出走表・対戦・三連単モデル確率・EV買い目・オッズテーブル）
