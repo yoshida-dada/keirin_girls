@@ -169,9 +169,13 @@ table.rt th.l,table.rt td.l{text-align:left}
 table.rt td.strong,table.rt th.strong{font-weight:800}
 table.rt td.strong{color:var(--ink);font-size:.84rem}
 table.rt td s{color:var(--muted);text-decoration:none;font-size:.82em;font-weight:700;margin-left:2px}
-table.rt th.rt-car,table.rt td.rt-car{position:sticky;left:0;z-index:2;width:30px;min-width:30px;text-align:center;padding-left:4px;padding-right:4px;background:var(--surface)}
+/* 横スクロールで残す固定列は 印→車→選手 の3つ。left は前の列幅の累積（22→52px）。
+   印を足したときにここを直さないと、スクロール時に列が重なる */
+table.rt th.rt-mk,table.rt td.rt-mk{position:sticky;left:0;z-index:2;width:22px;min-width:22px;text-align:center;padding-left:2px;padding-right:2px;background:var(--surface)}
+table.rt th.rt-mk{z-index:3;background:var(--surface2)}
+table.rt th.rt-car,table.rt td.rt-car{position:sticky;left:22px;z-index:2;width:30px;min-width:30px;text-align:center;padding-left:4px;padding-right:4px;background:var(--surface)}
 table.rt th.rt-car{z-index:3;background:var(--surface2)}
-table.rt th.rt-name,table.rt td.rt-name{position:sticky;left:30px;z-index:2;background:var(--surface);font-weight:800;vertical-align:top}
+table.rt th.rt-name,table.rt td.rt-name{position:sticky;left:52px;z-index:2;background:var(--surface);font-weight:800;vertical-align:top}
 table.rt td.rt-name{padding-top:6px}
 table.rt th.rt-name{z-index:3;background:var(--surface2)}
 /* 出走表に統合した今場所成績（選手名の下） */
@@ -267,6 +271,29 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .mk{flex:none;display:inline-flex;align-items:center;justify-content:center;
   min-width:1.05em;font-weight:800;font-size:.72rem;line-height:1}
 .mk.mk1{color:#e8590c} .mk.mk2{color:#1c7ed6} .mk.mk3{color:#2f9e44} .mk.mk4{color:var(--muted)}
+/* ---- ウィンチケット風の2段タブ（会場→レース）。上部に固定してレースを切り替える ---- */
+.tabwrap{position:sticky;top:0;z-index:25;background:var(--bg);
+  padding-top:6px;margin:0 -14px;padding-left:14px;padding-right:14px;
+  box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
+.tabbar{display:flex;gap:6px;overflow-x:auto;padding:0 0 6px;
+  scrollbar-width:none;-ms-overflow-style:none}
+.tabbar::-webkit-scrollbar{display:none}
+.vtab,.rtab{flex:none;display:inline-flex;flex-direction:column;align-items:center;gap:1px;
+  border:1px solid var(--border);background:var(--surface);color:var(--ink);
+  border-radius:10px;padding:4px 10px;font-weight:800;cursor:pointer;white-space:nowrap;
+  font-family:inherit;line-height:1.15}
+.vtab{font-size:.76rem}
+.rtab{font-size:.8rem;min-width:2.9em}
+.vtab small,.rtab small{font-size:.55rem;font-weight:700;color:var(--muted)}
+.vtab[aria-selected="true"],.rtab[aria-selected="true"]{
+  background:var(--accent);border-color:var(--accent);color:#fff}
+.vtab[aria-selected="true"] small,.rtab[aria-selected="true"] small{color:rgba(255,255,255,.85)}
+.rtab.done{opacity:.55}
+.rtab.live{border-color:var(--edge);box-shadow:inset 0 0 0 1px var(--edge)}
+.rtab[aria-selected="true"].live{box-shadow:none}
+.tabhead{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:2px 0 7px;
+  font-size:.7rem;color:var(--muted);font-weight:700}
+.tabhead .nm{font-size:.92rem;font-weight:800;color:var(--ink)}
 .rt-mk{width:1.4em;text-align:center;padding-left:2px;padding-right:2px}
 .dev-pats{display:flex;flex-direction:column;gap:5px}
 .dev-pat{display:flex;align-items:center;gap:8px;font-size:.72rem}
@@ -746,15 +773,20 @@ function badge(st){ const b=STATUS_BADGE[st]||STATUS_BADGE.pending;
   return `<span class="badge ${b[0]}">${b[1]}</span>`; }
 function isShown(st){ return st==="sample"||st==="ready"||st==="ok"; }
 const rtagCls = t => t==="軸堅"?"axis":(t==="混戦"?"chaos":"std");
-// 波乱確率＝1−P(◎1着)。◎＝1着確率トップの選手。out-of-sample 3477レース/5foldで
-// 単調較正を確認済み（予測35.3% vs 実33.1%）＝実勢は表示値より約2pt低い。
+// これは 1−P(◎1着)＝**◎が1着を外す確率**であって「万車券になる確率」ではない。
+// 以前は「波乱確率」と表示していたが、男子25,335Rの実測と突き合わせると
+// 平均57.97% に対し万車券率の実測は28.91%＝**約2倍を波乱として出していた**。
+// 量として間違っていたのではなく、名前が量と食い違っていた。名前を実体に合わせる。
+// 万車券率そのもの（upset_prob）は src/model/upset.py で計算しているが、
+// 車立てで層別すると9車が実測45.4%に対し65.8%と過大で、まだ検証を通していない。
+// 通るまでは万車券率として表示しない（scripts/validate_upset_prob.py）。
 const upsetOf = r => { const t = (r.top1_prob!=null) ? r.top1_prob
     : ((r.riders && r.riders[0] && r.riders[0].win_prob) != null ? r.riders[0].win_prob : null);
   return t==null ? null : 1-t; };
 const uptCls = u => u==null ? "na" : (u<0.30 ? "lo" : (u<0.55 ? "mid" : "hi"));
-const UPT_TIP = "波乱確率＝◎（1着確率トップ）が1着を外す確率。"
+const UPT_TIP = "◎（1着確率トップ）が1着を外す確率。"
   + "過去3477レースの検証で較正済み（実勢は表示値より約2pt低め）。"
-  + "高い＝荒れやすいが、その荒れはオッズにも織り込み済みで穴狙いの根拠にはならない。";
+  + "**万車券になる確率ではない**（万車券率の実測は全体28.4%で、この値とは別物）。";
 const uptTag = u => u==null ? `<span class="upt na">—</span>`
   : `<span class="upt ${uptCls(u)}" title="${UPT_TIP}">${pct1(u)}</span>`;
 function emptyBox(msg){ return `<div class="empty">${esc(msg)}</div>`; }
@@ -1029,9 +1061,10 @@ function omBlock(r){
 }
 
 function raceHead(r){
-  // upsetOf と同じ優先順で取る（1着確率と波乱確率が必ず足して100%になるように）
+  // 万車券率は1着確率と足して100%にはならない別の量。top1 は自前で取る
   const up = upsetOf(r);
-  const top1 = up!=null ? 1-up : 0;
+  const top1 = (r.top1_prob!=null) ? r.top1_prob
+    : ((r.riders && r.riders[0] && r.riders[0].win_prob)!=null ? r.riders[0].win_prob : null);
   return `<div class="pred-rhead">`
     +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
     +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
@@ -1041,7 +1074,7 @@ function raceHead(r){
     +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
     +`<span class="pred-src">${esc(r.source||"")}</span>`
     +`</div>`
-    +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　波乱確率 ${uptTag(up)}`
+    +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　◎が1着を外す確率 ${uptTag(up)}`
     +`　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`;
 }
 // 予測タブの中身（出走表・対戦・三連単モデル確率・EV買い目・オッズテーブル）
@@ -1509,7 +1542,7 @@ function bootMen(DB){
   const today = P.date||"";
   const dates = [...new Set(all.map(r=>r.date).filter(Boolean))].sort();
   let selDate = dates.includes(today) ? today : (dates[0]||null);
-  let view = "venues", selVenue = null, selRace = null, rcOverride = null;
+  let selVenue = null, selRace = null, rcOverride = null;
 
   const DOW=["日","月","火","水","木","金","土"];
   const dlabel = d => { const t=new Date(d+"T00:00:00Z");
@@ -1545,116 +1578,57 @@ function bootMen(DB){
       String(a[1][0].deadline||"~").localeCompare(String(b[1][0].deadline||"~")));
   }
 
-  function renderVenues(races){
-    const vs = byVenue(races);
-    const st = races.map(status);
-    const nSt = k => st.filter(x=>x===k).length;
-    let h = `<div class="daysum"><span>開催 <b>${vs.length}</b>場</span>`
-      + `<span>全 <b>${races.length}</b>R</span>`
-      + `<span>済 <b>${nSt("done")}</b></span>`
-      + `<span>発売中 <b>${nSt("live")}</b></span>`
-      + (nSt("wait")?`<span>結果待ち <b>${nSt("wait")}</b></span>`:"")
-      + `<span>未発売 <b>${nSt("yet")}</b></span></div>`;
-    h += vs.map(([v,rs])=>{
-      const s = rs.map(status);
-      // 進捗バーは3色。結果待ちは「進行中」側に入れる（発売前ではないため）
-      const d=s.filter(x=>x==="done").length, y=s.filter(x=>x==="yet").length,
-            l=s.length-d-y, nw=s.filter(x=>x==="wait").length;
-      const w = n => (n/rs.length*100).toFixed(2)+"%";
-      const byTime = rs.slice().sort((a,b)=>
-        String(a.deadline||"~").localeCompare(String(b.deadline||"~")));
-      // 「次のレース」は買えるものを指す。結果待ちを次扱いにしない
-      const nxt = byTime.find(r=>{ const t=status(r); return t==="live"||t==="yet"; });
-      const bp = rs[0].bank_profile||{};
-      // 注目レース: 未確定があれば波乱確率が最大のもの、全確定なら最高配当
-      let pick=null, plabel="", pval="";
-      const undone = rs.filter(r=>status(r)!=="done");
-      if(undone.length){
-        pick = undone.reduce((a,b)=>((b.top1_prob||1)<(a.top1_prob||1)?b:a));
-        plabel="注目"; pval=`<span class="upt ${uptCls(1-(pick.top1_prob||0))}">波乱 ${pct1(1-(pick.top1_prob||0))}</span>`;
-      } else {
-        const paid = rs.filter(r=>(r.result||{}).payout);
-        if(paid.length){ pick = paid.reduce((a,b)=>(((b.result.payout||{}).yen||0)>((a.result.payout||{}).yen||0)?b:a));
-          plabel="最高配当"; pval=`<b>¥${((pick.result.payout||{}).yen||0).toLocaleString()}</b>`; }
-      }
-      const rd0 = pick ? ((pick.riders||[])[0]||{}) : {};
-      return `<div class="vcard" role="button" tabindex="0" data-venue="${esc(v)}">`
-        +`<div class="vc-h"><span class="vc-name">${esc(short(v))}</span>`
-        +(rs[0].grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
-        +(rs[0].class_group?`<span class="vc-cls">${esc(rs[0].class_group)}</span>`:"")
-        +`<span class="vc-arrow">›</span></div>`
-        +(rs[0].meet_name?`<div class="vc-spec">${esc(rs[0].meet_name)}</div>`:"")
-        +`<div class="vc-spec">${bp.bank?`${esc(bp.bank)}mバンク・みなし直線${esc(bp.straight)}m・`:""}全${rs.length}R</div>`
-        +`<div class="prog"><span class="done" style="width:${w(d)}"></span>`
-        +`<span class="live" style="width:${w(l)}"></span><span class="yet" style="width:${w(y)}"></span></div>`
-        +`<div class="vc-legend"><span><i style="background:var(--good)"></i>済 ${d}</span>`
-        +`<span><i style="background:var(--edge)"></i>進行中 ${l}${nw?`(結果待ち${nw})`:""}</span>`
-        +`<span><i style="background:var(--border)"></i>未発売 ${y}</span></div>`
-        +(nxt?`<div class="vc-next">⏱ 次 <b>${nxt.race_no}R</b> 締切 ${esc(nxt.deadline||"--")}`
-          +(mins(nxt)!=null&&mins(nxt)<=15&&mins(nxt)>=-5?`<span class="vc-soon">締切間近</span>`
-            :`<span style="color:var(--muted);font-weight:600">${relTime(mins(nxt))}</span>`)+`</div>`
-          :`<div class="vc-next">🏁 本日の発売は終了${nw?`（結果待ち ${nw}R）`:""}</div>`)
-        +(pick?`<div class="vc-pick"><span class="lbl">${plabel}</span>`
-          +`<b>${pick.race_no}R</b>${pval}`
-          +(rd0.car!=null?`<span class="rtag ${rtagCls(pick.race_type)}">${esc(pick.race_type||"")}</span>`
-            +carChip(rd0.car)+`<span class="rr-nm">${esc(rd0.name||"")}</span>`:"")+`</div>`:"")
-        +`</div>`;
-    }).join("");
-    return h;
-  }
-
-  function renderRaces(races){
+  // ---- 上部固定の2段タブ（会場→レース）。1レースだけを縦に全部出す ----
+  // 会場カードの階層を廃止し、切り替えを画面上部に集約する。同時開催が十数場あるので
+  // 「会場を選ぶ→その会場のRを選ぶ」の2段にする（全会場のRを1本に並べると混ざる）。
+  function pickDefault(races){
+    if(!races.length){ selVenue=selRace=null; return; }
+    const has = races.some(r=>r.venue===selVenue);
+    if(!has) selVenue=null;
+    if(!selVenue){
+      // 既定は「次に買える会場」。全部終わっていれば最後に締め切った会場
+      const live = races.filter(r=>{const t=status(r);return t==="live"||t==="yet";})
+        .sort((a,b)=>String(a.deadline||"~").localeCompare(String(b.deadline||"~")));
+      selVenue = (live[0] || races[races.length-1]).venue;
+      selRace = null;
+    }
     const rs = races.filter(r=>r.venue===selVenue).sort((a,b)=>(a.race_no||0)-(b.race_no||0));
-    if(!rs.length) return emptyBox("この会場のレースがありません。");
-    const bp = rs[0].bank_profile||{};
-    const done = rs.filter(r=>status(r)==="done");
-    const hit = done.filter(r=>((r.result||{}).hit||{}).win_hit).length;
-    let h = `<div class="mv-back"><button type="button" data-back="venues">← 会場一覧</button>`
-      +`<span class="cur">${esc(dlabel(selDate))}</span></div>`;
-    h += `<div class="vhead"><div class="vc-h"><span class="vc-name">${esc(short(selVenue))}</span>`
-      +(rs[0].grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
-      +(rs[0].class_group?`<span class="vc-cls">${esc(rs[0].class_group)}</span>`:"")
-      +`<span class="vc-cls">済 ${done.length}/${rs.length}R</span>`
-      +(done.length?`<span class="vc-cls">◎的中 ${hit}/${done.length}</span>`:"")+`</div>`
-      +(bp.bank?`<div class="vc-spec">${esc(bp.bank)}m周長・みなし直線${esc(bp.straight)}m`
-        +(bp.cant!=null?`・カント${esc(bp.cant)}°`:"")+`</div>`:"")
-      +`</div>`;
-    h += rs.map(r=>{
-      const s=status(r), rd0=(r.riders||[])[0]||{};
-      const lbl={done:"済",live:"発売中",wait:"結果待ち",yet:"未発売"}[s];
-      let mid;
-      if(s==="done"){
-        const o=(r.result.order||[]).slice(0,3), pay=(r.result.payout||{});
-        mid = `<div class="rr-l1">${r.race_name?`<span class="vc-cls">${esc(r.race_name)}</span>`:""}`
-          +`◎ ${carChip(rd0.car)}<span class="rr-nm">${esc(rd0.name||"")}</span>`
-          +(((r.result.hit||{}).win_hit)?`<span class="rr-st done">的中</span>`:"")+`</div>`
-          +`<div class="rr-l2">${o.map(x=>carChip(x.car)).join("")}`
-          +(pay.combo?`<span>${esc(pay.combo)}</span><span class="rr-pay">¥${(pay.yen||0).toLocaleString()}</span>`:"")+`</div>`;
-      } else {
-        mid = `<div class="rr-l1">${r.race_name?`<span class="vc-cls">${esc(r.race_name)}</span>`:""}`
-          +`◎ ${carChip(rd0.car)}<span class="rr-nm">${esc(rd0.name||"")}</span></div>`
-          +`<div class="rr-l2"><span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"")}</span>`
-          +`<span>1着 ${pct1(r.top1_prob)}</span>`
-          +`<span class="upt ${uptCls(1-(r.top1_prob||0))}">波乱 ${pct1(1-(r.top1_prob||0))}</span>`
-          +`<span>${r.field_size}車</span></div>`;
-      }
-      return `<div class="rrow ${s==='live'?'live':''}" role="button" tabindex="0" data-race="${r.race_no}">`
-        +`<div class="rr-no"><b>${r.race_no}</b><small>${esc(r.deadline||"--")}</small></div>`
-        +`<div class="rr-mid">${mid}</div>`
-        +`<div class="rr-st ${s}">${lbl}</div></div>`;
-    }).join("");
-    h += `<button class="backfoot" type="button" data-back="venues">← 会場一覧へ戻る</button>`;
-    return h;
+    if(!rs.some(r=>r.race_no===selRace)){
+      const nxt = rs.find(r=>{const t=status(r);return t==="live"||t==="yet";});
+      const pick = nxt || rs[rs.length-1];       // `??` は使わない（esprima が未対応）
+      selRace = pick ? pick.race_no : null;
+    }
   }
 
-  function renderRace(races){
-    const r = races.find(x=>x.venue===selVenue && x.race_no===selRace);
-    if(!r) return emptyBox("レースが見つかりません。");
-    return `<div class="mv-back"><button type="button" data-back="races">← ${esc(short(selVenue))}</button>`
-      +`<button type="button" data-back="venues">会場一覧</button>`
-      +`<span class="cur">${r.race_no}R ${esc(r.deadline||"")}</span></div>`
-      + raceBlock(r, rcOverride || ((r.result&&(r.result.order||[]).length)?"res":"pred"))
-      + `<button class="backfoot" type="button" data-back="races">← ${esc(short(selVenue))}のレース一覧へ</button>`;
+  function renderTabs(races){
+    const vs = byVenue(races);
+    const rs = races.filter(r=>r.venue===selVenue).sort((a,b)=>(a.race_no||0)-(b.race_no||0));
+    const cur = rs.find(r=>r.race_no===selRace);
+    const bp = (rs[0]||{}).bank_profile||{};
+    const done = rs.filter(r=>status(r)==="done").length;
+    let h = `<div class="tabwrap">`;
+    h += `<div class="tabbar" role="tablist" aria-label="会場切替">`
+      + vs.map(([v,vr])=>{
+          const nx = vr.slice().sort((a,b)=>String(a.deadline||"~").localeCompare(String(b.deadline||"~")))
+            .find(r=>{const t=status(r);return t==="live"||t==="yet";});
+          return `<button class="vtab" type="button" role="tab" data-venue="${esc(v)}"`
+            +` aria-selected="${v===selVenue?"true":"false"}">${esc(short(v))}`
+            +`<small>${nx?`次${nx.race_no}R ${esc(nx.deadline||"")}`:"終了"}</small></button>`;
+        }).join("")
+      + `</div>`;
+    h += `<div class="tabbar" role="tablist" aria-label="レース切替">`
+      + rs.map(r=>`<button class="rtab ${status(r)}" type="button" role="tab" data-race="${r.race_no}"`
+          +` aria-selected="${r.race_no===selRace?"true":"false"}">${r.race_no}R`
+          +`<small>${esc(r.deadline||"--")}</small></button>`).join("")
+      + `</div>`;
+    h += `<div class="tabhead"><span class="nm">${esc(short(selVenue||""))}</span>`
+      + ((rs[0]||{}).grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
+      + ((rs[0]||{}).class_group?`<span>${esc(rs[0].class_group)}</span>`:"")
+      + (bp.bank?`<span>${esc(bp.bank)}m・直線${esc(bp.straight)}m</span>`:"")
+      + `<span>済 ${done}/${rs.length}R</span>`
+      + (cur&&cur.race_name?`<span>${esc(cur.race_name)}</span>`:"")
+      + `</div></div>`;
+    return h;
   }
 
   function render(){
@@ -1668,27 +1642,33 @@ function bootMen(DB){
           +`<span class="vc">${all.filter(r=>r.date===d).length}R</span></button>`).join("")
         + `</div>`;
     }
-    html += view==="venues" ? renderVenues(races)
-          : view==="races"  ? renderRaces(races)
-          : renderRace(races);
+    pickDefault(races);
+    if(!selVenue){
+      html += emptyBox("この日のレースがありません。");
+    }else{
+      const r = races.find(x=>x.venue===selVenue && x.race_no===selRace);
+      html += renderTabs(races)
+        + (r ? raceBlock(r, rcOverride || ((r.result&&(r.result.order||[]).length)?"res":"pred"))
+             : emptyBox("レースが見つかりません。"));
+    }
     host.innerHTML = html;
     attach();
   }
 
   function attach(){
     host.querySelectorAll("[data-mdate]").forEach(b=>b.addEventListener("click",()=>{
-      selDate=b.dataset.mdate; view="venues"; selVenue=null; render(); window.scrollTo(0,0);
+      selDate=b.dataset.mdate; selVenue=null; selRace=null; rcOverride=null;
+      render(); window.scrollTo(0,0);
     }));
     const go=(el,fn)=>{ el.addEventListener("click",fn);
       el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); fn(); } }); };
+    // 会場を変えたらレースは選び直す（同じR番号が別会場にもあるので引き継がない）
     host.querySelectorAll("[data-venue]").forEach(el=>go(el,()=>{
-      selVenue=el.dataset.venue; view="races"; render(); window.scrollTo(0,0);
+      selVenue=el.dataset.venue; selRace=null; rcOverride=null; render(); window.scrollTo(0,0);
     }));
+    // レース切替はタブ位置を保ちたいので先頭へは戻さない（切替のたびに飛ぶと使いにくい）
     host.querySelectorAll("[data-race]").forEach(el=>go(el,()=>{
-      selRace=+el.dataset.race; view="race"; rcOverride=null; render(); window.scrollTo(0,0);
-    }));
-    host.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>{
-      view=b.dataset.back; if(view==="venues") selVenue=null; rcOverride=null; render(); window.scrollTo(0,0);
+      selRace=+el.dataset.race; rcOverride=null; render();
     }));
     // 予測／確定結果 タブ（レース詳細内）。スクロール位置は動かさない
     host.querySelectorAll(".rc-tab").forEach(t=>{
