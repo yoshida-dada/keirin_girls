@@ -514,6 +514,12 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
   font-variant-numeric:tabular-nums}
 .ft-pts,.ft-cov{font-size:.58rem;font-weight:700;color:var(--muted)}
 .ft-cov{margin-left:auto}
+
+.bk>summary{cursor:pointer;font-size:.7rem;font-weight:800;color:var(--ink);padding:2px 0}
+.bk>summary::-webkit-details-marker{display:none}
+.ln-base{font-size:.6rem;font-weight:700;color:var(--muted)}
+.cd>summary{cursor:pointer;font-size:.64rem;font-weight:800;color:var(--muted);padding:3px 0}
+.cd>summary::-webkit-details-marker{display:none}
 /* 男子: 展開分岐の条件付き着順 */
 .cd{margin-top:8px;border-top:1px dashed var(--border2);padding-top:7px}
 .cd-row{padding:6px 0}
@@ -1053,8 +1059,7 @@ function typesHtml(b, pc){
       +`</div>`;
   }).join("");
   return `<div class="ft">`
-    +`<div class="ft-h">◎の置き場所ごとの買い目`
-    +`<span class="ft-note">確率＝その形になる確率 / 型内＝その形になったとき当たる確率</span></div>`
+    +`<div class="ft-h">◎の置き場所ごとの買い目</div>`
     + rows + `</div>`;
 }
 
@@ -1066,7 +1071,7 @@ function condHtml(b, nm, pc){
     +`<span class="ln-nm">${esc(x.name||"")}</span>`
     +`<span class="cd-role">${esc(x.role||"")}</span>`
     +`<span class="cd-p">${pc(x.prob)}</span></span>`).join("");
-  return `<div class="cd">`
+  return `<details class="cd"><summary>勝者別の2着・3着</summary>`
     + C.map(cd=>`<div class="cd-row">`
         +`<div class="cd-h">${carChip(cd.car)}`
         +`<span class="cd-nm">${esc(cd.name||"")}</span>`
@@ -1077,7 +1082,7 @@ function condHtml(b, nm, pc){
         +`<div class="cd-line"><span class="cd-lbl">3着</span>${cars(cd.third)}`
         +`<span class="cd-in">ライン内 ${pc(cd.third_inline)}</span></div>`
         +`</div>`).join("")
-    +`</div>`;
+    +`</details>`;
 }
 
 function branchBlock(r){
@@ -1110,14 +1115,9 @@ function branchBlock(r){
   }).join("");
   return `<details class="br" open><summary>🔀 展開分岐と買い目`
     +`<span class="upt mid">上位${B.branches.length}分岐で${pc(B.covered)}</span></summary>`
-    +`<div class="br-note">主導権を誰が取るかで場合分けし、その展開を条件にした着順分布から`
-    +`買い目を組んでいます。主導権の予測は<b>${pc(B.hit_rate)}的中</b>`
-    +`（記者の並び予想の先頭49%・直近B回数の最大56%を上回る）。`
-    +`買い目の「カバー」は<b>その買い方でその展開が当たる確率</b>で、回収率ではありません。</div>`
+
     +rows
-    +`<div class="br-warn">⚠ <b>これは買い目の推奨ではありません。</b>`
-    +`回収率が100%を超えるゾーンは検証済みで存在しません`
-    +`（全点均等買いROI 58.0%・控除率25%で上限75%）。展開の読みと紐選びの材料としてご覧ください。</div>`
+    +`<div class="br-warn">⚠ 買い目の推奨ではありません（回収率100%超のゾーンは無いと検証済み）</div>`
     +`</details>`;
 }
 
@@ -1154,19 +1154,10 @@ function lineBlock(r){
   }).join("");
   const base = S.settle_baseline;
   return `<details class="ln" open><summary>🔗 ライン別の強さ`
-    +(settle!=null?`<span class="upt ${sCls}">ライン決着 ${pc(settle)}</span>`:"")+`</summary>`
-    +`<div class="ln-note">1着確率＝ライン内の各車の1着確率の合計（全ライン合計＝100%）。`
-    +`ライン決着＝1着と2着をこのラインで独占する確率。`
-    +`いずれもこのレースのモデル三連単分布からの算出で、買い目の確率と同じ物差し。</div>`
-    +(S.settle_bias_note?`<div class="ln-warn">⚠ <b>ライン決着確率は低めに出ます。</b>`
-      +esc(S.settle_bias_note)
-      +(base!=null?`<br>実測の全体基準: <b>${pc(base)}</b>（男子25,155レース）。`
-        +`このレースのモデル値 ${pc(settle)} と並べて読んでください。`:"")+`</div>`:"")
+    +(settle!=null?`<span class="upt ${sCls}">ライン決着 ${pc(settle)}</span>`:"")
+    +(base!=null?`<span class="ln-base">実測基準 ${pc(base)}</span>`:"")+`</summary>`
+
     +rows
-    +`<div class="ln-hist">📊 実測(男子25,134R): 1着は<b>強いラインの先頭</b>に集中（強度1位の先頭33.2%＝ランダムの2.3倍）。`
-    +`3着内では<b>最強ラインの番手65%が先頭66%とほぼ同格</b>＝紐として同価値。`
-    +`3番手はどのラインでも1着がほぼ無い(1.8〜3.7%)が、最強ラインなら3着内44%で紐にはなる。`
-    +`2名ラインは1人あたり1着率がランダム未満（有利になるのは3名以上）。</div>`
     +`</details>`;
 }
 
@@ -1267,9 +1258,8 @@ function devBlock(r){
   }
   return `<div class="dev">`
     +`<div class="dev-head">🔀 展開予想 <span class="dev-src">${esc(D.source||"")}</span></div>`
-    +bankBlock(r) + narabi + bsBlock + paceBlock + patBlock + scenarioBlock(r)
-    +(D.note?`<div class="dev-note">${esc(D.note)}</div>`:"")
-    +(D.caveat?`<div class="dev-caveat">※ ${esc(D.caveat)}</div>`:"")
+    +bankBlock(r) + narabi + paceBlock
+
     +`</div>`;
 }
 // バンク特性（諸元＋統計的な有利脚質）。予測根拠ではなく「どういうバンクか」の説明。
@@ -1281,7 +1271,7 @@ function bankBlock(r){
   const advCls = adv.leg ? (adv.leg.indexOf("先行")>=0?"esc":(adv.leg.indexOf("差")>=0?"sas":"mak")) : "flat";
   const chips = (B.traits||[]).map(t=>`<span class="bk-chip">${esc(t)}</span>`).join("");
   const br = B.b_reliability;
-  return `<div class="bk">`
+  return `<details class="bk"><summary>バンク特性</summary><div class="bk-body">`
     +`<div class="bk-head">🏟 バンク特性 <span class="bk-v">${esc(B.venue||"")}</span></div>`
     +`<div class="bk-nums">`
     +`<span><b>${B.bank}</b>m<em>周長</em></span>`
@@ -1293,11 +1283,7 @@ function bankBlock(r){
     +`<div class="bk-kim">このバンク全体（${(B.bank_n||0).toLocaleString()}レース）　${kim(B.bank_kimarite)}</div>`
     +(B.venue_kimarite?`<div class="bk-kim sub">当会場のみ（${B.venue_n}レース・参考）　${kim(B.venue_kimarite)}</div>`:"")
     +(br?`<div class="bk-kim">主導権を取った車　連対 ${br.rentai}%・着外 ${br.gaiji}%</div>`:"")
-    +`<div class="dev-caveat">※ 有利脚質はバンク別の実測決まり手（標本が大きく安定）に基づく`
-    +`表示です。会場別の数値は標本が薄いため参考値。`
-    +`みなし直線・カントは形状の説明であり、<b>決まり手の予測には使えない</b>ことを検証済み`
-    +`（同一周長内では無相関）。</div>`
-    +`</div>`;
+    +`</div></details>`;
 }
 // 展開6パターンの構成比（ドーナツ）。上位3だけでは全体像が見えないので全形を出す。
 // 配色は dataviz 検証済みの6スロット固定順。lightで3:1未満の色があるため
@@ -1618,8 +1604,8 @@ function bootMen(DB){
 
   function render(){
     const races = all.filter(r=>r.date===selDate);
-    let html = `<div class="pred-disc">⚠ 男子競輪の着順（1着）確率と三連単モデル確率の提示です。`
-      +`買い目の推奨ではありません。三連単は素のPlackett-Luce（紐補正なし）です。</div>`;
+    // 「紐補正なし」とは書かない。A-3で男子専用パラメータを採用済みで、事実と食い違うため。
+    let html = `<div class="pred-disc">⚠ 着順確率の提示です。買い目の推奨ではありません。</div>`;
     if(dates.length>1){
       html += `<div class="pred-dtabs" role="tablist" aria-label="日付切替">`
         + dates.map(d=>`<button class="pred-dtab" type="button" role="tab" data-mdate="${esc(d)}"`
@@ -1657,14 +1643,10 @@ function bootMen(DB){
   }
   render();
 
+  // 説明文は置かない。ここは「買い目ではない」ことだけを残す（消すと買い目に見えるため）。
   document.getElementById("foot").innerHTML =
-    "本ページは<b>男子競輪の3連単予測AI</b>の可視化です。"
-    +"モデルは男子専用（LightGBM 39特徴＝拡張20＋Elo＋<b>ライン8</b>＋展開10）で、"
-    +"ガールズ用モデルとは学習データも特徴も別です。展開パターンとバンク別決まり手も"
-    +"男子実測（各22,901R / 25,228R）に基づきます。"
-    +"<b>紐補正は掛けていません</b>（ガールズ実測のパラメータのため。男子は未検証）。"
-    +"参考フォーメーションの的中率・回収率もガールズ実測なので本ページには出しません。"
-    +"予測は着順確率であって買い目ではありません。<b>期待値ゾーンの検証前につき実弾投入はしません。</b>";
+    "男子競輪の3連単予測AI（モデル・統計ともガールズとは別系統）。"
+    + "<b>買い目の推奨ではありません。</b>";
 }
 
 
