@@ -81,7 +81,8 @@ def line_mates_of(car: int, lines: list[list[int]]) -> list[int]:
 def branch_trifecta(strengths: dict[int, float], b: int, lines: list[list[int]],
                     stats: dict | None = None,
                     mate_boost: float | None = None,
-                    line_boost: float | None = None) -> dict[tuple, float]:
+                    line_boost: float | None = None,
+                    fav_fade: float | None = None) -> dict[tuple, float]:
     """B=b を条件にした三連単分布。役割倍率＋**1着に連動した番手加点**で重みを付ける。
 
     役割倍率だけでは足りない。あれは1着・2着の重みを**別々に**掛けるだけなので、
@@ -103,6 +104,12 @@ def branch_trifecta(strengths: dict[int, float], b: int, lines: list[list[int]],
           for k in ("1", "2", "3")}
     mb = st.get("mate_boost", 0.0) if mate_boost is None else mate_boost
     lb = st.get("line_boost", 0.0) if line_boost is None else line_boost
+    # ◎が1着を外したときの失速。実測では**◎が負けた場合の44.0%が3着圏外**まで沈む
+    # （2着34.7% / 3着21.3%）。PLは強い選手を2・3着に残しすぎるので、
+    # 1着が◎以外に決まった時点で◎の2着/3着の重みを落とす。
+    # これが無いと「◎が飛ぶ」ケースを 15.9%(実測23.2%) と 7.3pt 過小評価する。
+    ff = st.get("fav_fade", 1.0) if fav_fade is None else fav_fade
+    fav = max(strengths, key=strengths.get) if strengths else None
     out: dict[tuple, float] = {}
     z1 = sum(wt["1"].values())
     for a1 in riders:
@@ -122,16 +129,24 @@ def branch_trifecta(strengths: dict[int, float], b: int, lines: list[list[int]],
             for x in line_mates_of(a1, lines):
                 if x in w2:
                     w2[x] *= (1.0 + lb)
+        w3 = wt["3"]
+        if ff != 1.0 and fav is not None and a1 != fav:
+            if fav in w2:
+                w2 = dict(w2)
+                w2[fav] *= ff
+            w3 = dict(w3)
+            if fav in w3:
+                w3[fav] *= ff
         z2 = sum(w2[c] for c in rem2)
         for a2 in rem2:
             p2 = w2[a2] / z2 if z2 > 0 else 0.0
             rem3 = [c for c in rem2 if c != a2]
-            z3 = sum(wt["3"][c] for c in rem3)
+            z3 = sum(w3[c] for c in rem3)
             if z3 <= 0:
                 continue
             base = p1 * p2 / z3
             for a3 in rem3:
-                p = base * wt["3"][a3]
+                p = base * w3[a3]
                 if p > 0:
                     out[(a1, a2, a3)] = p
     s = sum(out.values())
@@ -221,6 +236,7 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
         return None
     names = names or {}
     line_of = {c: i for i, mem in enumerate(lines) for c in mem}
+    fav = max(strengths, key=strengths.get) if strengths else None   # ◎＝モデル1着確率トップ
     cand = sorted(b_probs.items(), key=lambda kv: -kv[1])[:top_k]
     out = []
     for b, pb in cand:
@@ -245,6 +261,8 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
             "formation": _formation(dist, budget=FORMATION_BUDGET),
             # 「この展開でAが勝ったときの2着・3着」（ご要望の形）
             "conditional": conditional_orders(dist, lines, names),
+            # ◎の置き場所ごとの買い目（◎頭/◎2着/◎3着/◎抜き）
+            "form_types": formation_types(dist, fav) if fav is not None else [],
         })
     if not out:
         return None
@@ -313,6 +331,64 @@ def conditional_orders(dist: dict[tuple, float], lines: list[list[int]],
             "second": pack(p2), "third": pack(p3),
             "second_inline": round(inline2, 4),
             "third_inline": round(inline3, 4),
+        })
+    return out
+
+# 買い目の型。◎を1着に固定する必要はない。実測では◎が1着を外す方が多い
+# （男子の◎1着的中は43.4%＝**56.6%は◎が勝たない**）ので、◎を2着・3着に置く型と
+# ◎を外す型を並べて出せるようにする。型ごとに「その形になる確率」も返す。
+FORM_KINDS = ("◎頭", "◎2着", "◎3着", "◎抜き")
+
+
+def _restrict(dist: dict[tuple, float], fav: int, kind: str) -> dict[tuple, float]:
+    """型に合う組合せだけ残して正規化する（＝その型を条件にした分布）。"""
+    if kind == "◎頭":
+        sub = {k: v for k, v in dist.items() if k[0] == fav}
+    elif kind == "◎2着":
+        sub = {k: v for k, v in dist.items() if k[1] == fav}
+    elif kind == "◎3着":
+        sub = {k: v for k, v in dist.items() if k[2] == fav}
+    else:                                    # ◎抜き＝◎が3着圏外
+        sub = {k: v for k, v in dist.items() if fav not in k}
+    z = sum(sub.values())
+    return ({k: v / z for k, v in sub.items()}, z) if z > 0 else ({}, 0.0)
+
+
+def formation_types(dist: dict[tuple, float], fav: int, budget: int = 18,
+                    min_prob: float = 0.08) -> list[dict]:
+    """◎の置き場所ごとに買い目を組む。確率 min_prob 未満の型は出さない。
+
+    scenario_prob … その型になる確率（◎頭なら P(◎が1着)、◎抜きなら P(◎が3着圏外)）
+    cover         … その型が起きたと仮定したときに買い目が当たる確率（条件付き）
+    cover_abs     … 無条件で当たる確率 = scenario_prob × cover
+    **いずれも回収率ではない。**
+    """
+    out = []
+    for kind in FORM_KINDS:
+        sub, z = _restrict(dist, fav, kind)
+        if not sub or z < min_prob:
+            continue
+        f = _formation(sub, budget=budget)
+        if not f:
+            continue
+        f = dict(f)
+        # ◎の位置が固定される型は、その枠を◎1頭に固定して表記する
+        if kind == "◎2着":
+            f["second"] = [fav]
+        elif kind == "◎3着":
+            f["third"] = [fav]
+        j = lambda xs: "".join(str(x) for x in sorted(xs))
+        f["text"] = f"{j(f['first'])}-{j(f['second'])}-{j(f['third'])}"
+        combos = {(a, b, c) for a in f["first"] for b in f["second"] for c in f["third"]
+                  if len({a, b, c}) == 3}
+        f["points"] = len(combos)
+        f["cover"] = round(sum(sub.get(c, 0.0) for c in combos), 4)
+        out.append({
+            "kind": kind,
+            "scenario_prob": round(z, 4),
+            "cover": f["cover"],
+            "cover_abs": round(z * f["cover"], 4),
+            "formation": f,
         })
     return out
 

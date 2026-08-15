@@ -498,6 +498,22 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 
 
 
+
+/* 男子: ◎の置き場所ごとの買い目 */
+.ft{margin-top:8px;border-top:1px dashed var(--border2);padding-top:7px}
+.ft-h{font-size:.64rem;font-weight:800;color:var(--ink);margin-bottom:5px}
+.ft-note{display:block;font-size:.57rem;font-weight:600;color:var(--muted);margin-top:2px}
+.ft-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0}
+.ft-row+.ft-row{border-top:1px dotted var(--border2)}
+.ft-kind{flex:none;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent)}
+.ft-kind.out{background:var(--loss-soft);color:var(--loss)}
+.ft-sp{font-size:.68rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;
+  min-width:2.6em}
+.ft-form{font-size:.78rem;font-weight:800;color:var(--ink);letter-spacing:.02em;
+  font-variant-numeric:tabular-nums}
+.ft-pts,.ft-cov{font-size:.58rem;font-weight:700;color:var(--muted)}
+.ft-cov{margin-left:auto}
 /* 男子: 展開分岐の条件付き着順 */
 .cd{margin-top:8px;border-top:1px dashed var(--border2);padding-top:7px}
 .cd-row{padding:6px 0}
@@ -1020,6 +1036,28 @@ function predContent(r){
 // 「この展開でAが勝ったとき、2着・3着は誰か」。分岐分布を1着で条件付けただけで、
 // 追加のモデルは使っていない。役割は**勝者から見た**相対位置（買い目を勝者から読むため）。
 // 実測(25,235R): 2着は勝者のライン内から56.3% / 3着は他ラインから62.6% と構造が逆転する。
+// 買い目の型（◎頭 / ◎2着 / ◎3着 / ◎抜き）。◎を1着に固定する必要はない。
+// 実測では **◎の1着的中は43.6%＝56%は◎が勝たない**ので、◎を2着・3着に置く型と
+// ◎を外す型も確率つきで並べる。walk-forward検証で型の出現確率の平均絶対誤差0.63pt。
+function typesHtml(b, pc){
+  const T = b.form_types||[];
+  if(!T.length) return "";
+  const rows = T.map(t=>{
+    const f=t.formation||{};
+    return `<div class="ft-row">`
+      +`<span class="ft-kind ${t.kind==="◎抜き"?"out":""}">${esc(t.kind)}</span>`
+      +`<span class="ft-sp">${pc(t.scenario_prob)}</span>`
+      +`<b class="ft-form">${esc(f.text||"")}</b>`
+      +`<span class="ft-pts">${f.points||0}点</span>`
+      +`<span class="ft-cov">型内${pc(t.cover)}</span>`
+      +`</div>`;
+  }).join("");
+  return `<div class="ft">`
+    +`<div class="ft-h">◎の置き場所ごとの買い目`
+    +`<span class="ft-note">確率＝その形になる確率 / 型内＝その形になったとき当たる確率</span></div>`
+    + rows + `</div>`;
+}
+
 function condHtml(b, nm, pc){
   const C = b.conditional||[];
   if(!C.length) return "";
@@ -1066,6 +1104,7 @@ function branchBlock(r){
         +`<b class="br-form">${esc(f.text)}</b>`
         +`<span class="br-pts">${f.points}点</span>`
         +`<span class="br-cov">この展開の${pc(f.cover)}をカバー</span></div>`:"")
+      + typesHtml(b, pc)
       + condHtml(b, nm, pc)
       +`</div>`;
   }).join("");
