@@ -86,14 +86,15 @@ def refresh_branches(doc: dict) -> tuple[int, int]:
     読み手に一貫する（一部のレースだけ条件付き着順が出ない状態にしない）。
     """
     from src.model.development_branches import (branch_trifecta, conditional_orders,
-                                                _formation, FORMATION_BUDGET)
+                                                formation_types, _formation,
+                                                FORMATION_BUDGET)
     added = skipped = 0
     for r in (doc.get("predictions") or {}).get("races") or []:
         B = r.get("dev_branches")
         lines = r.get("lines") or []
         if not B or not lines or not B.get("branches"):
             continue
-        if B["branches"][0].get("conditional"):
+        if B["branches"][0].get("form_types"):
             skipped += 1
             continue
         riders = r.get("riders") or []
@@ -101,6 +102,7 @@ def refresh_branches(doc: dict) -> tuple[int, int]:
         if not st or abs(sum(st.values()) - 1.0) > 0.02:
             continue
         names = {rd["car"]: rd.get("name") for rd in riders}
+        fav = max(st, key=st.get)      # ◎＝モデル1着確率トップ
         for b in B["branches"]:
             dist = branch_trifecta(st, b["b_car"], lines)
             if not dist:
@@ -109,6 +111,7 @@ def refresh_branches(doc: dict) -> tuple[int, int]:
                         for c in st}
             b["formation"] = _formation(dist, budget=FORMATION_BUDGET)
             b["conditional"] = conditional_orders(dist, lines, names)
+            b["form_types"] = formation_types(dist, fav)
         added += 1
     return added, skipped
 
