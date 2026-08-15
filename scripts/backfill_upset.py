@@ -28,6 +28,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="万車券率を後付け")
     ap.add_argument("--path", default=str(DEFAULT))
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true",
+                    help="既存の値も計算し直す（しきい値を推定し直した後はこれを使う）")
     args = ap.parse_args()
 
     p = Path(args.path)
@@ -36,7 +38,7 @@ def main() -> None:
     added = skipped = bad = 0
     vals = []
     for r in races:
-        if r.get("upset_prob") is not None:
+        if r.get("upset_prob") is not None and not args.force:
             skipped += 1
             continue
         st = {rd["car"]: rd.get("win_prob") or 0.0
@@ -46,7 +48,12 @@ def main() -> None:
         if len(st) < 3 or abs(sum(st.values()) - 1.0) > 0.02:
             bad += 1
             continue
-        u = man_prob(all_trifecta_probs(st))
+        u = man_prob(all_trifecta_probs(st), is_girls=bool(r.get("is_girls")),
+                     field_size=r.get("field_size") or len(st))
+        if u is None:          # 検証を通していない層（男子9車）は出さない
+            r.pop("upset_prob", None)      # 旧しきい値で入った値が残らないよう消す
+            bad += 1
+            continue
         r["upset_prob"] = u
         vals.append(u)
         added += 1
