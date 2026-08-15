@@ -263,6 +263,11 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
   background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:2px 5px}
 .dev-grp .dev-node{background:none;border:0;padding:0;border-radius:0;gap:1px}
 .dev-paren{flex:none;color:#9c36b5;font-weight:800;font-size:.78rem}
+/* 印＝AIの1着確率順位（記者の印ではない）。◎○▲△ を並び予想と出走表で共通に使う */
+.mk{flex:none;display:inline-flex;align-items:center;justify-content:center;
+  min-width:1.05em;font-weight:800;font-size:.72rem;line-height:1}
+.mk.mk1{color:#e8590c} .mk.mk2{color:#1c7ed6} .mk.mk3{color:#2f9e44} .mk.mk4{color:var(--muted)}
+.rt-mk{width:1.4em;text-align:center;padding-left:2px;padding-right:2px}
 .dev-pats{display:flex;flex-direction:column;gap:5px}
 .dev-pat{display:flex;align-items:center;gap:8px;font-size:.72rem}
 .dev-pat-i{width:1.3em;text-align:center;flex:none}
@@ -769,6 +774,16 @@ const CARCOL = {
 };
 function carChip(n){ const c=CARCOL[n]||["var(--surface2)","var(--ink)"];
   return `<span class="carno" style="background:${c[0]};color:${c[1]}">${n}</span>`; }
+// 印は**モデルの1着確率の順位**。riders は1着確率降順で格納済みなので先頭から割り当てる。
+// 新聞の印（記者の主観）ではなくAIの序列であることに注意。5番手以降は無印。
+const MARKS = ["◎","○","▲","△"];
+function marksOf(r){
+  const m = {};
+  (r.riders||[]).forEach((rd,i)=>{ if(i<MARKS.length && rd.car!=null) m[rd.car]=MARKS[i]; });
+  return m;
+}
+const markCls = k => k==="◎"?"mk1":(k==="○"?"mk2":(k==="▲"?"mk3":"mk4"));
+const markChip = k => k?`<span class="mk ${markCls(k)}">${k}</span>`:"";
 const oddsCell = v => (v==null||v>=9999) ? "—" : v.toFixed(1);
 const sub = s => s!=null && s!=="" ? `<s>${s}</s>` : "";       // 補助数値（走数など）
 const COLUMNS = [
@@ -809,7 +824,8 @@ function activeCols(){ return cfg.order.filter(k=>!cfg.hidden.includes(k)).map(k
 // 出走表（設定した列・順で描画。riders は1着確率降順で格納済み → 先頭=本命行を強調）
 function riderTable(r){
   const cols = activeCols();
-  const head = `<th class="rt-car">車</th><th class="rt-name l">選手</th>`
+  const mk = marksOf(r);
+  const head = `<th class="rt-mk">印</th><th class="rt-car">車</th><th class="rt-name l">選手</th>`
     + cols.map(c=>`<th class="${c.cls}">${c.th}</th>`).join("");
   const body = (r.riders||[]).map((rd,i)=>{
     const tds = cols.map(c=>`<td class="${c.cls}">${c.get(rd)}</td>`).join("");
@@ -823,6 +839,7 @@ function riderTable(r){
         +(m[3]!=null?`<span class="rn-ml">上${(+m[3]).toFixed(1)}</span>`:"")+`</span>`;
     }).join("");
     return `<tr${i===0?' class="rt-top"':''}>`
+      +`<td class="rt-mk">${markChip(mk[rd.car])}</td>`
       +`<td class="rt-car">${carChip(rd.car)}</td>`
       +`<td class="rt-name l"><span class="rn-nm">${esc(rd.name||"")}`
       +`${rd.home?`<span class="rn-home" title="地元(同県)開催">地元</span>`:(rd.home_dist?`<span class="rn-home dist" title="同地区開催">地区</span>`:"")}`
@@ -1151,7 +1168,8 @@ function lineBlock(r){
       return `${i>0?(same?`<span class="ln-seri">競</span>`:`<span class="ln-link">－</span>`):""}`
       +`<span class="ln-node${c.seri?" sr":""}">${carChip(c.car)}`
       +`<span class="ln-nm">${esc(c.name||"")}</span>`
-      +`<span class="ln-role">${esc(c.pos_label)}${c.seri?"争い":""}</span>`
+      +`<span class="ln-role">${esc(c.pos_label)}`
+      +`${c.seri?(c.seri_side?`・${c.seri_side}競り`:"争い"):""}</span>`
       +`<span class="ln-wp">${pc(c.win_prob)}</span></span>`;
     }).join("");
     // 強さバーは「1着確率」。ラインの合計＝1なので相互比較がそのまま成立する
@@ -1185,12 +1203,12 @@ function devBlock(r){
   // ライン内にも▶を打つと、隊列が1本の直列に見えてライン構造が読み取れなくなる。
   // 競り（同じ位置を争う）は記者の並び予想と同じくカッコで括る（2(71)45）。
   const seriOf = {}; (r.seri||[]).forEach((g,i)=>g.forEach(c=>seriOf[c]=i));
-  const favOf = {}; (D.line||[]).forEach(s=>{ if(s.is_fav) favOf[s.car] = 1; });
+  const mk = marksOf(r);
   // lines が無い（並び予想を取れなかった）場合は隊列順の1本として描く
   const groups = (r.lines||[]).length ? r.lines : [(D.line||[]).map(s=>s.car)];
   const node = c =>
     `<span class="dev-node${seriOf[c]!=null?" sr":""}">`
-    +`${favOf[c]?`<span class="dev-fav">◎</span>`:""}${carChip(c)}</span>`;
+    +`${markChip(mk[c])}${carChip(c)}</span>`;
   const chips = groups.map(mem=>{
     let h = "", open = null;
     mem.forEach((c,i)=>{

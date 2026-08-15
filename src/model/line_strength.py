@@ -27,6 +27,23 @@ from __future__ import annotations
 POS_LABEL = {0: "先頭", 1: "番手", 2: "3番手", 3: "4番手"}
 
 
+def seri_sides(lines: list[list[int]], seri: list[list[int]] | None) -> dict[int, str]:
+    """競りの選手 → "内" / "外"。競りでなければ入らない。
+
+    並び予想 `2( 7 1 )4 5` のカッコ内は**内→外の順**に書かれる。先に書かれた7が
+    内競りで、番手（2の真後ろ）を取るのが一般的。1は外競りで、7の外側に併走する。
+    ユーザー確認済みの慣行であり、DBの `narabi.position` もこの順で保存している。
+
+    どちらが番手を取るかは走ってみないと確定しないが、**内が本線**として扱える。
+    """
+    order = {c: i for line in lines for i, c in enumerate(line)}
+    out: dict[int, str] = {}
+    for g in (seri or []):
+        for rank, car in enumerate(sorted(g, key=lambda c: order.get(c, 99))):
+            out[car] = "内" if rank == 0 else "外"
+    return out
+
+
 def _pos_label(pos: int | None, size: int) -> str:
     if size == 1:
         return "単騎"
@@ -76,6 +93,7 @@ def build_lines(lines: list[list[int]], strengths: dict[int, float],
 
     from src.features.line_features import positions_with_seri
     inseri = {c for g in (seri or []) for c in g}
+    side = seri_sides(lines, seri)
 
     out = []
     for li, mem in enumerate(lines):
@@ -87,7 +105,7 @@ def build_lines(lines: list[list[int]], strengths: dict[int, float],
             "size": len(mem),
             "cars": [{"car": c, "name": names.get(c), "pos": pos[c],
                       "pos_label": _pos_label(pos[c], len(mem)),
-                      "seri": c in inseri,
+                      "seri": c in inseri, "seri_side": side.get(c),
                       "leg": legs.get(c), "class_rank": classes.get(c),
                       "win_prob": round(strengths.get(c, 0.0), 4)} for c in mem],
             "p_win": round(sum(strengths.get(c, 0.0) for c in mem), 4),
