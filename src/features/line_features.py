@@ -132,3 +132,41 @@ def legoh_columns(cars: list[int], legs: dict) -> dict[int, list[float]]:
     """{車番: [lg_0..lg_6]}。推論・学習・バックテストで同じ関数を通すこと。"""
     return {c: leg_onehot(legs.get(c)) for c in cars}
 
+# ---- 競り（同じ位置を争うグループ）----
+# 記者の並び予想は `2先行 ( 7競り 1競り ) 4追込` のように、カッコで「同じ位置を争う」ことを
+# 示す。7と1は直列の番手・3番手ではなく、**どちらか一方が番手になる**。
+# これを直列とみなしていたため、記録上の「番手」が2着に来る率が
+# 競り無し41.1% に対し 競りあり33.7%（−7.4pt）まで落ちていた。
+SERI_KEYS = ["ln_seri"]
+
+
+def positions_with_seri(line: list[int], seri: list[list[int]] | None) -> dict[int, int]:
+    """ライン内の位置。**競りの選手は同じ位置**を共有する。
+
+    例: line=[2,7,1,4,5], seri=[[7,1]] → {2:0, 7:1, 1:1, 4:2, 5:3}
+    （従来は {2:0,7:1,1:2,4:3,5:4} で、4と5の位置が1つずつ後ろにずれていた）
+    """
+    groups = {c: i for i, g in enumerate(seri or []) for c in g}
+    out: dict[int, int] = {}
+    pos = 0
+    prev_group = None
+    for car in line:
+        g = groups.get(car)
+        if g is not None and g == prev_group:
+            out[car] = pos - 1          # 同じ競りグループ＝直前と同じ位置
+            continue
+        out[car] = pos
+        pos += 1
+        prev_group = g
+    return out
+
+
+def seri_columns(cars: list[int], seri: list[list[int]] | None) -> dict[int, list[float]]:
+    """{車番: [ln_seri]}。競りに参加していれば1。
+
+    競りは実測で明確に不利（1着4.3%/連対21.4% vs 全体14.3%/28.5%）。
+    互いに牽制して共倒れしやすい＝位置情報だけでは表せないので独立した列にする。
+    """
+    inseri = {c for g in (seri or []) for c in g}
+    return {c: [1.0 if c in inseri else 0.0] for c in cars}
+

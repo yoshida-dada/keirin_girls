@@ -19,7 +19,8 @@ from src.features.tactics_features import TACTIC_NAMES, tactic_columns
 from src.features.rider_narabi import NARABI_KEYS, narabi_columns
 from src.features.bank_features import BANK_KEYS, bank_columns
 from src.features.line_features import (LINE_KEYS, line_columns, class_level,
-                                        LEGOH_KEYS, legoh_columns)
+                                        LEGOH_KEYS, legoh_columns,
+                                        SERI_KEYS, seri_columns, positions_with_seri)
 
 
 def _line_ctx(db_path):
@@ -42,8 +43,18 @@ def _line_ctx(db_path):
     legs = defaultdict(dict)
     for rid, car, lg in c.execute("SELECT race_id,car_number,leg FROM narabi"):
         legs[rid][car] = lg
+    # 競り（同じ位置を争うグループ）。DBの pos_in_line は生の連番のままなので、
+    # ここで拾って positions_with_seri に渡し、**特徴を作る時点で**位置を補正する。
+    seri = defaultdict(lambda: defaultdict(list))
+    try:
+        for rid, car, g in c.execute(
+                "SELECT race_id,car_number,seri_group FROM narabi"
+                " WHERE seri_group IS NOT NULL"):
+            seri[rid][g].append(car)
+    except Exception:
+        pass                      # seri_group 列が無い旧DB
     c.close()
-    return line_of, scores, cls, legs
+    return line_of, scores, cls, legs, {r: list(v.values()) for r, v in seri.items()}
 
 
 def _venue_map(db_path) -> dict[str, str]:
@@ -56,8 +67,30 @@ def _venue_map(db_path) -> dict[str, str]:
     return out
 
 
+def _apply_seri(line_of: dict, seri: list | None) -> dict:
+    """{車番:(line_id,pos)} に競り補正を掛ける。競りの選手は同じ pos を共有する。"""
+    if not seri or not line_of:
+        return line_of
+    by_line: dict[int, list] = {}
+    for car, (li, pi) in line_of.items():
+        by_line.setdefault(li, []).append((pi, car))
+    out = {}
+    for li, v in by_line.items():
+        order = [c for _, c in sorted(v)]
+        gs = [g for g in seri if all(c in order for c in g)]
+        for car, pos in positions_with_seri(order, gs).items():
+            out[car] = (li, pos)
+    return out
+
+
 def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
-    """feature_names に応じて rel_elo / 展開列 / 並び予想列 / バンク交互作用列 を as-of 付与する。"""
+    """feature_names に応じて rel_elo / 展開列 / 並び予想列 / バンク交互作用列 を as-of 付与する。
+
+    競り補正（ライン内位置の共有）と ln_seri 列は**必ずセット**で、モデルの feature_names に
+    ln_seri があるかだけで決まる。片方だけ入る組み合わせを作らないための措置。
+    位置補正だけを推論側に入れて列を持たないモデルに食わせると skew になる（2026-08-15 に
+    実際にその状態を作ってしまい、検証で不採用になった時に気づいた）。
+    """
     names = feature_names or []
     need_elo = "rel_elo" in names
     need_bank = any(n in names for n in BANK_KEYS)
@@ -66,7 +99,8 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     need_nb = any(n in names for n in NARABI_KEYS)
     need_line = any(n in names for n in LINE_KEYS)
     need_legoh = any(n in names for n in LEGOH_KEYS)
-    if not (need_elo or need_tac or need_nb or need_line or need_legoh):
+    need_seri = any(n in names for n in SERI_KEYS)
+    if not (need_elo or need_tac or need_nb or need_line or need_legoh or need_seri):
         return samples
 
     pre_elo = compute_pre_race_elo(db_path) if need_elo else None
@@ -79,9 +113,9 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     if need_nb:
         from src.features.rider_narabi import compute_narabi_features
         narabi = compute_narabi_features(db_path)      # 各(race_id,car)の並び予想 生特徴
-    line_of = scores = cls = legs = None
-    if need_line or need_legoh:
-        line_of, scores, cls, legs = _line_ctx(db_path)   # 男子: ライン境界＋得点＋級班＋脚質
+    line_of = scores = cls = legs = seri = None
+    if need_line or need_legoh or need_seri:
+        line_of, scores, cls, legs, seri = _line_ctx(db_path)
 
     out = []
     for s in samples:
@@ -119,7 +153,10 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
             fn = fn + [name for _, name in bkeep]
         if need_line:
             cars = list(s.car_numbers)
-            lcols = line_columns(cars, line_of.get(s.race_id, {}), scores.get(s.race_id, {}),
+            lo = line_of.get(s.race_id, {})
+            if need_seri:            # 補正と ln_seri 列は必ずセット（上の docstring 参照）
+                lo = _apply_seri(lo, (seri or {}).get(s.race_id))
+            lcols = line_columns(cars, lo, scores.get(s.race_id, {}),
                                  class_level(cls.get(s.race_id, [])))   # 推論と同一関数
             lkeep = [(i, name) for i, name in enumerate(LINE_KEYS) if name in names]
             lmat = np.array([[lcols[c][i] for i, _ in lkeep] for c in cars], dtype=float)
@@ -132,6 +169,13 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
             gmat = np.array([[gcols[c][i] for i, _ in gkeep] for c in cars], dtype=float)
             X = np.hstack([X, gmat])
             fn = fn + [name for _, name in gkeep]
+        if need_seri:                           # 競り参加フラグ（推論と同一関数）
+            cars = list(s.car_numbers)
+            scols = seri_columns(cars, (seri or {}).get(s.race_id))
+            skeep = [(i, name) for i, name in enumerate(SERI_KEYS) if name in names]
+            smat = np.array([[scols[c][i] for i, _ in skeep] for c in cars], dtype=float)
+            X = np.hstack([X, smat])
+            fn = fn + [name for _, name in skeep]
         # 最後に model.feature_names の並びへ揃える。ここが無いと「どの順で hstack したか」に
         # 暗黙依存し、呼び出し側が列を挟み直す羽目になる（実際 deploy_men.py がそうしていて、
         # analyze_dev_patterns から男子モデルを使った時に 31列 vs 39列 で落ちた）。

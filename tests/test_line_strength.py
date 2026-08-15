@@ -72,6 +72,29 @@ def test_without_probs_line_metrics_are_none():
     assert got["lines"][0]["p_win"] == 1.0
 
 
+def test_seri_riders_share_position():
+    """競りの2人は同じ位置。後続はその分だけ前へ詰まる。
+
+    西武園2R `2(7 1)4 5` の実例。直列に数えると 7=番手・1=3番手・4=4番手 になるが、
+    実際は7と1のどちらかが番手で、4は3番手。どちらが番手かは走るまで分からない。
+    """
+    got = build_lines([[2, 7, 1, 4, 5]], {2: .3, 7: .2, 1: .2, 4: .2, 5: .1}, None,
+                      seri=[[7, 1]])
+    cars = {c["car"]: c for c in got["lines"][0]["cars"]}
+    assert [cars[c]["pos"] for c in (2, 7, 1, 4, 5)] == [0, 1, 1, 2, 3]
+    assert cars[7]["pos_label"] == cars[1]["pos_label"] == "番手"
+    assert cars[4]["pos_label"] == "3番手"
+    assert cars[7]["seri"] is True and cars[1]["seri"] is True
+    assert cars[2]["seri"] is False and cars[4]["seri"] is False
+
+
+def test_no_seri_keeps_serial_positions():
+    """競りが無ければ従来どおりの直列。既存の並びを壊していないことを固定する。"""
+    got = build_lines([[2, 7, 1]], {2: .5, 7: .3, 1: .2}, None)
+    assert [c["pos"] for c in got["lines"][0]["cars"]] == [0, 1, 2]
+    assert [c["seri"] for c in got["lines"][0]["cars"]] == [False, False, False]
+
+
 def test_carries_display_fields():
     got = build_lines([[1, 2]], {1: 0.6, 2: 0.4}, None,
                       names={1: "山田", 2: "鈴木"}, scores={1: 100.0, 2: 90.0},

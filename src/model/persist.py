@@ -129,9 +129,16 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         nb = narabi_ctx or {}
         # parse_narabi の lines（ライン境界つき）から {車番: (line_id, pos_in_line)} を作る。
         # lines が無い（＝並び予想を取れなかった）場合は全列0になり、推論は落ちない。
-        line_of = {car: (li, pi)
-                   for li, line in enumerate(nb.get("lines") or [])
-                   for pi, car in enumerate(line)}
+        from src.features.line_features import positions_with_seri, SERI_KEYS
+        # 競りの選手は同じライン内位置を共有する（学習と同一関数）。ただし
+        # **モデルが ln_seri を持つ時だけ**掛ける。持たないモデル(46列)は競りを直列と
+        # みなして学習しているので、ここだけ補正すると train/inference skew になる。
+        _seri = (nb.get("seri") or []) if any(n in feats for n in SERI_KEYS) else []
+        line_of = {}
+        for li, line in enumerate(nb.get("lines") or []):
+            gs = [g for g in _seri if all(c in line for c in g)]
+            for car, pi in positions_with_seri(line, gs).items():
+                line_of[car] = (li, pi)
         scores = {e.car_number: e.racing_score for e in entries if e.racing_score}
         lv = class_level([e.class_rank for e in entries if e.class_rank])
         lcols = line_columns(list(df.index), line_of, scores, lv)
@@ -144,6 +151,13 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         gcols = legoh_columns(list(df.index), nb.get("legs") or {})
         for i, name in enumerate(LEGOH_KEYS):
             df[name] = [gcols[c][i] for c in df.index]
+    from src.features.line_features import SERI_KEYS
+    if any(n in feats for n in SERI_KEYS):      # 競り参加フラグ（学習と同一関数）
+        from src.features.line_features import seri_columns
+        nb = narabi_ctx or {}
+        scols = seri_columns(list(df.index), nb.get("seri"))
+        for i, name in enumerate(SERI_KEYS):
+            df[name] = [scols[c][i] for c in df.index]
     # 欠損はレース内平均で補完する。1名の gear_ratio 欠け等だけで全車の推論を捨てて
     # 競走得点ベースラインへ落ちるのを防ぐ（2026-07-28 実測: 本日8R中2Rが該当）。
     # ただし CORE_FEATURES（強さの主信号）が欠けた選手がいる場合と、列が全車欠損の場合は

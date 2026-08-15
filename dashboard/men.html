@@ -253,6 +253,10 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .dev-node{display:inline-flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:2px 6px;flex:none}
 .dev-arrow{color:var(--muted);font-size:.62rem;flex:none}
 .dev-fav{color:#e8590c;font-weight:800}
+/* 競り＝どちらが番手になるか未定。直列の▶と明確に別物として見えるようにする */
+.dev-seri,.ln-seri{flex:none;font-size:.55rem;font-weight:800;color:#9c36b5;
+  background:rgba(156,54,181,.14);border-radius:5px;padding:1px 3px}
+.dev-node.sr,.ln-node.sr{border:1px dashed #9c36b5}
 .dev-pats{display:flex;flex-direction:column;gap:5px}
 .dev-pat{display:flex;align-items:center;gap:8px;font-size:.72rem}
 .dev-pat-i{width:1.3em;text-align:center;flex:none}
@@ -1134,12 +1138,16 @@ function lineBlock(r){
   const settle = S.settle_prob;
   const sCls = settle==null ? "na" : (settle>=0.55 ? "hi" : (settle>=0.40 ? "mid" : "lo"));
   const rows = S.lines.slice().sort((a,b)=>a.rank-b.rank).map(L=>{
-    const chips = L.cars.map((c,i)=>
-      `${i>0?`<span class="ln-link">－</span>`:""}`
-      +`<span class="ln-node">${carChip(c.car)}`
+    // 競りの2人は同じ pos を持つ。連結子を「－」ではなく「競」にして、
+    // どちらが番手になるか未定であることを表示から読み取れるようにする。
+    const chips = L.cars.map((c,i)=>{
+      const same = i>0 && c.seri && L.cars[i-1].seri && L.cars[i-1].pos===c.pos;
+      return `${i>0?(same?`<span class="ln-seri">競</span>`:`<span class="ln-link">－</span>`):""}`
+      +`<span class="ln-node${c.seri?" sr":""}">${carChip(c.car)}`
       +`<span class="ln-nm">${esc(c.name||"")}</span>`
-      +`<span class="ln-role">${esc(c.pos_label)}</span>`
-      +`<span class="ln-wp">${pc(c.win_prob)}</span></span>`).join("");
+      +`<span class="ln-role">${esc(c.pos_label)}${c.seri?"争い":""}</span>`
+      +`<span class="ln-wp">${pc(c.win_prob)}</span></span>`;
+    }).join("");
     // 強さバーは「1着確率」。ラインの合計＝1なので相互比較がそのまま成立する
     const w = Math.max(2, Math.round((L.p_win||0)*100));
     return `<div class="ln-row">`
@@ -1167,10 +1175,18 @@ function devBlock(r){
   const D = r.development;
   if(!D) return "";
   // 並び予想: 車番のみ・1行（スペース節約。選手名/脚質は出走表参照）
+  // 競り（同じ位置を争う＝記者の並び予想でカッコ内）は矢印ではなく「competing」で結ぶ。
+  // ここを直列の▶で描くと番手が1人に確定して見えるが、実際はどちらが番手か未定。
+  const seriOf = {}; (r.seri||[]).forEach((g,i)=>g.forEach(c=>seriOf[c]=i));
   const chips = (D.line||[]).map((s,i)=>{
-    const arrow = i>0 ? `<span class="dev-arrow">▶</span>` : "";
+    const prev = i>0 ? D.line[i-1].car : null;
+    const same = prev!=null && seriOf[s.car]!=null && seriOf[s.car]===seriOf[prev];
+    const arrow = i===0 ? ""
+      : same ? `<span class="dev-seri">競</span>`
+             : `<span class="dev-arrow">▶</span>`;
     const favB = s.is_fav ? `<span class="dev-fav">◎</span>` : "";
-    return `${arrow}<span class="dev-node">${favB}${carChip(s.car)}</span>`;
+    const cls = seriOf[s.car]!=null ? "dev-node sr" : "dev-node";
+    return `${arrow}<span class="${cls}">${favB}${carChip(s.car)}</span>`;
   }).join("");
   const narabi = (D.line||[]).length
     ? `<div class="dev-narabi-h">並び予想（左=先頭・車番のみ）</div><div class="dev-line">${chips}</div>` : "";
