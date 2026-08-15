@@ -66,11 +66,51 @@ def main() -> None:
             classes={rd["car"]: rd.get("class_rank") for rd in riders})
         added += 1
 
-    print(f"追加 {added} / 既存 {skipped} / 対象外(ライン無し等) {nolines}  … 全{len(races)}レース")
+    b_add, b_skip = refresh_branches(doc)
+    print(f"line_strength: 追加 {added} / 既存 {skipped} / 対象外 {nolines}  … 全{len(races)}レース")
+    print(f"dev_branches : conditional追加 {b_add} / 既存 {b_skip}")
     if args.dry_run:
         return
     p.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"更新: {p}  {p.stat().st_size/1024/1024:.2f}MB")
+
+
+def refresh_branches(doc: dict) -> tuple[int, int]:
+    """既存 dev_branches に conditional を足し、買い目を現行の係数で組み直す。
+
+    **P(B) は保存済みの値をそのまま使う**（当時の展開AIの出力を尊重する）。再計算するのは
+    「その分岐を条件にした着順分布」の形だけで、これは公開済みの win_prob とライン構成から
+    一意に決まる＝新しい予測ではなく表示派生。予測本体（win_prob / top_trifecta）には触らない。
+
+    dev_branches は的中実績の集計に使っていないので、係数を直したら全レースで揃える方が
+    読み手に一貫する（一部のレースだけ条件付き着順が出ない状態にしない）。
+    """
+    from src.model.development_branches import (branch_trifecta, conditional_orders,
+                                                _formation, FORMATION_BUDGET)
+    added = skipped = 0
+    for r in (doc.get("predictions") or {}).get("races") or []:
+        B = r.get("dev_branches")
+        lines = r.get("lines") or []
+        if not B or not lines or not B.get("branches"):
+            continue
+        if B["branches"][0].get("conditional"):
+            skipped += 1
+            continue
+        riders = r.get("riders") or []
+        st = {rd["car"]: rd.get("win_prob") or 0.0 for rd in riders if rd.get("car")}
+        if not st or abs(sum(st.values()) - 1.0) > 0.02:
+            continue
+        names = {rd["car"]: rd.get("name") for rd in riders}
+        for b in B["branches"]:
+            dist = branch_trifecta(st, b["b_car"], lines)
+            if not dist:
+                continue
+            b["win"] = {int(c): round(sum(p for (a, _, _), p in dist.items() if a == c), 4)
+                        for c in st}
+            b["formation"] = _formation(dist, budget=FORMATION_BUDGET)
+            b["conditional"] = conditional_orders(dist, lines, names)
+        added += 1
+    return added, skipped
 
 
 if __name__ == "__main__":

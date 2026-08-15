@@ -497,6 +497,25 @@ table.h2h-t th.h2h-corner{font-size:.54rem;color:var(--muted);font-weight:700}
 
 
 
+
+/* 男子: 展開分岐の条件付き着順 */
+.cd{margin-top:8px;border-top:1px dashed var(--border2);padding-top:7px}
+.cd-row{padding:6px 0}
+.cd-row+.cd-row{border-top:1px dotted var(--border2)}
+.cd-h{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.cd-nm{font-size:.72rem;font-weight:800;color:var(--ink)}
+.cd-if{font-size:.62rem;font-weight:700;color:var(--muted)}
+.cd-wp{margin-left:auto;font-size:.68rem;font-weight:800;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.cd-line{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:3px 0}
+.cd-lbl{flex:none;font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:5px;
+  background:var(--surface2);color:var(--muted)}
+.cd-node{display:inline-flex;align-items:center;gap:2px;background:var(--surface2);
+  border-radius:8px;padding:2px 6px 2px 3px}
+.cd-role{font-size:.53rem;font-weight:800;color:var(--muted);background:var(--surface);
+  border-radius:4px;padding:0 3px}
+.cd-p{font-size:.6rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.cd-in{margin-left:auto;font-size:.58rem;font-weight:700;color:var(--muted)}
 /* 男子: 展開分岐と買い目 */
 .br{background:var(--surface);border:1px solid var(--border);border-radius:12px;
   box-shadow:var(--shadow);margin:10px 0;overflow:hidden}
@@ -998,6 +1017,31 @@ function predContent(r){
 // 展開分岐（男子）: 「誰が主導権を取るか」で場合分けし、分岐ごとに買い目を出す。
 // 主導権の確率は展開AI(62.5%的中)、分岐内の着順は実測の役割別シェアへ合わせた条件付き分布。
 // **買い目の推奨ではない**（期待値ゾーンは検証済みで存在しない）。展開の読み・紐選びの材料。
+// 「この展開でAが勝ったとき、2着・3着は誰か」。分岐分布を1着で条件付けただけで、
+// 追加のモデルは使っていない。役割は**勝者から見た**相対位置（買い目を勝者から読むため）。
+// 実測(25,235R): 2着は勝者のライン内から56.3% / 3着は他ラインから62.6% と構造が逆転する。
+function condHtml(b, nm, pc){
+  const C = b.conditional||[];
+  if(!C.length) return "";
+  const cars = xs => (xs||[]).map(x=>
+    `<span class="cd-node">${carChip(x.car)}`
+    +`<span class="ln-nm">${esc(x.name||"")}</span>`
+    +`<span class="cd-role">${esc(x.role||"")}</span>`
+    +`<span class="cd-p">${pc(x.prob)}</span></span>`).join("");
+  return `<div class="cd">`
+    + C.map(cd=>`<div class="cd-row">`
+        +`<div class="cd-h">${carChip(cd.car)}`
+        +`<span class="cd-nm">${esc(cd.name||"")}</span>`
+        +`<span class="cd-if">が勝つなら</span>`
+        +`<span class="cd-wp">${pc(cd.prob)}</span></div>`
+        +`<div class="cd-line"><span class="cd-lbl">2着</span>${cars(cd.second)}`
+        +`<span class="cd-in">ライン内 ${pc(cd.second_inline)}</span></div>`
+        +`<div class="cd-line"><span class="cd-lbl">3着</span>${cars(cd.third)}`
+        +`<span class="cd-in">ライン内 ${pc(cd.third_inline)}</span></div>`
+        +`</div>`).join("")
+    +`</div>`;
+}
+
 function branchBlock(r){
   const B = r.dev_branches;
   if(!B || !(B.branches||[]).length) return "";
@@ -1022,10 +1066,8 @@ function branchBlock(r){
         +`<b class="br-form">${esc(f.text)}</b>`
         +`<span class="br-pts">${f.points}点</span>`
         +`<span class="br-cov">この展開の${pc(f.cover)}をカバー</span></div>`:"")
-      +`<div class="br-win">分岐内1着: `
-      + win.map(([c,p])=>`${carChip(c)}<span class="ln-nm">${esc(nm[c]||"")}</span>`
-          +`<span class="br-wp">${pc(p)}</span>`).join("　")
-      +`</div></div>`;
+      + condHtml(b, nm, pc)
+      +`</div>`;
   }).join("");
   return `<details class="br" open><summary>🔀 展開分岐と買い目`
     +`<span class="upt mid">上位${B.branches.length}分岐で${pc(B.covered)}</span></summary>`
