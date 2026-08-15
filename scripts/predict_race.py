@@ -21,6 +21,7 @@ from src.model.persist import load_model, strengths_from_model, load_elo_state
 from src.model.plackett_luce import all_trifecta_probs
 from src.model.himo_adjust import corrected_trifecta_probs
 from src.model.race_type import classify_race
+from src.model.upset import man_prob
 from src.ev.market import implied_trifecta_probs, blend_loglinear
 from src.ev.ev_engine import build_trifecta_ev_table, format_combo
 
@@ -382,6 +383,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "race_name": meta.get("race_name"),
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
+        # 波乱確率＝万車券率（払戻1万円以上）。旧表示の 1-top1_prob は「本命が1着を
+        # 外す確率」で、実測の2倍を波乱として出していた（src/model/upset.py 参照）
+        "upset_prob": man_prob(probs),
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
         "development": development,                 # 展開予想（並び予想の隊列＋モデル読み）
         "dev_patterns": dev_patterns,               # 展開6パターンの上位3つ（実測分岐比）
