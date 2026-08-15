@@ -254,9 +254,15 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .dev-arrow{color:var(--muted);font-size:.62rem;flex:none}
 .dev-fav{color:#e8590c;font-weight:800}
 /* 競り＝どちらが番手になるか未定。直列の▶と明確に別物として見えるようにする */
-.dev-seri,.ln-seri{flex:none;font-size:.55rem;font-weight:800;color:#9c36b5;
+.ln-seri{flex:none;font-size:.55rem;font-weight:800;color:#9c36b5;
   background:rgba(156,54,181,.14);border-radius:5px;padding:1px 3px}
 .dev-node.sr,.ln-node.sr{border:1px dashed #9c36b5}
+/* ライン内は詰めて1かたまりに見せる。枠はライン単位で持ち、車番の枠は消す。
+   ▶はライン間だけなので「987▶143▶25▶6」とライン構造がそのまま読める */
+.dev-grp{display:inline-flex;align-items:center;gap:1px;flex:none;
+  background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:2px 5px}
+.dev-grp .dev-node{background:none;border:0;padding:0;border-radius:0;gap:1px}
+.dev-paren{flex:none;color:#9c36b5;font-weight:800;font-size:.78rem}
 .dev-pats{display:flex;flex-direction:column;gap:5px}
 .dev-pat{display:flex;align-items:center;gap:8px;font-size:.72rem}
 .dev-pat-i{width:1.3em;text-align:center;flex:none}
@@ -1175,19 +1181,32 @@ function devBlock(r){
   const D = r.development;
   if(!D) return "";
   // 並び予想: 車番のみ・1行（スペース節約。選手名/脚質は出走表参照）
-  // 競り（同じ位置を争う＝記者の並び予想でカッコ内）は矢印ではなく「competing」で結ぶ。
-  // ここを直列の▶で描くと番手が1人に確定して見えるが、実際はどちらが番手か未定。
+  // **▶はライン間の区切りだけ**に使う。ライン内は地続きなので詰めて並べる（987▶143▶25▶6）。
+  // ライン内にも▶を打つと、隊列が1本の直列に見えてライン構造が読み取れなくなる。
+  // 競り（同じ位置を争う）は記者の並び予想と同じくカッコで括る（2(71)45）。
   const seriOf = {}; (r.seri||[]).forEach((g,i)=>g.forEach(c=>seriOf[c]=i));
-  const chips = (D.line||[]).map((s,i)=>{
-    const prev = i>0 ? D.line[i-1].car : null;
-    const same = prev!=null && seriOf[s.car]!=null && seriOf[s.car]===seriOf[prev];
-    const arrow = i===0 ? ""
-      : same ? `<span class="dev-seri">競</span>`
-             : `<span class="dev-arrow">▶</span>`;
-    const favB = s.is_fav ? `<span class="dev-fav">◎</span>` : "";
-    const cls = seriOf[s.car]!=null ? "dev-node sr" : "dev-node";
-    return `${arrow}<span class="${cls}">${favB}${carChip(s.car)}</span>`;
-  }).join("");
+  const favOf = {}; (D.line||[]).forEach(s=>{ if(s.is_fav) favOf[s.car] = 1; });
+  // lines が無い（並び予想を取れなかった）場合は隊列順の1本として描く
+  const groups = (r.lines||[]).length ? r.lines : [(D.line||[]).map(s=>s.car)];
+  const node = c =>
+    `<span class="dev-node${seriOf[c]!=null?" sr":""}">`
+    +`${favOf[c]?`<span class="dev-fav">◎</span>`:""}${carChip(c)}</span>`;
+  const chips = groups.map(mem=>{
+    let h = "", open = null;
+    mem.forEach((c,i)=>{
+      // 非競りは必ず null に揃える（undefined と混ぜない）。`??` は使わない——
+      // このファイルの構文検査に使う esprima が未対応で、静的チェックが効かなくなる
+      const g = seriOf[c]===undefined ? null : seriOf[c];
+      if(g!==open){
+        if(open!=null) h += `<span class="dev-paren">)</span>`;
+        if(g!=null)    h += `<span class="dev-paren">(</span>`;
+        open = g;
+      }
+      h += node(c);
+    });
+    if(open!=null) h += `<span class="dev-paren">)</span>`;
+    return `<span class="dev-grp">${h}</span>`;
+  }).join(`<span class="dev-arrow">▶</span>`);
   const narabi = (D.line||[]).length
     ? `<div class="dev-narabi-h">並び予想（左=先頭・車番のみ）</div><div class="dev-line">${chips}</div>` : "";
   // 隊列位置別の1着確率。前→後の並びで横棒にし、前残りか後方一気かを俯瞰できるようにする。
