@@ -36,7 +36,29 @@ from src.model.plackett_luce import all_trifecta_probs
 from src.model.development_branches import role_of, branch_trifecta, ROLES
 from src.backtest.walkforward import fold_boundaries
 
-MB_GRID = [0.0, 1.0, 2.0, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0]
+MB_GRID = [1.5, 2.0, 2.5, 3.0, 3.5]
+LB_GRID = [0.0, 0.5, 1.0, 1.5, 2.0]
+
+# 条件付き2着を見るときの役割は「**勝者**から見た相対位置」。主導権者基準ではない
+# （買い目は「Aが勝ったとき誰が2着か」で組むので、基準は勝者側でなければ読み解けない）。
+COND_ROLES = ["勝者の番手", "勝者と同ライン他", "他ライン先頭", "他ライン番手",
+              "他ライン3番手+", "単騎"]
+
+
+def _cond_role(car: int, winner: int, lines: list[list[int]]) -> str:
+    lo = {c: i for i, mem in enumerate(lines) for c in mem}
+    lw, lc = lo.get(winner), lo.get(car)
+    if lc is None or lw is None:
+        return "単騎"
+    if lc == lw:
+        mem = lines[lw]
+        i = mem.index(winner)
+        return "勝者の番手" if (i + 1 < len(mem) and mem[i + 1] == car) else "勝者と同ライン他"
+    mem = lines[lc]
+    if len(mem) == 1:
+        return "単騎"
+    i = mem.index(car)
+    return "他ライン先頭" if i == 0 else ("他ライン番手" if i == 1 else "他ライン3番手+")
 
 
 def _ctx(db: str):
@@ -96,8 +118,63 @@ def _settle(dist, lines) -> float:
                if lo.get(a) is not None and lo.get(a) == lo.get(b))
 
 
+def _cond_kind(x, w, lines):
+    lo = {c: i for i, m in enumerate(lines) for c in m}
+    lw, lx = lo.get(w), lo.get(x)
+    if lx is None or lw is None or lx != lw:
+        return "other"
+    mem = lines[lw]
+    i = mem.index(w)
+    return "mate" if (i + 1 < len(mem) and mem[i + 1] == x) else "same"
+
+
+def _fit_boosts(rows, model, stats) -> tuple[float, float]:
+    """train fold で **2つの実測シェア**（勝者の番手が2着 / 同ライン他が2着）に同時に合わせる。
+
+    合計（ライン決着率）だけに合わせると配分を誤る。mate単独較正では合計が合うのに
+    番手42.2%(実測32.2%) / 同ライン他13.4%(実測23.1%) と ±10pt ずれた。
+    """
+    cache = []
+    a_m = a_s = 0
+    for s, d, lines, b, order in rows:
+        st = model.strengths(s.X, s.car_numbers)
+        if not st or len(order) < 2:
+            continue
+        cache.append((st, b, lines, order[0]))
+        k = _cond_kind(order[1], order[0], lines)
+        a_m += int(k == "mate")
+        a_s += int(k == "same")
+    if not cache:
+        return 0.0, 0.0
+    n = len(cache)
+    t_m, t_s = a_m / n, a_s / n
+    best, bd = (0.0, 0.0), 1e9
+    for mb in MB_GRID:
+        for lb in LB_GRID:
+            pm = ps = 0.0
+            for st, b, lines, w in cache:
+                dd = branch_trifecta(st, b, lines, stats, mate_boost=mb, line_boost=lb)
+                sub = {}
+                for (x1, x2, _x3), p in dd.items():
+                    if x1 == w:
+                        sub[x2] = sub.get(x2, 0.0) + p
+                z = sum(sub.values())
+                if z <= 0:
+                    continue
+                for x, p in sub.items():
+                    k = _cond_kind(x, w, lines)
+                    if k == "mate":
+                        pm += p / z
+                    elif k == "same":
+                        ps += p / z
+            err = abs(pm / n - t_m) + abs(ps / n - t_s)
+            if err < bd:
+                best, bd = (mb, lb), err
+    return best
+
+
 def _fit_mate_boost(rows, model, stats) -> float:
-    """train fold で実測のライン決着率に一致する mate_boost を選ぶ。"""
+    """（旧）ライン決着の合計だけに合わせる較正。配分を誤るので _fit_boosts を使う。"""
     act = tot = 0
     cache = []
     for s, d, lines, b, order in rows:
@@ -152,12 +229,14 @@ def main() -> None:
     print(f"\n{'fold':>5}{'n_test':>8}{'mate_boost':>11}{'実測':>8}{'素のPL':>9}"
           f"{'分岐':>8}{'PLのズレ':>10}{'分岐のズレ':>11}{'LL素PL':>9}{'LL分岐':>9}")
     d_settle, d_ll = [], []
+    _fold_models = {}
     for fi, (a, b2, c) in enumerate(bounds):
         tr, te = rows[a:b2], rows[b2:c]
         model = train_gbdt([r[0] for r in tr])
         stats = _fit_weights(tr, model)
-        mb = _fit_mate_boost(tr, model, stats)
-        stats["mate_boost"] = mb
+        mb, lb = _fit_boosts(tr, model, stats)
+        stats["mate_boost"], stats["line_boost"] = mb, lb
+        _fold_models[fi] = {"model": model, "stats": stats, "mb": mb, "lb": lb}
 
         act = n = 0
         s_pl = s_br = 0.0
@@ -172,7 +251,7 @@ def main() -> None:
             # 主導権は**予測しない**。分岐の較正そのものを見るため真のBを条件にする。
             # （P(B)の不確実性を混ぜると較正の良し悪しが分離できない）
             dpl = all_trifecta_probs(st)
-            dbr = branch_trifecta(st, bt, lines, stats, mate_boost=mb)
+            dbr = branch_trifecta(st, bt, lines, stats, mate_boost=mb, line_boost=lb)
             s_pl += _settle(dpl, lines)
             s_br += _settle(dbr, lines)
             act += int(lo[order[0]] == lo[order[1]])
@@ -186,8 +265,59 @@ def main() -> None:
         A, P1, P2 = act / n * 100, s_pl / n * 100, s_br / n * 100
         d_settle.append(abs(P2 - A))
         d_ll.append(ll_br / n - ll_pl / n)
-        print(f"{fi:>5}{n:>8}{mb:>11.1f}{A:>7.1f}%{P1:>8.1f}%{P2:>7.1f}%"
+        print(f"{fi:>5}{n:>8}{str(mb)+chr(47)+str(lb):>11}{A:>7.1f}%{P1:>8.1f}%{P2:>7.1f}%"
               f"{P1-A:>+10.1f}{P2-A:>+11.1f}{ll_pl/n:>9.3f}{ll_br/n:>9.3f}")
+
+    # --- 条件付き2着/3着の較正（買い目の土台になるので必ず見る）---
+    # 「展開Xで、Aが勝ったときの2着・3着」は P(2着|B, 1着) そのもの。買い目をここから
+    # 組む以上、周辺のライン決着だけでなく**この条件付き分布**が当たっている必要がある。
+    print("\n=== 条件付き2着の較正（真のB・真の1着を条件・test foldのみ）===")
+    print(f"{'役割':>16}{'実測':>9}{'素のPL':>9}{'分岐':>9}{'PL誤差':>9}{'分岐誤差':>10}")
+    ta = {r: 0 for r in COND_ROLES}
+    tp = {r: 0.0 for r in COND_ROLES}
+    tb = {r: 0.0 for r in COND_ROLES}
+    ncond = 0
+    for fi, (a, b2, c) in enumerate(bounds):
+        tr, te = rows[a:b2], rows[b2:c]
+        model = _fold_models[fi]["model"]
+        stats = _fold_models[fi]["stats"]
+        mb = _fold_models[fi]["mb"]
+        lb = _fold_models[fi]["lb"]
+        for s2, d, lines, bt, order in te:
+            if len(order) < 2:
+                continue
+            st = model.strengths(s2.X, s2.car_numbers)
+            if not st:
+                continue
+            w = order[0]
+            if w not in st:
+                continue
+            dpl = all_trifecta_probs(st)
+            dbr = branch_trifecta(st, bt, lines, stats, mate_boost=mb, line_boost=lb)
+            # 1着=w で条件付けた2着分布
+            def cond2(dd):
+                sub = {}
+                for (x1, x2, _x3), p in dd.items():
+                    if x1 == w:
+                        sub[x2] = sub.get(x2, 0.0) + p
+                z = sum(sub.values())
+                return {k: v / z for k, v in sub.items()} if z > 0 else {}
+            cpl, cbr = cond2(dpl), cond2(dbr)
+            if not cbr:
+                continue
+            ncond += 1
+            ta[_cond_role(order[1], w, lines)] += 1
+            for x, p in cpl.items():
+                tp[_cond_role(x, w, lines)] += p
+            for x, p in cbr.items():
+                tb[_cond_role(x, w, lines)] += p
+    if ncond:
+        for r in COND_ROLES:
+            A, P1, P2 = ta[r] / ncond * 100, tp[r] / ncond * 100, tb[r] / ncond * 100
+            print(f"{r:>16}{A:>8.1f}%{P1:>8.1f}%{P2:>8.1f}%{P1-A:>+9.1f}{P2-A:>+10.1f}")
+        mae_pl = sum(abs(tp[r] - ta[r]) for r in COND_ROLES) / ncond * 100 / len(COND_ROLES)
+        mae_br = sum(abs(tb[r] - ta[r]) for r in COND_ROLES) / ncond * 100 / len(COND_ROLES)
+        print(f"  平均絶対誤差: 素のPL {mae_pl:.2f}pt → 分岐 {mae_br:.2f}pt  (n={ncond:,})")
 
     n_ok = sum(1 for d in d_settle if d <= 5.0)
     n_ll = sum(1 for d in d_ll if d < 0)

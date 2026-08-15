@@ -27,6 +27,10 @@ from itertools import permutations
 from pathlib import Path
 
 STATS_PATH = Path(__file__).with_name("branch_stats_men.json")
+# 買い目の点数予算。この範囲でカバー率が最大になるよう枠を貪欲に広げる。
+# 「カバー率N%まで広げる」方式は駄目だった: 1着を1頭に固定すると到達可能な上限が
+# その車の1着確率(27〜46%)しかなく、届かない目標だと全車に広がる（実測で確認）。
+FORMATION_BUDGET = 18
 ROLES = ["B本人", "B番手", "B同ライン他", "他ライン先頭", "他ライン番手", "他ライン3番手+", "単騎"]
 
 
@@ -65,9 +69,19 @@ def mate_of(car: int, lines: list[list[int]]) -> int | None:
     return None
 
 
+def line_mates_of(car: int, lines: list[list[int]]) -> list[int]:
+    """car と同一ラインの**直後以外**の選手（3番手や、carが番手なら先頭）。"""
+    for mem in lines:
+        if car in mem:
+            i = mem.index(car)
+            return [x for j, x in enumerate(mem) if j != i and j != i + 1]
+    return []
+
+
 def branch_trifecta(strengths: dict[int, float], b: int, lines: list[list[int]],
                     stats: dict | None = None,
-                    mate_boost: float | None = None) -> dict[tuple, float]:
+                    mate_boost: float | None = None,
+                    line_boost: float | None = None) -> dict[tuple, float]:
     """B=b を条件にした三連単分布。役割倍率＋**1着に連動した番手加点**で重みを付ける。
 
     役割倍率だけでは足りない。あれは1着・2着の重みを**別々に**掛けるだけなので、
@@ -88,6 +102,7 @@ def branch_trifecta(strengths: dict[int, float], b: int, lines: list[list[int]],
     wt = {k: {c: strengths[c] * (w.get(k) or {}).get(role[c], 1.0) for c in riders}
           for k in ("1", "2", "3")}
     mb = st.get("mate_boost", 0.0) if mate_boost is None else mate_boost
+    lb = st.get("line_boost", 0.0) if line_boost is None else line_boost
     out: dict[tuple, float] = {}
     z1 = sum(wt["1"].values())
     for a1 in riders:
@@ -95,11 +110,18 @@ def branch_trifecta(strengths: dict[int, float], b: int, lines: list[list[int]],
         if p1 <= 0:
             continue
         rem2 = [c for c in riders if c != a1]
-        # 1着 a1 の番手を加点する。ここが「ライン決着」の同時性を作る唯一の場所。
+        # 1着 a1 と同じラインの選手を加点する。ここが「ライン決着」の同時性を作る唯一の場所。
+        # **番手と、それ以外の同ライン**を別係数にする。合計だけ合わせると配分を誤るため:
+        # mate_boost だけで較正したとき、合計は合う(55.6% vs 実測55.3%)のに
+        # 番手 42.2%(実測32.2%) / 同ライン他 13.4%(実測23.1%) と ±10pt ずれていた。
         w2 = dict(wt["2"])
         m = mate_of(a1, lines)
         if mb and m in w2:
             w2[m] *= (1.0 + mb)
+        if lb:
+            for x in line_mates_of(a1, lines):
+                if x in w2:
+                    w2[x] *= (1.0 + lb)
         z2 = sum(w2[c] for c in rem2)
         for a2 in rem2:
             p2 = w2[a2] / z2 if z2 > 0 else 0.0
@@ -116,43 +138,74 @@ def branch_trifecta(strengths: dict[int, float], b: int, lines: list[list[int]],
     return {k: v / s for k, v in out.items()} if s > 0 else out
 
 
-def _formation(dist: dict[tuple, float], n1: int = 1, n2: int = 3, n3: int = 5) -> dict:
-    """分岐の分布 → フォーメーション（1着n1頭 × 2着n2頭 × 3着n3頭）。
+def _formation(dist: dict[tuple, float], budget: int = 18) -> dict:
+    """分岐の分布 → フォーメーション。**点数の予算内でカバー率を最大化する**。
 
-    **条件付きで選ぶ**。単純に各着の周辺確率で選ぶと、1着に固定した車が2着欄にも入り
-    枠を1つ無駄にする（実際それで3点しか買えないフォーメーションが出た）。
-    2着は「1着が f1 のいずれか」を条件に、3着はさらに「2着が f2 のいずれか」を条件に選ぶ。
+    点数を 1×3×5 のように固定してはいけない。分岐の分布の尖り方はレースごとに違うので、
+    固定するとカバーが足りない分岐と無駄に広い分岐が同じ点数になる（実際23%と31%が同じ12点）。
+    逆に「カバー率N%まで広げる」も駄目で、1着を1頭に固定すると到達可能な上限がその車の
+    1着確率(27〜46%)しかなく、届かない目標を置くと全車に広がってしまう（実測で確認）。
 
-    cover は**その買い方でこの分岐が当たる確率**。回収率ではない。
+    そこで **点数の予算を決め、1点あたりのカバー増が最大の枠を貪欲に広げる**。
+    1着/2着/3着のどれを広げるかもデータに決めさせる（実測の非対称性
+    「2着はライン内56%・3着は他ライン63%」は条件付き分布が既に持っているので、
+    貪欲法が自然に3着を広く取る）。
+
+    返す指標:
+      cover      … その買い方でこの分岐が当たる確率（**回収率ではない**）
+      cover_cond … 1着が当たった前提でのカバー率（= cover / P(1着∈f1)）
     """
     if not dist:
         return {}
     top = lambda d, k: [c for c, _ in sorted(d.items(), key=lambda kv: -kv[1])[:k]]
 
-    p1: dict[int, float] = {}
-    for (a, _b, _c), p in dist.items():
-        p1[a] = p1.get(a, 0.0) + p
-    f1 = top(p1, n1)
+    def build(k1, k2, k3):
+        p1: dict[int, float] = {}
+        for (a, _b, _c), p in dist.items():
+            p1[a] = p1.get(a, 0.0) + p
+        f1 = top(p1, k1)
+        p2: dict[int, float] = {}
+        for (a, b, _c), p in dist.items():
+            if a in f1:
+                p2[b] = p2.get(b, 0.0) + p
+        f2 = top(p2, k2)
+        p3: dict[int, float] = {}
+        for (a, b, c), p in dist.items():
+            if a in f1 and b in f2:
+                p3[c] = p3.get(c, 0.0) + p
+        f3 = top(p3, k3)
+        combos = {(a, b, c) for a in f1 for b in f2 for c in f3 if len({a, b, c}) == 3}
+        return f1, f2, f3, combos, sum(dist.get(c, 0.0) for c in combos), sum(p1[c] for c in f1)
 
-    p2: dict[int, float] = {}
-    for (a, b, _c), p in dist.items():
-        if a in f1:
-            p2[b] = p2.get(b, 0.0) + p
-    f2 = top(p2, n2)
+    n = len({c for combo in dist for c in combo})
+    k = [1, 2, 3]
+    f1, f2, f3, combos, cov, p1sum = build(*k)
+    while True:
+        best = None
+        for i in range(3):
+            if k[i] >= n:
+                continue
+            k2 = list(k)
+            k2[i] += 1
+            *_, cb, cv, _ps = build(*k2)
+            add = len(cb) - len(combos)
+            if add <= 0 or len(cb) > budget:
+                continue
+            gain = (cv - cov) / add
+            if best is None or gain > best[0]:
+                best = (gain, i)
+        if best is None:
+            break
+        k[best[1]] += 1
+        f1, f2, f3, combos, cov, p1sum = build(*k)
 
-    p3: dict[int, float] = {}
-    for (a, b, c), p in dist.items():
-        if a in f1 and b in f2:
-            p3[c] = p3.get(c, 0.0) + p
-    f3 = top(p3, n3)
-
-    combos = {(a, b, c) for a in f1 for b in f2 for c in f3 if len({a, b, c}) == 3}
     j = lambda xs: "".join(str(x) for x in sorted(xs))
     return {
         "first": f1, "second": f2, "third": f3,
         "points": len(combos),
         "text": f"{j(f1)}-{j(f2)}-{j(f3)}",
-        "cover": round(sum(dist.get(c, 0.0) for c in combos), 4),
+        "cover": round(cov, 4),
+        "cover_cond": round(cov / p1sum, 4) if p1sum > 0 else None,
     }
 
 
@@ -189,7 +242,9 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
             # この分岐での各車1着確率（読み用）
             "win": {int(c): round(sum(p for (a, _, _), p in dist.items() if a == c), 4)
                     for c in strengths},
-            "formation": _formation(dist),
+            "formation": _formation(dist, budget=FORMATION_BUDGET),
+            # 「この展開でAが勝ったときの2着・3着」（ご要望の形）
+            "conditional": conditional_orders(dist, lines, names),
         })
     if not out:
         return None
@@ -201,3 +256,63 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
                 "合わせた条件付き分布。買い目は展開の読み・紐選びの材料であって推奨ではない"
                 "（期待値ゾーンは検証済みで存在しない: 全点均等買いROI 58.0%・上限75%）。",
     }
+
+def conditional_orders(dist: dict[tuple, float], lines: list[list[int]],
+                       names: dict[int, str] | None = None,
+                       top_win: int = 3, top_n: int = 4) -> list[dict]:
+    """「この展開で A が勝ったとき、2着・3着は誰か」を勝者ごとに返す。
+
+    dist は展開を条件にした三連単分布。ここから 1着で条件付けるだけなので**追加のモデルは不要**。
+      P(2着=x | 1着=a) / P(3着=y | 1着=a)  … いずれも dist の周辺化
+
+    実測(25,235R)の構造が非対称なので、読み手に役割ラベルを添える:
+      2着は勝者のライン内から **56.3%**（番手32.6 + 同ライン他23.7）
+      3着は他ラインから **54%超**（他ライン番手26.2 + 他ライン先頭23.2 + 3番手4.8）
+    → 2着はライン内で固め、3着は他ラインへ広げるのが構造的に正しい。
+    """
+    names = names or {}
+    lo = {c: i for i, mem in enumerate(lines) for c in mem}
+
+    def role(x: int, w: int) -> str:
+        lw, lx = lo.get(w), lo.get(x)
+        if lx is None or lw is None:
+            return "単騎"
+        if lx == lw:
+            mem = lines[lw]
+            i = mem.index(w)
+            return "番手" if (i + 1 < len(mem) and mem[i + 1] == x) else "同ライン"
+        mem = lines[lx]
+        if len(mem) == 1:
+            return "単騎"
+        return "別線先頭" if mem.index(x) == 0 else (
+            "別線番手" if mem.index(x) == 1 else "別線3番手")
+
+    p1: dict[int, float] = {}
+    for (a, _b, _c), p in dist.items():
+        p1[a] = p1.get(a, 0.0) + p
+    out = []
+    for w, pw in sorted(p1.items(), key=lambda kv: -kv[1])[:top_win]:
+        if pw <= 0:
+            continue
+        p2: dict[int, float] = {}
+        p3: dict[int, float] = {}
+        for (a, b, c), p in dist.items():
+            if a != w:
+                continue
+            p2[b] = p2.get(b, 0.0) + p
+            p3[c] = p3.get(c, 0.0) + p
+        z = sum(p2.values()) or 1.0
+        pack = lambda d: [{"car": x, "name": names.get(x), "role": role(x, w),
+                           "prob": round(v / z, 4)}
+                          for x, v in sorted(d.items(), key=lambda kv: -kv[1])[:top_n]]
+        # ライン内/外の内訳。買い目の広げ方を決める材料
+        inline2 = sum(v for x, v in p2.items() if lo.get(x) == lo.get(w)) / z
+        inline3 = sum(v for x, v in p3.items() if lo.get(x) == lo.get(w)) / z
+        out.append({
+            "car": w, "name": names.get(w), "prob": round(pw, 4),
+            "second": pack(p2), "third": pack(p3),
+            "second_inline": round(inline2, 4),
+            "third_inline": round(inline3, 4),
+        })
+    return out
+
