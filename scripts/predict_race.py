@@ -143,6 +143,17 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     _line_of = {car: (li, pi)
                 for li, line in enumerate((narabi_ctx or {}).get("lines") or [])
                 for pi, car in enumerate(line)}
+    # 選手の位置別成績・戦法系の実績（表示用）。**as-of（当該レース日より前）で集計する**。
+    # ガールズはライン概念が無いので男子だけ。飛びつき成功率は位置取り推移が無く出せない。
+    lstats = {}
+    if not _girls:
+        try:
+            from src.features.rider_line_stats import compute_line_stats
+            from src.collect.gamboo_schedule import kaisai_race_date
+            lstats = compute_line_stats(hist_db, kaisai_race_date(day_code).isoformat())
+        except Exception:
+            lstats = {}
+
     riders = []
     for e in sorted(entries, key=lambda e: -strengths.get(e.car_number, 0)):
         f = recent.get(e.car_number)
@@ -185,6 +196,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             "style_races": sc.get("races"),
             # 今場所成績: [日付, R番号, 着順, 上りタイム] の配列（前日までの各走）
             "meet": [[m["date"], m["race_no"], m["position"], m["last_lap"]] for m in mr],
+            # ライン内位置別成績＋戦法系の実績（表示専用・as-of）。n が薄いものは
+            # rate が None で返る（分母は入っている）
+            "line_stats": lstats.get(e.rider_name),
         })
     top_tri = [{"combo": format_combo(c), "prob": round(p, 4),
                 "odds": odds.get(c), "need_odds": round(1 / p, 1) if p > 0 else None}

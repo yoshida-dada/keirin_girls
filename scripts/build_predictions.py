@@ -280,10 +280,16 @@ def main() -> None:
         if args.predict:
             doc["predictions"]["races"] = girls_races
 
-    out.write_text(json.dumps(doc, ensure_ascii=False, **kw), encoding="utf-8")
     rt = {c["type"]: c["n"] for c in doc["race_type_dist"]["counts"]}
-    print(f"生成: {out}  {out.stat().st_size/1024/1024:.2f}MB"
-          f"{'（compact）' if args.compact else ''}")
+    # --include men のときは data.json（ガールズ）を書かない。
+    # 男子だけ取りに行っているので girls_races は必ず空で、書くとガールズの
+    # レースと結果を丸ごと消すことになる（2026-08-15/16 に実際に2回消した）。
+    if args.include == "men" and args.predict:
+        print(f"据え置き: {out}（--include men なのでガールズ側は触らない）")
+    else:
+        out.write_text(json.dumps(doc, ensure_ascii=False, **kw), encoding="utf-8")
+        print(f"生成: {out}  {out.stat().st_size/1024/1024:.2f}MB"
+              f"{'（compact）' if args.compact else ''}")
     if men_doc is not None:
         mout = Path(args.out_men) if args.out_men else out.with_name("data_men.json")
         mout.write_text(json.dumps(men_doc, ensure_ascii=False, **kw), encoding="utf-8")

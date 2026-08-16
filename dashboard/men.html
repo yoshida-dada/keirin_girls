@@ -178,6 +178,28 @@ table.rt th.rt-car{z-index:3;background:var(--surface2)}
 table.rt th.rt-name,table.rt td.rt-name{position:sticky;left:52px;z-index:2;background:var(--surface);font-weight:800;vertical-align:top}
 table.rt td.rt-name{padding-top:6px}
 table.rt th.rt-name{z-index:3;background:var(--surface2)}
+/* 選手の位置別成績バッジ。列を増やさずに済ませるため選手セルに置く */
+.ls-b{display:inline-flex;align-items:center;gap:2px;margin:3px 0 1px;padding:1px 6px;
+  font-size:.58rem;font-weight:800;font-family:inherit;cursor:pointer;white-space:nowrap;
+  border:1px solid var(--border);border-radius:999px;background:var(--surface2);color:var(--muted)}
+.ls-b i{font-style:normal;font-size:.5rem}
+.ls-b.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ls-r>td{padding:0 8px 8px;background:var(--surface2)}
+.ls-p{display:flex;flex-direction:column;gap:6px;padding:7px 0 2px;max-width:520px}
+.ls-t table{border-collapse:collapse;font-size:.68rem;width:100%;max-width:340px}
+.ls-t th,.ls-t td{padding:3px 8px;text-align:right;white-space:nowrap;
+  border-bottom:1px solid var(--border2);font-variant-numeric:tabular-nums}
+.ls-t thead th{font-size:.58rem;color:var(--muted);font-weight:800}
+.ls-t tbody th{text-align:left;font-weight:800;color:var(--ink)}
+.ls-t tr.cur{background:var(--accent-soft)}       /* 今回の位置 */
+.ls-t tr.cur th{color:var(--accent)}
+.ls-t tr.off{opacity:.45}
+.ls-cs{display:flex;flex-wrap:wrap;gap:4px}
+.ls-c{font-size:.6rem;font-weight:700;color:var(--muted);background:var(--surface);
+  border:1px solid var(--border);border-radius:7px;padding:2px 7px;white-space:nowrap}
+.ls-c b{color:var(--ink);font-size:.68rem;margin-left:2px}
+.ls-c s{color:var(--muted);text-decoration:none;font-size:.9em;margin-left:2px}
+.ls-n{font-size:.55rem;color:var(--muted);font-weight:600;line-height:1.4}
 /* 出走表に統合した今場所成績（選手名の下） */
 .rt .rn-nm{display:block;white-space:nowrap;font-weight:800}
 .rt .rn-home{display:inline-block;margin-left:6px;font-size:.56rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:1px 5px;vertical-align:middle;letter-spacing:.03em}
@@ -862,6 +884,61 @@ cfg.order = cfg.order.filter(k=>colByKey[k]);
 cfg.hidden = cfg.hidden.filter(k=>colByKey[k]);
 function activeCols(){ return cfg.order.filter(k=>!cfg.hidden.includes(k)).map(k=>colByKey[k]); }
 
+// ---- 選手の位置別成績・戦法系の実績（バッジ＋クリックで展開）----
+// 列を増やすと横スクロールが伸びて読めなくなるので、選手セルにバッジを1つ置き、
+// 押したときだけ全項目を全幅の行で開く。バッジには**今回の位置での実績**を出す
+// （一番知りたい数字がそれなので、開かなくても分かるようにする）。
+const LS_POS = ["先頭","番手","3番手以降","単騎"];
+function lsPosOf(rd, r){
+  const lines = r.lines||[];
+  for(const mem of lines){
+    const i = mem.indexOf(rd.car);
+    if(i>=0) return mem.length<=1 ? "単騎" : (i===0?"先頭":(i===1?"番手":"3番手以降"));
+  }
+  return null;
+}
+// n が薄い率は rate=null で返ってくる（src/features/rider_line_stats.py MIN_N=5）。
+// その場合は「—」にして分母だけ見せる。数字を出すと信じられてしまうため。
+const lsRate = o => (!o||o.rate==null) ? "—" : Math.round(o.rate*100)+"%";
+const lsFrac = o => !o ? "" : `<s>(${o.k!=null?o.k:o.win_k}/${o.n})</s>`;
+function lsBadge(rd, r){
+  const ls = rd.line_stats; if(!ls) return "";
+  const lab = lsPosOf(rd, r);
+  const p = lab ? (ls.pos||{})[lab] : null;
+  const head = lab ? (p && p.win!=null ? `${lab} ${Math.round(p.win*100)}%`
+                                       : `${lab} —`) : "成績";
+  return `<button class="ls-b" type="button" data-ls="${rd.car}"`
+    +` aria-expanded="false" title="今回の位置での過去成績。押すと全項目">`
+    +`${esc(head)}<i>▾</i></button>`;
+}
+function lsPanel(rd, r){
+  const ls = rd.line_stats; if(!ls) return "";
+  const cur = lsPosOf(rd, r);
+  const rows = LS_POS.map(k=>{
+    const p = (ls.pos||{})[k];
+    if(!p) return `<tr class="off"><th>${k}</th><td>—</td><td>—</td><td>0走</td></tr>`;
+    return `<tr class="${k===cur?"cur":""}"><th>${k}</th>`
+      +`<td>${p.win!=null?Math.round(p.win*100)+"%":"—"}</td>`
+      +`<td>${p.top3!=null?Math.round(p.top3*100)+"%":"—"}</td>`
+      +`<td>${p.n}走</td></tr>`;
+  }).join("");
+  // 戦法系。飛びつき成功率は位置取り推移が保存されていないため項目自体を置かない
+  const one = (lab,o,tip)=>`<span class="ls-c" title="${esc(tip)}">${lab} `
+    +`<b>${lsRate(o)}</b>${lsFrac(o)}</span>`;
+  return `<div class="ls-p"><div class="ls-t"><table><thead><tr>`
+    +`<th>ライン位置</th><th>1着</th><th>3着内</th><th>走数</th></tr></thead>`
+    +`<tbody>${rows}</tbody></table></div>`
+    +`<div class="ls-cs">`
+    + one("かまし", ls.kamashi, "並び予想の脚質がカマシのレースで主導権(B)を取れた率")
+    + one("つっぱり", ls.tsuppari, "先行/押え先で、同レースにカマシ宣言者が居るときに主導権(B)を守れた率")
+    + one("競り", ls.seri, "競りの相手より上位で入った率。競りは全レースの1.5%しかなく標本が薄い")
+    + one("ライン分断(先頭時)", ls.cut_head, "自分が先頭で3着内、番手が着外だった率。意図的に切ったかは区別できない")
+    + one("ライン分断(番手時)", ls.cut_mate, "自分が番手で着外、先頭が3着内だった率。同上")
+    + `</div>`
+    + `<div class="ls-n">— は走数5未満で率を出していない。飛びつき成功率は`
+    + `レース中の位置取り推移が保存されておらず算出できない。</div></div>`;
+}
+
 // 出走表（設定した列・順で描画。riders は1着確率降順で格納済み → 先頭=本命行を強調）
 function riderTable(r){
   const cols = activeCols();
@@ -884,7 +961,9 @@ function riderTable(r){
       +`<td class="rt-car">${carChip(rd.car)}</td>`
       +`<td class="rt-name l"><span class="rn-nm">${esc(rd.name||"")}`
       +`${rd.home?`<span class="rn-home" title="地元(同県)開催">地元</span>`:(rd.home_dist?`<span class="rn-home dist" title="同地区開催">地区</span>`:"")}`
-      +`</span>${meetHtml}</td>${tds}</tr>`;
+      +`</span>${lsBadge(rd,r)}${meetHtml}</td>${tds}</tr>`
+      + (rd.line_stats ? `<tr class="ls-r" data-lsrow="${rd.car}" hidden>`
+          +`<td colspan="${cols.length+3}">${lsPanel(rd,r)}</td></tr>` : "");
   }).join("");
   return `<div class="tblwrap rt-wrap"><table class="rt"><thead><tr>${head}</tr></thead>`
     +`<tbody>${body}</tbody></table></div>`;
@@ -1500,6 +1579,17 @@ function raceBlock(r, tab){
 // raceBlock が出したセレクタ（EV買い目の1着車・三連単オッズ表の1着固定）の配線。
 // 男子セクションも同じ raceBlock を描くので、ホスト要素を引数にして共有する。
 function wireRaceControls(h){
+  // 選手バッジ → その選手の詳細行を開閉。行の再描画をしないのでスクロール位置が動かない
+  h.querySelectorAll("[data-ls]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const row = btn.closest("table").querySelector(`[data-lsrow="${btn.dataset.ls}"]`);
+      if(!row) return;
+      const open = row.hasAttribute("hidden");
+      row.toggleAttribute("hidden", !open);
+      btn.setAttribute("aria-expanded", open?"true":"false");
+      btn.classList.toggle("on", open);
+    });
+  });
   h.querySelectorAll(".ev-tab").forEach(btn=>{
     btn.addEventListener("click",()=>{
       const uid=btn.dataset.ev, car=+btn.dataset.car;
