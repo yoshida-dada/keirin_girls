@@ -327,7 +327,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             dev_branches = build_branches(
                 strengths, narabi_ctx["lines"],
                 {int(c): p for c, p in (_backstretch.get("probs") or {}).items()},
-                names={e.car_number: e.rider_name for e in entries})
+                names={e.car_number: e.rider_name for e in entries},
+                # 合成オッズは締切間近の更新でオッズが揃った時だけ入る（発売前は None）
+                odds=odds or None)
 
         # ペース読み（先行型=レース内でb_countが最多の40%以上の人数。スケール非依存で analyze_pace_composition と同一定義）。
         # 先行型が多いほどハイペース化し逃げが飛び捲り・差しが台頭（±5pt程度）。表示専用・着順には非影響。

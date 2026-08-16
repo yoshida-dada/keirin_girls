@@ -108,7 +108,16 @@ def main() -> None:
     ap.add_argument("--db", default=str(DATA_DIR / "keirin_men.sqlite"))
     ap.add_argument("--folds", type=int, default=5)
     ap.add_argument("--budget", type=int, default=18)
+    ap.add_argument("--emit", action="store_true",
+                    help="実測の的中率・回収率を表示用の定数として保存する")
     args = ap.parse_args()
+
+    # 回収率も測る。表示に「実測的中率」を出す以上、当たったときいくら返ったかも
+    # 併記しないと「よく当たる買い目＝良い買い目」と読まれてしまう
+    c0 = sqlite3.connect(f"file:{args.db}?mode=ro", uri=True)
+    payout = {r: (combo, p) for r, combo, p in
+              c0.execute("SELECT race_id,combo,payout FROM payouts_trifecta")}
+    c0.close()
 
     nb, pos, sbm = _ctx(args.db)
     raw = load_samples(args.db, field_size=[7, 9], features=PL_FEATURES_FULL)
@@ -128,7 +137,8 @@ def main() -> None:
     bounds = fold_boundaries(len(rows), n_folds=args.folds, warmup_frac=0.40,
                              window="expanding")
     # 型ごとに: 予測確率の和 / 実際の出現数 / 予測カバーの和 / 実際に買い目が当たった数
-    agg = {k: {"p": 0.0, "n": 0, "cov_p": 0.0, "cov_n": 0, "pts": 0} for k in FORM_KINDS}
+    agg = {k: {"p": 0.0, "n": 0, "cov_p": 0.0, "cov_n": 0, "pts": 0,
+               "stake": 0, "ret": 0} for k in FORM_KINDS}
     total = 0
     for fi, (a, b2, c) in enumerate(bounds):
         tr, te = rows[a:b2], rows[b2:c]
@@ -170,13 +180,18 @@ def main() -> None:
                     continue
                 agg[k]["p"] += t["scenario_prob"]
                 agg[k]["cov_p"] += t["scenario_prob"] * t["cover"]
-                agg[k]["pts"] += t["formation"]["points"]
+                f = t["formation"]
+                agg[k]["pts"] += f["points"]
+                agg[k]["stake"] += 100 * f["points"]
                 if k == actual_kind:
                     agg[k]["n"] += 1
-                    f = t["formation"]
                     hit = (order[0] in f["first"] and order[1] in f["second"]
                            and order[2] in f["third"])
                     agg[k]["cov_n"] += int(hit)
+                    if hit:
+                        pay = payout.get(s.race_id)
+                        if pay and pay[1]:
+                            agg[k]["ret"] += pay[1]
 
     print(f"{'型':>7}{'予測確率':>10}{'実測':>8}{'誤差':>8}"
           f"{'予測カバー':>11}{'実測カバー':>11}{'誤差':>8}{'平均点数':>9}")
@@ -201,6 +216,27 @@ def main() -> None:
     print(f"  主基準（型の出現確率 3pt以内）: {'充足' if mae_p <= 3.0 else '不充足'}")
     print(f"  副基準（カバー率 5pt以内）: {'充足' if mae_c <= 5.0 else '不充足'}")
     print(f"\n→ {'採用（買い目として出す）' if mae_p <= 3.0 and mae_c <= 5.0 else '不採用'}")
+
+    # ---- 表示用の実測値 ----
+    # ダッシュボードに「予測的中率」だけ出すと当たる気にさせるので、**実測の的中率と
+    # 回収率をセットで**出せるようにする。回収率は控除率25%のため上限75%。
+    print(f"\n{'型':>7}{'実測的中率(無条件)':>20}{'平均点数':>9}{'回収率':>9}")
+    emit = {}
+    for k in FORM_KINDS:
+        v = agg[k]
+        hit_abs = v["cov_n"] / total if total else 0.0
+        roi = v["ret"] / v["stake"] if v["stake"] else 0.0
+        print(f"{k:>7}{hit_abs*100:>19.1f}%{v['pts']/total:>9.1f}{roi*100:>8.1f}%")
+        emit[k] = {"hit": round(hit_abs, 4), "roi": round(roi, 4),
+                   "points": round(v["pts"] / total, 1), "n": total}
+    if args.emit:
+        import json
+        p = Path(__file__).resolve().parent.parent / "src" / "model" / "formation_stats_men.json"
+        p.write_text(json.dumps(
+            {"note": "walk-forward out-of-sample の実測。hit=無条件の的中率, "
+                     "roi=回収率(控除率25%のため上限75%)。買い目の推奨ではない。",
+             "kinds": emit}, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"\n保存: {p}")
 
 
 if __name__ == "__main__":
