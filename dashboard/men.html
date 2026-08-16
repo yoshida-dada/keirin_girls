@@ -735,6 +735,9 @@ table.t.rh-t td{vertical-align:top}
 .vcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);
   padding:12px 14px;margin-bottom:10px;cursor:pointer}
 .vcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* 更新ボタンの結果表示。押した手応えが無いと連打されるので必ず何か返す */
+.reload-msg{font-size:.62rem;font-weight:800;color:var(--muted);white-space:nowrap}
+#reloadBtn[disabled]{opacity:.5;cursor:default}
 .vc-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .vc-name{font-size:1rem;font-weight:800;color:var(--ink)}
 .gbadge{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
@@ -779,6 +782,8 @@ a.theme-btn{text-decoration:none;display:inline-flex;align-items:center}
   <div class="brand"><span class="dot"></span>競輪予測AI<span class="sexbadge">男子</span></div>
   <a class="theme-btn" href="./index.html">👩 ガールズ</a>
   <button class="theme-btn" id="themeBtn" aria-label="テーマ切替">🌓 テーマ</button>
+  <button class="theme-btn" id="reloadBtn" aria-label="最新データに更新">🔄 更新</button>
+  <span class="reload-msg" id="reloadMsg" role="status" aria-live="polite"></span>
   <div class="gen" id="gen"></div>
 </header>
 
@@ -1842,12 +1847,43 @@ function bootMen(DB){
 })();
 
 // ---- data load: 男子は data_men.json（ガールズの data.json とは別ファイル）----
+// 更新ボタン: 押すと取り直し、**last_updated が進んでいる時だけ**描き直す。
+// 毎回描き直すと開いていた詳細やタブ選択が畳まれるので、変化が無ければ触らない。
+let CUR_UPDATED = null;
 (function(){
-  fetch("./data_men.json?t="+Date.now()).then(r=>r.json()).then(bootMen).catch(e=>{
-    document.getElementById("menBody").innerHTML =
-      '<div class="empty">データ読込エラー: '+e+'<br>data_men.json を同じフォルダに置き、'
-      +'サーバ経由（GitHub Pages 等）で開いてください。</div>';
-  });
+  const btn = document.getElementById("reloadBtn");
+  const msg = document.getElementById("reloadMsg");
+  function load(manual){
+    if(btn) btn.disabled = true;
+    if(manual && msg) msg.textContent = "確認中…";
+    return fetch("./data_men.json?t="+Date.now(), {cache:"no-store"})
+      .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(DB=>{
+        const up = (DB.predictions||{}).last_updated || null;
+        if(manual && up && up === CUR_UPDATED){
+          if(msg){ msg.textContent = "最新です"; setTimeout(()=>{msg.textContent="";}, 3000); }
+          return;
+        }
+        CUR_UPDATED = up;
+        bootMen(DB);
+        if(manual && msg){
+          msg.textContent = "更新しました";
+          setTimeout(()=>{msg.textContent="";}, 3000);
+        }
+      })
+      .catch(e=>{
+        if(manual){
+          if(msg){ msg.textContent = "取得失敗"; setTimeout(()=>{msg.textContent="";}, 4000); }
+          return;
+        }
+        document.getElementById("menBody").innerHTML =
+          '<div class="empty">データ読込エラー: '+e+'<br>data_men.json を同じフォルダに置き、'
+          +'サーバ経由（GitHub Pages 等）で開いてください。</div>';
+      })
+      .finally(()=>{ if(btn) btn.disabled = false; });
+  }
+  if(btn) btn.addEventListener("click", ()=>load(true));
+  load(false);
 })();
 
 // PWA: サービスワーカー登録（ガールズ側と同一のSWを共有）
