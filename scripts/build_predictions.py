@@ -271,9 +271,18 @@ def main() -> None:
         men_races = [r for r in races if r.get("is_girls") is False]
         men_pred = dict(doc.get("predictions") or {})
         men_pred["races"] = men_races
+        # 買い目の型ごとの**実測**の的中率・回収率（walk-forward）。予測カバーだけ出すと
+        # 当たる気にさせるので、表示側で必ず並べられるように同梱する
+        _fs = {}
+        try:
+            _fp = ROOT / "src" / "model" / "formation_stats_men.json"
+            _fs = json.loads(_fp.read_text(encoding="utf-8"))
+        except Exception:
+            pass
         men_doc = {"generated_at": doc.get("generated_at"),
                    "model_ready": doc.get("model_ready"),
                    "sex": "men",
+                   "formation_stats": _fs,
                    "predictions": men_pred,
                    "note_analytics": "較正・レースタイプ分布・的中実績はガールズ実測のため"
                                      "本ページには載せない（男子は未実測）。"}

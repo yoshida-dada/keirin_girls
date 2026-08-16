@@ -200,6 +200,14 @@ table.rt th.rt-name{z-index:3;background:var(--surface2)}
 .ls-c b{color:var(--ink);font-size:.68rem;margin-left:2px}
 .ls-c s{color:var(--muted);text-decoration:none;font-size:.9em;margin-left:2px}
 .ls-n{font-size:.55rem;color:var(--muted);font-weight:600;line-height:1.4}
+/* 買い目の合成オッズと実測成績。予測だけ出すと当たる気にさせるので必ず並べる */
+.ft-row2{display:flex;flex-wrap:wrap;gap:5px;padding:0 0 5px 2px}
+.so,.ms{font-size:.58rem;font-weight:700;color:var(--muted);border-radius:6px;
+  padding:1px 6px;white-space:nowrap;background:var(--surface2)}
+.so b{color:var(--ink);font-size:.7rem;margin:0 2px}
+.so s{text-decoration:none;color:var(--muted);margin-left:4px;font-size:.92em}
+.so.na{opacity:.7}
+.ms{background:var(--edge-soft);color:var(--edge)}
 /* 出走表に統合した今場所成績（選手名の下） */
 .rt .rn-nm{display:block;white-space:nowrap;font-weight:800}
 .rt .rn-home{display:inline-block;margin-left:6px;font-size:.56rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:1px 5px;vertical-align:middle;letter-spacing:.03em}
@@ -1195,6 +1203,26 @@ function predContent(r){
 // 買い目の型（◎頭 / ◎2着 / ◎3着 / ◎抜き）。◎を1着に固定する必要はない。
 // 実測では **◎の1着的中は43.6%＝56%は◎が勝たない**ので、◎を2着・3着に置く型と
 // ◎を外す型も確率つきで並べる。walk-forward検証で型の出現確率の平均絶対誤差0.63pt。
+// 合成オッズ＝1/Σ(1/オッズ)。**どの目で当たっても同じ額が返るよう資金配分したときの倍率**で、
+// 均等買いの平均ではない。均等だと当たる目で回収が何倍も変わるのでレンジも併記する。
+// オッズが揃うのは締切間近の更新（発売前は出ない → 「発売前」と出す）。
+function synthTag(o){
+  if(!o || o.synth==null) return `<span class="so na">オッズ発売前</span>`;
+  const part = (o.covered!=null && o.points!=null && o.covered<o.points)
+    ? `<s>${o.covered}/${o.points}点</s>` : "";
+  return `<span class="so">合成 <b>${o.synth.toFixed(1)}倍</b>`
+    +`<s>${o.min.toFixed(1)}〜${o.max.toFixed(1)}倍</s>${part}</span>`;
+}
+// 型ごとの**実測**の的中率と回収率（walk-forward out-of-sample）。予測だけ出すと
+// 当たる気にさせるので、実際にどうだったかを必ず並べる。回収率の上限は控除率25%より75%。
+let FORM_STATS = {};        // data_men.json の formation_stats を bootMen で入れる
+function measTag(kind){
+  const s = (FORM_STATS||{})[kind];
+  if(!s) return "";
+  return `<span class="ms" title="過去の walk-forward 実測（無条件の的中率と回収率）。`
+    +`平均${s.points}点。回収率の上限は控除率25%のため75%">`
+    +`実測 的中${Math.round(s.hit*100)}% / 回収${Math.round(s.roi*100)}%</span>`;
+}
 function typesHtml(b, pc){
   const T = b.form_types||[];
   if(!T.length) return "";
@@ -1206,7 +1234,7 @@ function typesHtml(b, pc){
       +`<b class="ft-form">${esc(f.text||"")}</b>`
       +`<span class="ft-pts">${f.points||0}点</span>`
       +`<span class="ft-cov">型内${pc(t.cover)}</span>`
-      +`</div>`;
+      +`</div><div class="ft-row2">${synthTag(t.odds)}${measTag(t.kind)}</div>`;
   }).join("");
   return `<div class="ft">`
     +`<div class="ft-h">◎の置き場所ごとの買い目</div>`
@@ -1258,7 +1286,8 @@ function branchBlock(r){
       +(f.text?`<div class="br-buy"><span class="br-buylbl">買い目</span>`
         +`<b class="br-form">${esc(f.text)}</b>`
         +`<span class="br-pts">${f.points}点</span>`
-        +`<span class="br-cov">この展開の${pc(f.cover)}をカバー</span></div>`:"")
+        +`<span class="br-cov">この展開の${pc(f.cover)}をカバー</span></div>`
+        +`<div class="ft-row2">${synthTag(f.odds)}</div>`:"")
       + typesHtml(b, pc)
       + condHtml(b, nm, pc)
       +`</div>`;
@@ -1625,6 +1654,7 @@ function wireRaceControls(h){
 // 成立しないので3階層にする。データも data_men.json で独立。
 function bootMen(DB){
   const P = DB.predictions||{};
+  FORM_STATS = (DB.formation_stats||{}).kinds || {};   // 型別の実測（的中率・回収率）
   const host = document.getElementById("menBody");
   const all = (P.races||[]).filter(r=>r.is_girls===false);
   document.getElementById("menTitle").innerHTML = "男子競輪の予測 "+badge(all.length?P.status:"pending");

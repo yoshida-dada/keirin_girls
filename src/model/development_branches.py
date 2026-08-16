@@ -224,9 +224,33 @@ def _formation(dist: dict[tuple, float], budget: int = 18) -> dict:
     }
 
 
+def synth_odds(form: dict, odds: dict[tuple, float] | None) -> dict | None:
+    """買い目の合成オッズ。odds が無ければ None（発売前は出せない）。
+
+    合成オッズ = 1 / Σ(1/オッズ)。**どの目で当たっても同じ額が返るように資金を配分した
+    ときの倍率**で、均等買いの平均ではない。プロジェクト内の `synth_odds_1st` と同じ定義。
+
+    均等買いだと当たる目によって回収が何倍も変わるので、レンジ(min/max)も併記する。
+    オッズが取れていない目がある場合は covered で何点ぶん取れているかを返す
+    （締切直前の更新で全点そろうが、遠いレースは間引いているため）。
+    """
+    if not form or not odds:
+        return None
+    combos = [(a, b, c) for a in form.get("first", []) for b in form.get("second", [])
+              for c in form.get("third", []) if len({a, b, c}) == 3]
+    vals = [odds[k] for k in combos if odds.get(k) and odds[k] > 0]
+    if not vals:
+        return None
+    inv = sum(1.0 / o for o in vals)
+    return {"synth": round(1.0 / inv, 1) if inv > 0 else None,
+            "min": round(min(vals), 1), "max": round(max(vals), 1),
+            "covered": len(vals), "points": len(combos)}
+
+
 def build_branches(strengths: dict[int, float], lines: list[list[int]],
                    b_probs: dict[int, float] | None, names: dict[int, str] | None = None,
-                   top_k: int = 3, min_prob: float = 0.05) -> dict | None:
+                   top_k: int = 3, min_prob: float = 0.05,
+                   odds: dict[tuple, float] | None = None) -> dict | None:
     """展開分岐を作る。lines か b_probs が無ければ None（ガールズ・並び予想なし）。
 
     b_probs は展開AIの P(B)。top_k 個まで、確率 min_prob 以上の分岐を返す。
@@ -248,6 +272,12 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
         li = line_of.get(b)
         mem = lines[li] if li is not None else [b]
         solo = len(mem) == 1
+        _f = _formation(dist, budget=FORMATION_BUDGET)
+        _ft = formation_types(dist, fav) if fav is not None else []
+        # 合成オッズは締切間近の更新（オッズが揃うタイミング）で入る。発売前は None
+        if odds:
+            _f = dict(_f, odds=synth_odds(_f, odds)) if _f else _f
+            _ft = [dict(t, odds=synth_odds(t.get("formation"), odds)) for t in _ft]
         out.append({
             "b_car": b,
             "b_name": names.get(b),
@@ -258,11 +288,11 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
             # この分岐での各車1着確率（読み用）
             "win": {int(c): round(sum(p for (a, _, _), p in dist.items() if a == c), 4)
                     for c in strengths},
-            "formation": _formation(dist, budget=FORMATION_BUDGET),
+            "formation": _f,
             # 「この展開でAが勝ったときの2着・3着」（ご要望の形）
             "conditional": conditional_orders(dist, lines, names),
             # ◎の置き場所ごとの買い目（◎頭/◎2着/◎3着/◎抜き）
-            "form_types": formation_types(dist, fav) if fav is not None else [],
+            "form_types": _ft,
         })
     if not out:
         return None
