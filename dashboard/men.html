@@ -208,6 +208,25 @@ table.rt th.rt-name{z-index:3;background:var(--surface2)}
 .so s{text-decoration:none;color:var(--muted);margin-left:4px;font-size:.92em}
 .so.na{opacity:.7}
 .ms{background:var(--edge-soft);color:var(--edge)}
+/* モデル予測（この買い目を買ったときの的中確率）。実測と並べて読ませる */
+.pm{font-size:.58rem;font-weight:700;border-radius:6px;padding:1px 6px;white-space:nowrap;
+  background:var(--accent-soft);color:var(--accent)}
+.pm b{font-size:.72rem;margin:0 2px}
+.pm s{text-decoration:none;opacity:.85;margin-left:4px}
+/* 展開をまたぐ統合買い目。分岐ごとの買い目より前に置き、先に全体像を見せる */
+.mg{border:1px solid var(--accent);border-radius:10px;padding:8px 10px;margin:2px 0 10px;
+  background:var(--accent-soft)}
+.mg-h{font-size:.62rem;font-weight:800;color:var(--accent);letter-spacing:.02em;margin-bottom:5px}
+.mg-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:3px 0;
+  border-top:1px solid var(--border2)}
+.mg-row:first-of-type{border-top:0}
+.mg-pts{font-size:.62rem;font-weight:800;color:var(--muted);min-width:4.4em}
+.mg-pts s{text-decoration:none;opacity:.75;margin-left:3px}
+.mg-form{font-size:.82rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.mg-p{font-size:.6rem;font-weight:700;color:var(--muted)}
+.mg-p b{color:var(--ink);font-size:.72rem}
+.mg-ref{font-size:.58rem;font-weight:700;color:var(--muted);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border)}
 /* 出走表に統合した今場所成績（選手名の下） */
 .rt .rn-nm{display:block;white-space:nowrap;font-weight:800}
 .rt .rn-home{display:inline-block;margin-left:6px;font-size:.56rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:1px 5px;vertical-align:middle;letter-spacing:.03em}
@@ -1211,12 +1230,16 @@ function predContent(r){
 // 合成オッズ＝1/Σ(1/オッズ)。**どの目で当たっても同じ額が返るよう資金配分したときの倍率**で、
 // 均等買いの平均ではない。均等だと当たる目で回収が何倍も変わるのでレンジも併記する。
 // オッズが揃うのは締切間近の更新（発売前は出ない → 「発売前」と出す）。
+// 取得時刻を必ず添える。締切までオッズは動くので、いつ時点の合成なのかが分からないと
+// 数字を読めない（レース単位で1回の取得なので時刻はレース共通）。
+let ODDS_AT = null;
 function synthTag(o){
   if(!o || o.synth==null) return `<span class="so na">オッズ発売前</span>`;
   const part = (o.covered!=null && o.points!=null && o.covered<o.points)
     ? `<s>${o.covered}/${o.points}点</s>` : "";
+  const at = ODDS_AT ? `<s>${esc(ODDS_AT)}時点</s>` : "";
   return `<span class="so">合成 <b>${o.synth.toFixed(1)}倍</b>`
-    +`<s>${o.min.toFixed(1)}〜${o.max.toFixed(1)}倍</s>${part}</span>`;
+    +`<s>${o.min.toFixed(1)}〜${o.max.toFixed(1)}倍</s>${part}${at}</span>`;
 }
 // 型ごとの**実測**の的中率と回収率（walk-forward out-of-sample）。予測だけ出すと
 // 当たる気にさせるので、実際にどうだったかを必ず並べる。回収率の上限は控除率25%より75%。
@@ -1227,6 +1250,22 @@ function measTag(kind){
   return `<span class="ms" title="過去の walk-forward 実測（無条件の的中率と回収率）。`
     +`平均${s.points}点。回収率の上限は控除率25%のため75%">`
     +`実測 的中${Math.round(s.hit*100)}% / 回収${Math.round(s.roi*100)}%</span>`;
+}
+// この買い目を実際に買ったときの的中確率＝**全分岐の混合分布での確率合計**。
+// 「型内○%」は展開が起きた前提の条件付きなので別物（他の展開でも当たり得る）。
+//
+// **期待値（モデル確率×合成オッズ）は出さない。** 控除率25%のもとで
+// 期待値 = 0.75 ×（モデル確率 ÷ 市場確率）になるので、この値が1を超えるのは
+// 「モデルが市場より高く見積もっている」だけの意味しかない。そして
+// モデルが市場と乖離する買い目ほど当たらないことは検証済み（4.21.2 で
+// 「EV順に選ぶと予測10%に対し実測3.7%」）。**買いたくなる方向に系統的に外れる数字**
+// なので画面に出さない。判断材料は「モデル予測」と「実測」を並べる形にする。
+function pmodelTag(f, o){
+  if(!f || f.p_model==null) return "";
+  return `<span class="pm" title="このフォーメーション（${f.points||0}点）の目に`
+    +`モデルが置いている確率の合計。全分岐の混合分布で計算しており、`
+    +`「型内○%」（その展開が起きた前提の条件付き）とは別物">`
+    +`モデル予測 <b>${(f.p_model*100).toFixed(1)}%</b></span>`;
 }
 function typesHtml(b, pc){
   const T = b.form_types||[];
@@ -1239,7 +1278,8 @@ function typesHtml(b, pc){
       +`<b class="ft-form">${esc(f.text||"")}</b>`
       +`<span class="ft-pts">${f.points||0}点</span>`
       +`<span class="ft-cov">型内${pc(t.cover)}</span>`
-      +`</div><div class="ft-row2">${synthTag(t.odds)}${measTag(t.kind)}</div>`;
+      +`</div><div class="ft-row2">${pmodelTag(f, t.odds)}${synthTag(t.odds)}`
+      +`${measTag(t.kind)}</div>`;
   }).join("");
   return `<div class="ft">`
     +`<div class="ft-h">◎の置き場所ごとの買い目</div>`
@@ -1271,6 +1311,7 @@ function condHtml(b, nm, pc){
 function branchBlock(r){
   const B = r.dev_branches;
   if(!B || !(B.branches||[]).length) return "";
+  ODDS_AT = r.odds_at || null;      // 合成オッズの「いつ時点か」（レース共通）
   const pc = v => v==null ? "—" : Math.round(v*100)+"%";
   const nm = {};
   (r.riders||[]).forEach(x=>{ nm[x.car]=x.name; });
@@ -1292,14 +1333,35 @@ function branchBlock(r){
         +`<b class="br-form">${esc(f.text)}</b>`
         +`<span class="br-pts">${f.points}点</span>`
         +`<span class="br-cov">この展開の${pc(f.cover)}をカバー</span></div>`
-        +`<div class="ft-row2">${synthTag(f.odds)}</div>`:"")
+        +`<div class="ft-row2">${pmodelTag(f, f.odds)}${synthTag(f.odds)}</div>`:"")
       + typesHtml(b, pc)
       + condHtml(b, nm, pc)
       +`</div>`;
   }).join("");
+  // 展開をまたぐ統合買い目。分岐ごとに買うと点数が倍々になるので、
+  // 1つの買い目で全分岐をケアする案を点数別に並べる（削る判断は見る側に委ねる）。
+  const M = B.merged||[], ME = B.merged_each;
+  const mrows = M.map(f=>{
+    // 分岐ごとに買う場合（和集合）に対して何割の点数か。削減の度合いを読めるようにする
+    const cut = (ME && ME.points) ? Math.round(f.points/ME.points*100)+"%" : "";
+    return `<div class="mg-row"><span class="mg-pts">${f.points}点`
+    +(cut?`<s>${cut}</s>`:"")+`</span>`
+    +`<b class="mg-form">${esc(f.text||"")}</b>`
+    +`<span class="mg-p">モデル予測 <b>${((f.p_model||0)*100).toFixed(1)}%</b></span>`
+    +`${synthTag(f.odds)}</div>`;
+  }).join("");
+  const merged = M.length
+    ? `<div class="mg"><div class="mg-h">展開をまたぐ買い目（1つで全分岐をケア）</div>`
+      + mrows
+      + (ME ? `<div class="mg-ref">分岐ごとに全部買うと <b>${ME.points}点</b>で`
+              +`モデル予測 <b>${(ME.p_model*100).toFixed(1)}%</b>`
+              +`　※統合は1つの形（1着×2着×3着）に収める制約があるぶん、`
+              +`同じ点数でも和集合には届かないことがある</div>` : "")
+      + `</div>`
+    : "";
   return `<details class="br" open><summary>🔀 展開分岐と買い目`
     +`<span class="upt mid">上位${B.branches.length}分岐で${pc(B.covered)}</span></summary>`
-
+    + merged
     +rows
     +`<div class="br-warn">⚠ 買い目の推奨ではありません（回収率100%超のゾーンは無いと検証済み）</div>`
     +`</details>`;
