@@ -31,10 +31,16 @@ STATS_PATH = Path(__file__).with_name("branch_stats_men.json")
 # 「カバー率N%まで広げる」方式は駄目だった: 1着を1頭に固定すると到達可能な上限が
 # その車の1着確率(27〜46%)しかなく、届かない目標だと全車に広がる（実測で確認）。
 FORMATION_BUDGET = 18
-# 統合買い目の点数は**分岐ごとに買った場合（和集合）に対する割合**で決める。
-# 固定値だと、分岐2本(和集合28点)と3本(同31点)で削減率が変わって比較しづらい。
-# 3割/5割/7割の3案を出し、「何割まで削るとカバーがどれだけ落ちるか」を見せる。
-MERGE_FRACTIONS = (0.3, 0.5, 0.7)
+# 全分岐をケアする買い目の総点数（重複除去後の目標）。分岐ごとに満額で買うと
+# 和集合で28〜31点になるので、その6割前後に収める。
+# **1つの形に押し込まない**。展開Aが「3が頭」・Bが「1が頭」なら1つの長方形では
+# 1着に3と1を両方入れる分だけ2着3着を削る羽目になり、かえって効率が落ちる。
+# 複数フォーメーションのまま、点数を P(展開) に比例配分して削る。
+PLAN_POINTS = 18
+PLAN_MIN_PER_BRANCH = 3
+# 合成オッズを上げるための足切り。**この倍率以下の目を落とす**。
+# 落とした目は必ず一覧で出す（黙って消すと買い目が変わったことに気づけない）。
+PLAN_ODDS_FLOOR = 10.0
 ROLES = ["B本人", "B番手", "B同ライン他", "他ライン先頭", "他ライン番手", "他ライン3番手+", "単騎"]
 
 
@@ -251,6 +257,60 @@ def synth_odds(form: dict, odds: dict[tuple, float] | None) -> dict | None:
             "covered": len(vals), "points": len(combos)}
 
 
+def _combos(f) -> list[tuple]:
+    return [(a, b, c) for a in (f or {}).get("first", [])
+            for b in (f or {}).get("second", []) for c in (f or {}).get("third", [])
+            if len({a, b, c}) == 3]
+
+
+def build_plan(dists: list, mix: dict, pmodel, odds: dict | None,
+               total: int = PLAN_POINTS, floor: float = PLAN_ODDS_FLOOR) -> dict | None:
+    """全分岐をケアする買い目。**複数フォーメーションのまま**点数を配分して削る。
+
+    点数は P(展開) に比例配分する（起きやすい展開に厚く張る）。1つの長方形に
+    押し込まない理由は、展開ごとに1着候補が違うと1つの形では表現が歪むため。
+
+    足切り: `floor` 倍以下の目を落とす。合成オッズは 1/Σ(1/o) なので安い目を
+    落とすほど上がる。**落とした目は必ず一覧で返す**（黙って消すと買い目が
+    変わったことに気づけない）。足切り前後の合成オッズを両方返す。
+
+    注意: 足切りで回収率が上がるわけではない（実測では分散の付け替え）。
+    ここで返すのは「合成オッズをいくつまで上げられるか」という情報。
+    """
+    if not dists:
+        return None
+    z = sum(p for _p, p, _d in [(b, p, d) for b, p, d in dists]) or 1.0
+    forms, used = [], set()
+    for b, pb, dist in dists:
+        bud = max(PLAN_MIN_PER_BRANCH, round(total * pb / z))
+        f = _formation(dist, budget=bud)
+        if not f:
+            continue
+        forms.append({"b_car": b, "prob": round(pb, 4), "text": f["text"],
+                      "first": f["first"], "second": f["second"], "third": f["third"],
+                      "points": f["points"]})
+        used |= set(_combos(f))
+    if not forms:
+        return None
+
+    def stat(cs):
+        vals = [odds[k] for k in cs if odds and odds.get(k)] if odds else []
+        inv = sum(1.0 / o for o in vals) if vals else 0.0
+        return {"points": len(cs),
+                "p_model": round(sum(mix.get(k, 0.0) for k in cs), 4),
+                "synth": round(1.0 / inv, 1) if inv > 0 else None,
+                "min": round(min(vals), 1) if vals else None,
+                "max": round(max(vals), 1) if vals else None}
+
+    out = {"forms": forms, "before": stat(used), "floor": floor}
+    if odds:
+        cut = sorted(k for k in used if odds.get(k) and odds[k] <= floor)
+        keep = used - set(cut)
+        out["cut"] = [{"combo": f"{a}-{b}-{c}", "odds": odds[(a, b, c)]} for a, b, c in cut]
+        out["after"] = stat(keep) if keep else None
+    return out
+
+
 def build_branches(strengths: dict[int, float], lines: list[list[int]],
                    b_probs: dict[int, float] | None, names: dict[int, str] | None = None,
                    top_k: int = 3, min_prob: float = 0.05,
@@ -345,17 +405,7 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
     each = {"points": len(uni),
             "p_model": round(sum(mix.get(k, 0.0) for k in uni), 4)} if uni else None
 
-    merged, seen = [], set()
-    for fr in MERGE_FRACTIONS:
-        bud = max(4, round(len(uni) * fr)) if uni else FORMATION_BUDGET
-        f = _formation(mix, budget=bud)
-        if not f or f["points"] in seen:
-            continue                       # 予算違いで同じ点数に収束したら1つだけ出す
-        seen.add(f["points"])
-        f = dict(f, p_model=_pmodel(f))
-        if odds:
-            f = dict(f, odds=synth_odds(f, odds))
-        merged.append(f)
+    merged = build_plan(dists, mix, _pmodel, odds)
 
     return {
         "branches": out,

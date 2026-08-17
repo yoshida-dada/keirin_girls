@@ -220,8 +220,20 @@ table.rt th.rt-name{z-index:3;background:var(--surface2)}
 .mg-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:3px 0;
   border-top:1px solid var(--border2)}
 .mg-row:first-of-type{border-top:0}
-.mg-pts{font-size:.62rem;font-weight:800;color:var(--muted);min-width:4.4em}
-.mg-pts s{text-decoration:none;opacity:.75;margin-left:3px}
+.mg-pts{font-size:.62rem;font-weight:800;color:var(--muted);margin-left:auto}
+.mg-tag{font-size:.58rem;font-weight:800;color:var(--accent);background:var(--surface);
+  border-radius:5px;padding:1px 5px}
+.mg-pr{font-size:.6rem;font-weight:800;color:var(--muted);min-width:2.6em}
+.mg-sum{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:5px 0 3px;
+  border-top:1px dashed var(--border)}
+.mg-sum>b{font-size:.78rem;color:var(--ink)}
+.mg-lbl{font-size:.58rem;font-weight:800;color:var(--muted);min-width:4.4em}
+.mg-cut{padding:4px 0 2px}
+.mg-cuth{font-size:.58rem;font-weight:800;color:var(--loss);margin-bottom:3px}
+.mg-c{display:inline-block;font-size:.6rem;font-weight:700;color:var(--muted);
+  background:var(--surface);border:1px solid var(--border);border-radius:5px;
+  padding:1px 5px;margin:0 3px 3px 0;text-decoration:line-through}
+.mg-c s{text-decoration:none;opacity:.8;margin-left:3px}
 .mg-form{font-size:.82rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 .mg-p{font-size:.6rem;font-weight:700;color:var(--muted)}
 .mg-p b{color:var(--ink);font-size:.72rem}
@@ -1340,25 +1352,42 @@ function branchBlock(r){
   }).join("");
   // 展開をまたぐ統合買い目。分岐ごとに買うと点数が倍々になるので、
   // 1つの買い目で全分岐をケアする案を点数別に並べる（削る判断は見る側に委ねる）。
-  const M = B.merged||[], ME = B.merged_each;
-  const mrows = M.map(f=>{
-    // 分岐ごとに買う場合（和集合）に対して何割の点数か。削減の度合いを読めるようにする
-    const cut = (ME && ME.points) ? Math.round(f.points/ME.points*100)+"%" : "";
-    return `<div class="mg-row"><span class="mg-pts">${f.points}点`
-    +(cut?`<s>${cut}</s>`:"")+`</span>`
-    +`<b class="mg-form">${esc(f.text||"")}</b>`
-    +`<span class="mg-p">モデル予測 <b>${((f.p_model||0)*100).toFixed(1)}%</b></span>`
-    +`${synthTag(f.odds)}</div>`;
-  }).join("");
-  const merged = M.length
-    ? `<div class="mg"><div class="mg-h">展開をまたぐ買い目（1つで全分岐をケア）</div>`
-      + mrows
-      + (ME ? `<div class="mg-ref">分岐ごとに全部買うと <b>${ME.points}点</b>で`
+  // 全分岐をケアする買い目。**複数フォーメーションのまま**点数を P(展開) で配分して削る。
+  // 足切りは合成オッズを上げるために行い、外した目を必ず一覧で出す（黙って消さない）。
+  const P0 = B.merged, ME = B.merged_each;
+  const stat = (s, lbl) => !s ? "" :
+    `<div class="mg-sum"><span class="mg-lbl">${lbl}</span>`
+    +`<b>${s.points}点</b>`
+    +`<span class="mg-p">モデル予測 <b>${((s.p_model||0)*100).toFixed(1)}%</b></span>`
+    +(s.synth!=null
+      ? `<span class="so">合成 <b>${s.synth.toFixed(1)}倍</b>`
+        +`<s>${s.min.toFixed(1)}〜${s.max.toFixed(1)}倍</s>`
+        +(ODDS_AT?`<s>${esc(ODDS_AT)}時点</s>`:"")+`</span>`
+      : `<span class="so na">オッズ発売前</span>`)
+    +`</div>`;
+  let merged = "";
+  if(P0 && (P0.forms||[]).length){
+    const frows = P0.forms.map((f,i)=>
+      `<div class="mg-row"><span class="mg-tag">展開${"ABCDE"[i]||""}</span>`
+      +`<span class="mg-pr">${pc(f.prob)}</span>`
+      +`<b class="mg-form">${esc(f.text||"")}</b>`
+      +`<span class="mg-pts">${f.points}点</span></div>`).join("");
+    const cuts = (P0.cut||[]).length
+      ? `<div class="mg-cut"><div class="mg-cuth">`
+        +`${P0.floor}倍以下を足切り（${P0.cut.length}点を除外）</div>`
+        + P0.cut.map(c=>`<span class="mg-c">${esc(c.combo)}`
+            +`<s>${(+c.odds).toFixed(1)}倍</s></span>`).join("")
+        +`</div>` : "";
+    merged = `<div class="mg"><div class="mg-h">全分岐をケアする買い目</div>`
+      + frows
+      + stat(P0.before, "足切り前")
+      + cuts
+      + (P0.after ? stat(P0.after, "足切り後") : "")
+      + (ME ? `<div class="mg-ref">分岐ごとに満額で買うと <b>${ME.points}点</b>で`
               +`モデル予測 <b>${(ME.p_model*100).toFixed(1)}%</b>`
-              +`　※統合は1つの形（1着×2着×3着）に収める制約があるぶん、`
-              +`同じ点数でも和集合には届かないことがある</div>` : "")
-      + `</div>`
-    : "";
+              +`　※足切りは合成オッズを上げるが回収率は上げない（分散の付け替え）</div>` : "")
+      + `</div>`;
+  }
   return `<details class="br" open><summary>🔀 展開分岐と買い目`
     +`<span class="upt mid">上位${B.branches.length}分岐で${pc(B.covered)}</span></summary>`
     + merged
