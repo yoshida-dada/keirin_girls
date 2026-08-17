@@ -31,6 +31,10 @@ STATS_PATH = Path(__file__).with_name("branch_stats_men.json")
 # 「カバー率N%まで広げる」方式は駄目だった: 1着を1頭に固定すると到達可能な上限が
 # その車の1着確率(27〜46%)しかなく、届かない目標だと全車に広がる（実測で確認）。
 FORMATION_BUDGET = 18
+# 統合買い目の点数は**分岐ごとに買った場合（和集合）に対する割合**で決める。
+# 固定値だと、分岐2本(和集合28点)と3本(同31点)で削減率が変わって比較しづらい。
+# 3割/5割/7割の3案を出し、「何割まで削るとカバーがどれだけ落ちるか」を見せる。
+MERGE_FRACTIONS = (0.3, 0.5, 0.7)
 ROLES = ["B本人", "B番手", "B同ライン他", "他ライン先頭", "他ライン番手", "他ライン3番手+", "単騎"]
 
 
@@ -262,18 +266,47 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
     line_of = {c: i for i, mem in enumerate(lines) for c in mem}
     fav = max(strengths, key=strengths.get) if strengths else None   # ◎＝モデル1着確率トップ
     cand = sorted(b_probs.items(), key=lambda kv: -kv[1])[:top_k]
-    out = []
+    # 先に全分岐の分布を作り、**混合分布**を用意する。
+    # 分岐ごとの cover は「その展開が起きた前提」の確率であって、実際に買ったときの
+    # 的中確率ではない（他の展開でも当たり得る）。買い目の点数を買ったら何%当たるかは
+    # 混合分布 Σ P(b)·P(順位|b) で合計しないと出ない。
+    dists = []
     for b, pb in cand:
         if pb < min_prob or b not in strengths:
             continue
-        dist = branch_trifecta(strengths, b, lines, st)
-        if not dist:
-            continue
+        d = branch_trifecta(strengths, b, lines, st)
+        if d:
+            dists.append((b, pb, d))
+    mix: dict[tuple, float] = {}
+    for _b, pb, d in dists:
+        for k, v in d.items():
+            mix[k] = mix.get(k, 0.0) + pb * v
+    _z = sum(mix.values())
+    if _z > 0:
+        mix = {k: v / _z for k, v in mix.items()}
+
+    def _pmodel(f):
+        """その買い目を実際に買ったときの的中確率（混合分布での合計）。"""
+        if not f:
+            return None
+        s = sum(mix.get((a, b2, c), 0.0)
+                for a in f.get("first", []) for b2 in f.get("second", [])
+                for c in f.get("third", []) if len({a, b2, c}) == 3)
+        return round(s, 4)
+
+    out = []
+    for b, pb, dist in dists:
         li = line_of.get(b)
         mem = lines[li] if li is not None else [b]
         solo = len(mem) == 1
         _f = _formation(dist, budget=FORMATION_BUDGET)
         _ft = formation_types(dist, fav) if fav is not None else []
+        # p_model = その点数を買ったときの的中確率（混合分布での合計）。
+        # cover（型内）は展開を前提にした条件付きなので別物。
+        if _f:
+            _f = dict(_f, p_model=_pmodel(_f))
+        _ft = [dict(t, formation=dict(t["formation"], p_model=_pmodel(t.get("formation"))))
+               if t.get("formation") else t for t in _ft]
         # 合成オッズは締切間近の更新（オッズが揃うタイミング）で入る。発売前は None
         if odds:
             _f = dict(_f, odds=synth_odds(_f, odds)) if _f else _f
@@ -296,8 +329,39 @@ def build_branches(strengths: dict[int, float], lines: list[list[int]],
         })
     if not out:
         return None
+
+    # ---- 展開をまたぐ統合買い目 ----
+    # 分岐ごとに買うと点数が倍々になる（18点×2分岐=36点、重複を除いても30点前後）。
+    # **混合分布に対して点数予算内でカバーを最大化**すれば、1つの買い目で
+    # 全分岐をケアできる。どちらの展開に厚く張るかは P(展開) が自動で決める。
+    # まず「分岐ごとに全部買った場合」＝長方形の和集合を出す。これが削減の基準。
+    # 和集合は長方形2〜3枚ぶんなので、統合（長方形1枚）より表現力が高い。
+    # 同じ点数なら和集合が有利になり得る一方、統合は1点あたりの効率が高い。
+    uni: set = set()
+    for b in out:
+        f = b.get("formation") or {}
+        uni |= {(a, b2, c) for a in f.get("first", []) for b2 in f.get("second", [])
+                for c in f.get("third", []) if len({a, b2, c}) == 3}
+    each = {"points": len(uni),
+            "p_model": round(sum(mix.get(k, 0.0) for k in uni), 4)} if uni else None
+
+    merged, seen = [], set()
+    for fr in MERGE_FRACTIONS:
+        bud = max(4, round(len(uni) * fr)) if uni else FORMATION_BUDGET
+        f = _formation(mix, budget=bud)
+        if not f or f["points"] in seen:
+            continue                       # 予算違いで同じ点数に収束したら1つだけ出す
+        seen.add(f["points"])
+        f = dict(f, p_model=_pmodel(f))
+        if odds:
+            f = dict(f, odds=synth_odds(f, odds))
+        merged.append(f)
+
     return {
         "branches": out,
+        # 1つの買い目で全分岐をケアする案（点数別）。each は分岐ごとに全部買った場合の参考値
+        "merged": merged,
+        "merged_each": each,
         "covered": round(sum(x["prob"] for x in out), 4),
         "hit_rate": 0.625,      # 主導権予測の out-of-sample 実測（記者先頭49.4%）
         "note": "主導権の確率は展開AI（男子62.5%的中）。分岐内の着順は実測の役割別シェアへ"

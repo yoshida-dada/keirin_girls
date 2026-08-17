@@ -30,6 +30,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                       venue: str = "") -> dict:
     """1レースの予測を構造化データで返す（CLI/ダッシュボード共用）。ネットワークアクセスあり。"""
     set_default_interval(0.5)
+    # オッズは下でこのHTMLから読む。**取得時刻はフェッチの瞬間で取る**。
+    # 締切までの残り時間でオッズは動くので、いつ時点の値かを表示に出さないと
+    # 合成オッズが何を指しているか読めない（updated_at は処理完了時刻で別物）。
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    odds_at = _dt.now(_tz(_td(hours=9))).strftime("%H:%M")
     html = fetch(build_odds_url(kaisai_code, day_code, race_no)).text
     entries = parse_race_card(html)
     recent = parse_recent_form(html)
@@ -411,6 +416,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "reference": reference,                    # 参考フォーメーション（実弾非推奨・回収率<100%）
         "h2h": h2h,                                # 出走者同士の過去対戦成績マトリクス
         "has_odds": bool(odds),
+        # オッズを取った時刻（JST・HH:MM）。合成オッズがいつ時点かを表示するため。
+        # オッズが無ければ None（発売前）
+        "odds_at": odds_at if odds else None,
         "updated_at": datetime.now(jst).strftime("%Y-%m-%d %H:%M"),
     }
 
