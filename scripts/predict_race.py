@@ -132,9 +132,29 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     _narabi_lines = (narabi_ctx or {}).get("lines") or None
     # パラメータは性別ごと（ガールズ DEFAULT_PARAMS / 男子 MEN_PARAMS）。取り違えると
     # 無言で別の補正が掛かるので、必ず stats_profile から受け取る。
-    probs = (corrected_trifecta_probs(strengths, narabi_pos, _sp.himo_params,
-                                      lines=_narabi_lines)
-             if _sp.himo_params else all_trifecta_probs(strengths))
+    # ---- 本表示の三連単分布 ----
+    # **分岐混合 Σ P(B=b)·P(順位|B=b) を第一候補にする**（2026-08-18 配線）。
+    # 紐補正は着順ごとの周辺重みの調整で「同一ラインが揃って上位」という同時共起を作れず、
+    # ライン決着を実測55.6%に対し35.3%と20pt過小に出していた。混合は56.8%（+1.2pt）で、
+    # tri10 も 35.23→41.08% と改善する（scripts/validate_joint.py）。
+    # ラインが無い（ガールズ・並び予想なし）／展開AIが引けない場合は紐補正へフォールバック。
+    _pB = None                      # 展開AIの P(B)。後段の backstretch 表示でも使い回す
+    _dists = None                   # 分岐ごとの分布。build_branches へ渡して二重計算を避ける
+    _mix = {}
+    if not _girls and _narabi_lines and strengths:
+        from src.model.backstretch import load_backstretch
+        _bs_model = load_backstretch(_girls)
+        if _bs_model is not None:
+            _pB = strengths_from_model(_bs_model, entries, recent, elo_state,
+                                       tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
+                                       venue_code=venue_code)
+            if _pB:
+                from src.model.development_branches import branch_mixture
+                _mix, _dists = branch_mixture(strengths, _narabi_lines, _pB)
+    probs = _mix or (corrected_trifecta_probs(strengths, narabi_pos, _sp.himo_params,
+                                              lines=_narabi_lines)
+                     if _sp.himo_params else all_trifecta_probs(strengths))
+    prob_source = "分岐混合" if _mix else ("紐補正" if _sp.himo_params else "素のPL")
 
     # 一着固定の合成オッズ: 車cを1着に固定した三連単(c,*,*)全通りを合成した実効オッズ
     #   合成オッズ_c = 1 / Σ(1/オッズ)   … cを1着で買い切ったときの実効配当倍率
@@ -306,25 +326,29 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         #   ガールズ 55.2%的中（記者予想22.1%）/ 男子 62.5%（記者先頭49.4%・B回数最大56.3%を
         #   5/5foldで上回る）。男子は主導権がほぼ決着構造を決めるので表示価値が高い。
         _backstretch = None
-        from src.model.backstretch import load_backstretch
-        _bs = load_backstretch(_girls)
-        if _bs is not None:
-            pB = strengths_from_model(_bs, entries, recent, elo_state,
-                                      tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
-                                      venue_code=venue_code)
-            if pB:
-                _rk = sorted(pB.items(), key=lambda kv: -kv[1])
-                _rfront = _order[0] if _order else None
-                _backstretch = {
-                    "lead_car": _rk[0][0], "lead_p": round(_rk[0][1], 4),
-                    "second_car": _rk[1][0] if len(_rk) > 1 else None,
-                    "second_p": round(_rk[1][1], 4) if len(_rk) > 1 else None,
-                    "reporter_front": _rfront,
-                    "diverges": bool(_rfront is not None and _rk[0][0] != _rfront),
-                    # walk-forward out-of-sample 実測（男女で別値）
-                    "hit_rate": 0.552 if _girls else 0.625,
-                    "probs": {int(c): round(p, 4) for c, p in _rk},
-                }
+        # P(B) は本表示の分布を作る時に既に引いてある（_pB）。ここで引き直すと
+        # 表示している分岐確率と分布の条件付けが食い違う恐れがあるので使い回す。
+        pB = _pB
+        if pB is None and _girls:
+            from src.model.backstretch import load_backstretch
+            _bs = load_backstretch(_girls)
+            if _bs is not None:
+                pB = strengths_from_model(_bs, entries, recent, elo_state,
+                                          tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
+                                          venue_code=venue_code)
+        if pB:
+            _rk = sorted(pB.items(), key=lambda kv: -kv[1])
+            _rfront = _order[0] if _order else None
+            _backstretch = {
+                "lead_car": _rk[0][0], "lead_p": round(_rk[0][1], 4),
+                "second_car": _rk[1][0] if len(_rk) > 1 else None,
+                "second_p": round(_rk[1][1], 4) if len(_rk) > 1 else None,
+                "reporter_front": _rfront,
+                "diverges": bool(_rfront is not None and _rk[0][0] != _rfront),
+                # walk-forward out-of-sample 実測（男女で別値）
+                "hit_rate": 0.552 if _girls else 0.625,
+                "probs": {int(c): round(p, 4) for c, p in _rk},
+            }
         # 展開分岐（男子）: 主導権の候補ごとに条件付き着順分布と買い目を出す。
         # **_backstretch が確定した後**でなければならない（分岐の確率はP(B)そのもの）。
         if not _girls and _backstretch and (narabi_ctx or {}).get("lines"):
@@ -334,7 +358,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
                 {int(c): p for c, p in (_backstretch.get("probs") or {}).items()},
                 names={e.car_number: e.rider_name for e in entries},
                 # 合成オッズは締切間近の更新でオッズが揃った時だけ入る（発売前は None）
-                odds=odds or None)
+                odds=odds or None,
+                # 本表示の分布を作った時の分岐をそのまま渡す（二重計算で食い違わせない）
+                dists=_dists)
 
         # ペース読み（先行型=レース内でb_countが最多の40%以上の人数。スケール非依存で analyze_pace_composition と同一定義）。
         # 先行型が多いほどハイペース化し逃げが飛び捲り・差しが台頭（±5pt程度）。表示専用・着順には非影響。
@@ -404,6 +430,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "race_name": meta.get("race_name"),
         "race_type": rt.label, "top1_prob": round(rt.top1_win_prob, 4),
         "entropy": round(rt.entropy_norm, 4), "source": source,
+        # 三連単分布の作り方（分岐混合 / 紐補正 / 素のPL）。どれで出しているかが
+        # ライン決着の読み方を変える（混合は実測どおり56%、紐補正は35%と過小）
+        "prob_source": prob_source,
         # 波乱確率＝万車券率（払戻1万円以上）。旧表示の 1-top1_prob は「◎が1着を
         # 外す確率」で、実測の約2倍を波乱として出していた（src/model/upset.py 参照）。
         # 検証を通していない層（男子9車）では None が返る＝表示しない

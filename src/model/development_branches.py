@@ -257,6 +257,44 @@ def synth_odds(form: dict, odds: dict[tuple, float] | None) -> dict | None:
             "covered": len(vals), "points": len(combos)}
 
 
+def branch_mixture(strengths: dict[int, float], lines: list[list[int]],
+                   b_probs: dict[int, float] | None, top_k: int = 3,
+                   min_prob: float = 0.05) -> tuple[dict, list]:
+    """展開分岐の混合分布 Σ P(B=b)·P(順位|B=b) と、分岐ごとの分布を返す。
+
+    **これが本表示の三連単分布**（2026-08-18 に配線）。素のPL/紐補正では作れない
+    「同一ラインが揃って上位に来る」同時共起を、主導権で条件付けることで作る。
+
+    検証（`scripts/validate_joint.py`, 男子7車20,700R/n=12,420, walk-forward）:
+      実測のライン決着率 55.64% に対し
+        素のPL(=Harville) 34.93%（−20.70pt） / 紐補正 35.30%（−20.33pt）
+        **分岐混合 56.84%（+1.20pt）**
+      tri10 は 33.95 / 35.23 / **41.08%**、logloss は 4.5980 / 4.5108 / **4.3266**。
+    紐補正は着順ごとの**周辺重み**の調整なので同時共起を作れない（ライン決着が
+    ほとんど動かない）。条件付けだけがそれを作れる。
+
+    lines か b_probs が無ければ ({}, []) を返す（呼び出し側で紐補正へフォールバック）。
+    """
+    st = load_stats()
+    if not lines or not b_probs or not strengths or not st:
+        return {}, []
+    dists = []
+    for b, pb in sorted(b_probs.items(), key=lambda kv: -kv[1])[:top_k]:
+        if pb < min_prob or b not in strengths:
+            continue
+        d = branch_trifecta(strengths, b, lines, st)
+        if d:
+            dists.append((b, pb, d))
+    if not dists:
+        return {}, []
+    mix: dict[tuple, float] = {}
+    for _b, pb, d in dists:
+        for k, v in d.items():
+            mix[k] = mix.get(k, 0.0) + pb * v
+    z = sum(mix.values())
+    return ({k: v / z for k, v in mix.items()} if z > 0 else {}), dists
+
+
 def _combos(f) -> list[tuple]:
     return [(a, b, c) for a in (f or {}).get("first", [])
             for b in (f or {}).get("second", []) for c in (f or {}).get("third", [])
@@ -314,33 +352,30 @@ def build_plan(dists: list, mix: dict, pmodel, odds: dict | None,
 def build_branches(strengths: dict[int, float], lines: list[list[int]],
                    b_probs: dict[int, float] | None, names: dict[int, str] | None = None,
                    top_k: int = 3, min_prob: float = 0.05,
-                   odds: dict[tuple, float] | None = None) -> dict | None:
+                   odds: dict[tuple, float] | None = None,
+                   dists: list | None = None) -> dict | None:
     """展開分岐を作る。lines か b_probs が無ければ None（ガールズ・並び予想なし）。
 
     b_probs は展開AIの P(B)。top_k 個まで、確率 min_prob 以上の分岐を返す。
+    dists を渡せば再計算しない（呼び出し側が branch_mixture で既に作っている場合。
+    二重に作ると本表示の分布と分岐表示の分布が食い違う恐れがある）。
     """
-    st = load_stats()
-    if not lines or not b_probs or not strengths or not st:
+    if not strengths or not load_stats():
         return None
     names = names or {}
-    line_of = {c: i for i, mem in enumerate(lines) for c in mem}
+    line_of = {c: i for i, mem in enumerate(lines or []) for c in mem}
     fav = max(strengths, key=strengths.get) if strengths else None   # ◎＝モデル1着確率トップ
-    cand = sorted(b_probs.items(), key=lambda kv: -kv[1])[:top_k]
-    # 先に全分岐の分布を作り、**混合分布**を用意する。
     # 分岐ごとの cover は「その展開が起きた前提」の確率であって、実際に買ったときの
     # 的中確率ではない（他の展開でも当たり得る）。買い目の点数を買ったら何%当たるかは
     # 混合分布 Σ P(b)·P(順位|b) で合計しないと出ない。
-    dists = []
-    for b, pb in cand:
-        if pb < min_prob or b not in strengths:
-            continue
-        d = branch_trifecta(strengths, b, lines, st)
-        if d:
-            dists.append((b, pb, d))
-    mix: dict[tuple, float] = {}
-    for _b, pb, d in dists:
-        for k, v in d.items():
-            mix[k] = mix.get(k, 0.0) + pb * v
+    if dists is None:
+        _mix, dists = branch_mixture(strengths, lines, b_probs, top_k, min_prob)
+    if not dists:
+        return None
+    mix: dict[tuple, float] = {}          # 渡された dists からも同じ式で作る
+    for _b, _pb, _d in dists:
+        for k, v in _d.items():
+            mix[k] = mix.get(k, 0.0) + _pb * v
     _z = sum(mix.values())
     if _z > 0:
         mix = {k: v / _z for k, v in mix.items()}
