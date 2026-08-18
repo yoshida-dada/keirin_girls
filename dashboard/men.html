@@ -315,7 +315,12 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .dev-src{font-size:.6rem;color:var(--muted);font-weight:600}
 .dev-narabi-h,.dev-pat-h{font-size:.6rem;letter-spacing:.03em;color:var(--muted);font-weight:800;margin:9px 2px 4px;text-transform:uppercase}
 .dev-line{display:flex;flex-wrap:nowrap;align-items:center;gap:3px;overflow-x:auto;padding-bottom:2px}
-.dev-node{display:inline-flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:2px 6px;flex:none}
+/* 印は車番の上。印が無い車でも高さを揃えて車番の行が波打たないようにする */
+.dev-node{display:inline-flex;flex-direction:column;align-items:center;gap:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:7px;
+  padding:1px 5px 2px;flex:none}
+.dev-mk{display:block;height:.82em;line-height:.82em}
+.dev-mk .mk{font-size:.66rem}
 .dev-arrow{color:var(--muted);font-size:.62rem;flex:none}
 .dev-fav{color:#e8590c;font-weight:800}
 /* 競り＝どちらが番手になるか未定。直列の▶と明確に別物として見えるようにする */
@@ -352,6 +357,11 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .rtab.done{opacity:.55}
 .rtab.live{border-color:var(--edge);box-shadow:inset 0 0 0 1px var(--edge)}
 .rtab[aria-selected="true"].live{box-shadow:none}
+/* 確定済み: 表示していた買い目が当たったかを枠色で示す。
+   的中は淡色化(.done)を戻して目立たせる（当たった回だけ拾いたいので） */
+.rtab.hit{border-color:var(--good);box-shadow:inset 0 0 0 2px var(--good);opacity:1}
+.rtab.miss{border-color:var(--border2)}
+.rtab[aria-selected="true"].hit{box-shadow:none;border-color:var(--good)}
 /* 万車券率のバッジ。選択中タブでも読めるよう背景は自前で持つ（親の反転色に負けない） */
 .rtab .rt-up{margin-top:1px;font-size:.56rem;font-weight:800;border-radius:999px;
   padding:0 4px;font-variant-numeric:tabular-nums}
@@ -362,6 +372,7 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .tablegend{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:0 0 6px;
   font-size:.6rem;color:var(--muted);font-weight:700}
 .tablegend .upt{font-size:.55rem;padding:1px 6px}
+.lg-hit{color:var(--good)}
 .tabhead{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:2px 0 7px;
   font-size:.7rem;color:var(--muted);font-weight:700}
 .tabhead .nm{font-size:.92rem;font-weight:800;color:var(--ink)}
@@ -856,6 +867,19 @@ const rtagCls = t => t==="軸堅"?"axis":(t==="混戦"?"chaos":"std");
 // **検証を通していない層（男子9車）は upset_prob 自体が入らない** ので「—」になる。
 // 男子7車: 予測26.8% / 実測27.0% / ECE 0.0148（src/model/upset.py）
 const upsetOf = r => (r.upset_prob!=null ? r.upset_prob : null);
+// 確定済みレースで「全分岐をケアする買い目」が当たったか。
+// 判定対象は**画面に出しているフォーメーション（足切り前）**。足切りは任意の絞り込みなので
+// 素の買い目で判定する。結果が無い／買い目が無いレースは null（色を付けない）。
+function planHit(r){
+  const res = r.result || {}, P = (r.dev_branches||{}).merged;
+  const cb = (res.payout||{}).combo;
+  if(!cb || !P || !(P.forms||[]).length) return null;
+  const p = String(cb).split("-").map(Number);
+  if(p.length!==3 || p.some(isNaN)) return null;
+  return (P.forms||[]).some(f =>
+    (f.first||[]).indexOf(p[0])>=0 && (f.second||[]).indexOf(p[1])>=0
+    && (f.third||[]).indexOf(p[2])>=0);
+}
 // しきいは実測の万車券率（男子7車 27.0%）を中心に置く。旧しきい0.30/0.55は旧指標の尺度
 const uptCls = u => u==null ? "na" : (u<0.21 ? "lo" : (u<0.34 ? "mid" : "hi"));
 const UPT_TIP = "万車券率＝三連単の払戻が1万円以上になる確率。"
@@ -1227,7 +1251,9 @@ function predContent(r){
   // ライン→展開分岐→従来の展開予想 の順（並びを見て、分岐を読み、詳細へ）
   // 出走表 → 並び予想（誰がどのラインか）→ ライン別の強さ → 展開分岐 の順。
   // 並びを最初に見せないと、以降のライン評価や分岐が何を指しているか読めない。
-  return riderTable(r) + devBlock(r) + lineBlock(r) + branchBlock(r) + h2hBlock(r) + tfBlock
+  // 出走表 → 並び予想 → 展開分岐と買い目 → ライン別の強さ の順。
+  // 展開を読んだ直後に買い目を見せ、ラインの数値評価はその裏付けとして後ろに置く。
+  return riderTable(r) + devBlock(r) + branchBlock(r) + lineBlock(r) + h2hBlock(r) + tfBlock
        + refBlock(r) + evBlock(r) + omBlock(r);
 }
 // 展開分岐（男子）: 「誰が主導権を取るか」で場合分けし、分岐ごとに買い目を出す。
@@ -1452,9 +1478,10 @@ function devBlock(r){
   const mk = marksOf(r);
   // lines が無い（並び予想を取れなかった）場合は隊列順の1本として描く
   const groups = (r.lines||[]).length ? r.lines : [(D.line||[]).map(s=>s.car)];
+  // 印は車番の**上**に置く。横に並べると「◎7」が1つの塊に見えて車番が読みにくい
   const node = c =>
     `<span class="dev-node${seriOf[c]!=null?" sr":""}">`
-    +`${markChip(mk[c])}${carChip(c)}</span>`;
+    +`<span class="dev-mk">${markChip(mk[c])}</span>${carChip(c)}</span>`;
   const chips = groups.map(mem=>{
     let h = "", open = null;
     mem.forEach((c,i)=>{
@@ -1846,9 +1873,13 @@ function bootMen(DB){
     h += `<div class="tabbar" role="tablist" aria-label="レース切替">`
       + rs.map(r=>{
           const u = upsetOf(r);
-          return `<button class="rtab ${status(r)}" type="button" role="tab" data-race="${r.race_no}"`
+          // 確定済みは**表示していた買い目が当たったか**で枠色を変える（開かずに分かる）
+          const hv = planHit(r);
+          const hc = hv==null ? "" : (hv ? " hit" : " miss");
+          const ht = hv==null ? "" : (hv ? "｜買い目 的中" : "｜買い目 不的中");
+          return `<button class="rtab ${status(r)}${hc}" type="button" role="tab" data-race="${r.race_no}"`
             +` aria-selected="${r.race_no===selRace?"true":"false"}"`
-            +` title="${r.race_no}R 締切${esc(r.deadline||"--")}｜万車券率 ${u==null?"—":pct1(u)}">`
+            +` title="${r.race_no}R 締切${esc(r.deadline||"--")}｜万車券率 ${u==null?"—":pct1(u)}${ht}">`
             +`${r.race_no}R<small>${esc(r.deadline||"--")}</small>`
             +`<small class="rt-up ${uptCls(u)}">${u==null?"—":Math.round(u*100)+"%"}</small>`
             +`</button>`;
@@ -1856,7 +1887,8 @@ function bootMen(DB){
       + `</div>`;
     h += `<div class="tablegend">レース番号の下は<b>万車券率</b>（払戻1万円以上の確率・実測較正）`
       + `<span class="upt lo">低</span><span class="upt mid">中</span><span class="upt hi">高</span>`
-      + `<span class="upt na">—</span>9車は未検証</div>`;
+      + `<span class="upt na">—</span>9車は未検証`
+      + `　<b class="lg-hit">緑枠</b>＝確定済みで買い目が的中</div>`;
     h += `<div class="tabhead"><span class="nm">${esc(short(selVenue||""))}</span>`
       + ((rs[0]||{}).grade?`<span class="gbadge">${esc(rs[0].grade)}</span>`:"")
       + ((rs[0]||{}).class_group?`<span>${esc(rs[0].class_group)}</span>`:"")
