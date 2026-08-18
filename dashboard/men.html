@@ -321,6 +321,11 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
   padding:1px 5px 2px;flex:none}
 .dev-mk{display:block;height:.82em;line-height:.82em}
 .dev-mk .mk{font-size:.66rem}
+/* 地元/地区は車番の下。無い車も高さを確保して車番の行を揃える */
+.dev-hm{display:block;height:.78em;line-height:.78em;font-size:.5rem;font-weight:800;
+  letter-spacing:.02em;color:transparent}
+.dev-hm.me{color:#fff;background:#e8590c;border-radius:4px;padding:0 3px}
+.dev-hm.ds{color:var(--muted)}
 .dev-arrow{color:var(--muted);font-size:.62rem;flex:none}
 .dev-fav{color:#e8590c;font-weight:800}
 /* 競り＝どちらが番手になるか未定。直列の▶と明確に別物として見えるようにする */
@@ -1478,10 +1483,14 @@ function devBlock(r){
   const mk = marksOf(r);
   // lines が無い（並び予想を取れなかった）場合は隊列順の1本として描く
   const groups = (r.lines||[]).length ? r.lines : [(D.line||[]).map(s=>s.car)];
-  // 印は車番の**上**に置く。横に並べると「◎7」が1つの塊に見えて車番が読みにくい
+  // 印は車番の**上**、地元/地区は車番の**下**。横に並べると「◎7」が1つの塊に見えて
+  // 車番が読みにくいため、1車を縦3段（印・車番・地元）にする。
+  const hm = {};
+  (r.riders||[]).forEach(x=>{ hm[x.car] = x.home ? "地元" : (x.home_dist ? "地区" : ""); });
   const node = c =>
     `<span class="dev-node${seriOf[c]!=null?" sr":""}">`
-    +`<span class="dev-mk">${markChip(mk[c])}</span>${carChip(c)}</span>`;
+    +`<span class="dev-mk">${markChip(mk[c])}</span>${carChip(c)}`
+    +`<span class="dev-hm${hm[c]==="地元"?" me":(hm[c]?" ds":"")}">${hm[c]||""}</span></span>`;
   const chips = groups.map(mem=>{
     let h = "", open = null;
     mem.forEach((c,i)=>{
