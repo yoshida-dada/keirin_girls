@@ -22,6 +22,7 @@ import argparse
 import json
 import sqlite3
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,7 +34,16 @@ from src.model.train_gbdt import train_gbdt
 from src.model.feature_augment import augment_samples
 from src.model.feature_sets import men_features, girls_features
 from src.model.plackett_luce import all_trifecta_probs
+from src.model.development_branches import branch_mixture
 from src.model.upset import P_MAN, THRESHOLD_PATH
+
+
+def _lines_of(d: dict) -> list[list[int]]:
+    """{車番:(line_id,pos)} → ライン構成のリスト。"""
+    mem: dict[int, list] = defaultdict(list)
+    for car, (li, pi) in d.items():
+        mem[li].append((pi, car))
+    return [[c for _, c in sorted(v)] for _, v in sorted(mem.items())]
 
 # 検証で事前基準を満たした層だけ。ここに無い層には万車券率を出さない
 APPROVED = {("men", 7), ("girls", 7)}
@@ -64,6 +74,41 @@ def run(db: str, sex: str) -> dict:
     raw = load_samples(db, field_size=[7] if girls else [7, 9], features=PL_FEATURES_FULL)
     smp = augment_samples(raw, db, feats)
     model = train_gbdt(smp)          # 全履歴で学習（しきい値推定のためだけに使う）
+    # **本番と同じ分布でしきい値を推定する**。以前は素のPLで推定した値を、本番では
+    # 紐補正版に当てていた（分布の形が違えばしきいはズレる）。男子は本表示が
+    # 分岐混合になったので、ここも混合で推定する。
+    bmodel, nar = None, {}
+    if not girls:
+        btr = []
+        c2 = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+        sb = defaultdict(dict)
+        for rid, car, s in c2.execute("SELECT race_id,car_number,sb FROM results"):
+            sb[rid][car] = s
+        for rid, car, li, pi in c2.execute(
+                "SELECT race_id,car_number,line_id,pos_in_line FROM narabi"
+                " WHERE line_id IS NOT NULL"):
+            nar.setdefault(rid, {})[car] = (li, pi)
+        c2.close()
+        for s in smp:
+            bs = [x for x in (nar.get(s.race_id) or {})
+                  if sb.get(s.race_id, {}).get(x) and "B" in str(sb[s.race_id][x])]
+            if len(bs) == 1:
+                t = type(s)(**{**s.__dict__})
+                t.order = [bs[0]] + [x for x in s.car_numbers if x != bs[0]]
+                btr.append(t)
+        bmodel = train_gbdt(btr) if btr else None
+        print(f"  展開AI 学習 {len(btr):,}レース")
+
+    def _dist(s, st):
+        """本番と同じ経路で三連単分布を作る（混合が作れなければ素のPL）。"""
+        if bmodel is not None and nar.get(s.race_id):
+            pb = bmodel.strengths(s.X, s.car_numbers)
+            ln = _lines_of(nar[s.race_id])
+            mix, _ = branch_mixture(st, ln, pb)
+            if mix:
+                return mix
+        return all_trifecta_probs(st)
+
     by_fs: dict[int, list] = {}
     for s in smp:
         if s.race_id not in lab:
@@ -71,8 +116,7 @@ def run(db: str, sex: str) -> dict:
         st = model.strengths(s.X, s.car_numbers)
         if not st:
             continue
-        by_fs.setdefault(len(s.car_numbers), []).append(
-            (all_trifecta_probs(st), lab[s.race_id]))
+        by_fs.setdefault(len(s.car_numbers), []).append((_dist(s, st), lab[s.race_id]))
 
     out = {}
     for fs, rows in sorted(by_fs.items()):
