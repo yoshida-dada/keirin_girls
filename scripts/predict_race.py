@@ -261,7 +261,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     if _sp.pocket_stats:
         from src.betting.reference_formation import build_reference
         reference = build_reference(strengths, narabi_pos, venue_code,
-                                    bool(riders and riders[0].get("home")))
+                                    bool(riders and riders[0].get("home")),
+                                    field_size=len(entries))
 
     # 男子のライン別の強さ（ライン形式の並び表示＋数値化）。ガールズは lines が空で None。
     # 数値は上の probs（このレースのモデル三連単分布）から積み上げるので、表示の

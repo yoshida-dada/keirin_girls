@@ -212,6 +212,11 @@ def main() -> None:
     doc["accuracy_history"] = build_accuracy_history(db_path)      # D13時系列: 週次推移
     from results_history import build_results_history
     doc["results_history"] = build_results_history(db_path, days=180)   # 成績: 過去約半年の開催結果
+    try:   # ガールズ買い目の型別実測（◎頭/◎2着/◎3着/全体, walk-forward）。表示側で参考提示する
+        doc["formation_stats"] = json.loads(
+            (ROOT / "src" / "model" / "formation_stats_girls.json").read_text(encoding="utf-8"))
+    except Exception:
+        pass
     if args.predict:
         target = date.fromisoformat(args.date) if args.date else date.today()
         _lbl = {"girls": "ガールズ", "men": "男子", "all": "男女全"}[args.include]
