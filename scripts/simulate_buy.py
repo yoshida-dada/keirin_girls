@@ -26,6 +26,7 @@ from src.model.feature_augment import augment_samples
 from src.model.feature_sets import load_for
 from src.features.rider_narabi import compute_narabi_features
 from src.model.himo_adjust import corrected_trifecta_probs, MEN_PARAMS, DEFAULT_PARAMS
+from src.model.upset import threshold_for
 
 
 def _actual_date(rid):
@@ -73,6 +74,7 @@ def main():
     is_girls = not args.men
     db = str(DATA_DIR / ("keirin_men.sqlite" if args.men else "keirin.sqlite"))
     params = MEN_PARAMS if args.men else DEFAULT_PARAMS
+    thr = threshold_for(is_girls, 7)
     model, elo, lbl = load_for(is_girls)
     if model is None:
         print("本番モデル未配置"); return
@@ -107,8 +109,11 @@ def main():
         r = role.get(s.race_id, "標")
         # 現行: ◎頭6
         cbuy = topk(dist, 6, lambda o: o[0] == fav)
-        # 新: 種別別
-        if not is_girls and r == "荒":
+        # 新戦略: ガールズ=万車券率ベース(常に◎頭, 固い絞る/荒れ広げる) / 男子=種別ベース
+        if is_girls:
+            up = sum(pp for pp in dist.values() if pp <= thr) if thr else 0.25
+            nbuy = topk(dist, 6 if up < 0.20 else 8, lambda o: o[0] == fav)
+        elif r == "荒":
             nbuy = topk(dist, 10)                          # 選抜/一般=手広く
         elif r == "堅":
             nbuy = topk(dist, 6, lambda o: o[0] == fav)    # 準決勝/決勝=◎頭6絞る

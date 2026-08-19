@@ -51,6 +51,10 @@ header{padding:calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-i
 
 .badge{display:inline-block;font-size:.6rem;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px}
 .badge.sample{background:var(--accent-soft);color:var(--accent)}
+.badge.rrole{background:#0b7285;color:#fff;cursor:pointer}
+.rrole-pop{display:inline-block;font-size:.62rem;font-weight:700;color:var(--ink);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.vtab .vday{font-size:.58rem;font-weight:800;color:#0b7285;margin-left:5px}
+.vtab[aria-selected="true"] .vday{color:#fff}
 .badge.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
 .badge.ok{background:var(--good-soft);color:var(--good)}
 
@@ -1221,6 +1225,13 @@ function omBlock(r){
     +`</div></div>`;
 }
 
+// 種別→勝ち上がりの一言説明（男子は決着傾向に直結）
+function roleDesc(role){
+  const m={"予選":"上位が準決勝へ／先行が主導権で堅め","準決勝":"上位が決勝へ・高ステークス／先行(逃)が勝ち堅い",
+    "決勝":"優勝決定戦／先行・単騎の強豪","選抜":"最終日の敗者戦／追込で荒れやすい",
+    "一般":"最終日の敗者戦／追込で荒れやすい","特選":"特別選抜戦"};
+  return role&&m[role]?`${role}: ${m[role]}`:"";
+}
 function raceHead(r){
   // 万車券率は1着確率と足して100%にはならない別の量。top1 は自前で取る
   const up = upsetOf(r);
@@ -1229,6 +1240,7 @@ function raceHead(r){
   return `<div class="pred-rhead">`
     +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
     +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
+    +((r.role&&r.role.class_role)?`<span class="badge rrole" role="button" tabindex="0" title="${esc(roleDesc(r.role.role))}">${esc(r.role.class_role)}</span><span class="rrole-pop" hidden>${esc(roleDesc(r.role.role)||r.role.class_role)}</span>`:"")
     +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
     +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
     +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
@@ -1872,8 +1884,12 @@ function bootMen(DB){
       + vs.map(([v,vr])=>{
           const nx = vr.slice().sort((a,b)=>String(a.deadline||"~").localeCompare(String(b.deadline||"~")))
             .find(r=>{const t=status(r);return t==="live"||t==="yet";});
+          const md=(vr.find(x=>x.meet_day!=null)||{}).meet_day;
+          const isFinal=vr.some(x=>x.role&&x.role.role==="決勝");
+          const dl=isFinal?"最終日":(md!=null?md+"日目":"");
           return `<button class="vtab" type="button" role="tab" data-venue="${esc(v)}"`
             +` aria-selected="${v===selVenue?"true":"false"}">${esc(short(v))}`
+            +`${dl?`<b class="vday">${esc(dl)}</b>`:""}`
             +`<small>${nx?`次${nx.race_no}R ${esc(nx.deadline||"")}`:"終了"}</small></button>`;
         }).join("")
       + `</div>`;
@@ -1975,6 +1991,9 @@ function bootMen(DB){
       document.documentElement.setAttribute("data-theme",next);
       localStorage.setItem(KEY,next);
     }
+    // 種別バッジをタップで勝ち上がり説明をトグル（PWA/タッチ対応）
+    const rb=e.target.closest&&e.target.closest(".rrole");
+    if(rb){ const pop=rb.nextElementSibling; if(pop&&pop.classList.contains("rrole-pop")) pop.hidden=!pop.hidden; }
   });
 })();
 
