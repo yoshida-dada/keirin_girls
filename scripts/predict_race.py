@@ -43,6 +43,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     odds = {k: v for k, v in odds.items() if v and v < 9999}
     deadline = parse_deadline(html)
     meta = parse_race_meta(html)      # 開催格/開催名/レース名（同じHTMLから。追加フェッチなし）
+    # レース種別(勝ち上がり): race_name(例"Ａ級予選"/"Ｓ級決勝")から種別語を判定。追加フェッチ無し。
+    _rn = meta.get("race_name")
+    _rrole = next((r for r in ["準決勝", "決勝", "予選", "選抜", "特選", "一般"]
+                   if _rn and r in _rn), None)
+    race_role = {"class_role": _rn, "role": _rrole, "grade": meta.get("grade")}
     # 翌日ぶんは出走表が未公開のことがある（前日夕方に順次published）。空のまま進むと
     # 特徴量組み立てが "None of ['car_number'] are in the columns" で落ち、原因が読めない。
     if not entries:
@@ -438,6 +443,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         # 検証を通していない層（男子9車）では None が返る＝表示しない
         "upset_prob": man_prob(probs, is_girls=_girls, field_size=len(entries)),
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
+        "role": race_role,                          # レース種別(勝ち上がり)+勝ち上がり条件
         "development": development,                 # 展開予想（並び予想の隊列＋モデル読み）
         "dev_patterns": dev_patterns,               # 展開6パターンの上位3つ（実測分岐比）
         "bank_profile": bank_profile,               # バンク諸元＋統計的な有利脚質（表示用）
