@@ -9,7 +9,10 @@ POCKET_STATS: validate_himo_roi.py(out-of-sample 3432R, walk-forward)の実測 (
 """
 from __future__ import annotations
 
+from collections import defaultdict
+
 from src.model.himo_adjust import corrected_trifecta_probs
+from src.model.upset import threshold_for
 from src.features import venue_meta as vm
 
 # 過去実測（補正選定・◎頭固定top-K）。(hit%, roi%)。回収率は全て<100%＝実弾非推奨。
@@ -41,15 +44,31 @@ def _combo_str(t) -> str:
 
 
 def build_reference(strengths: dict, narabi_pos: dict | None, venue_code: str,
-                    home_of_fav: bool, points: int = DEFAULT_POINTS) -> dict | None:
-    """◎頭固定・補正確率top-K の参考フォーメーションを返す（実弾非推奨・回収率<100%）。"""
+                    home_of_fav: bool, points: int | None = None,
+                    field_size: int = 7) -> dict | None:
+    """ガールズ買い目構築: ◎頭固定・補正確率top-K＋三連複2点（実弾非推奨・回収率<100%）。
+
+    点数は**万車券率ベース**（固い<20%=6点で絞る / それ以外=8点で広げる, 1ヶ月検証で現行+5.5pt）。
+    三連複は「3人合っても着順違い」を拾う保険（ROIほぼ中立で的中頻度+8pt）。
+    """
     if not strengths:
         return None
     fav = max(strengths, key=strengths.get)
     dist = corrected_trifecta_probs(strengths, narabi_pos)
+    # 万車券率で点数を決める（固い=絞る/荒れ=広げる）。呼び出しで points 指定時はそれを優先。
+    thr = threshold_for(True, field_size)
+    upset = sum(p for p in dist.values() if p <= thr) if thr else None
+    if points is None:
+        points = 6 if (upset is not None and upset < 0.20) else 8
     head = sorted(((o, p) for o, p in dist.items() if o[0] == fav), key=lambda op: -op[1])
     combos = [_combo_str(o) for o, _ in head[:points]]
     hit = round(sum(p for _, p in head[:points]) * 100, 1)     # モデル基準の想定的中率(参考)
+    # 三連複 上位2点（順不同3人）
+    trp: dict = defaultdict(float)
+    for (a, b, c), p in dist.items():
+        trp[frozenset((a, b, c))] += p
+    trio = ["=".join(str(x) for x in sorted(t))
+            for t, _ in sorted(trp.items(), key=lambda kv: -kv[1])[:2]]
     pockets = race_pockets(fav, narabi_pos, venue_code, home_of_fav)
     primary = next((p for p in _PRIORITY if p in pockets), "全体")
     stats = POCKET_STATS.get(primary, POCKET_STATS["全体"])
@@ -57,9 +76,12 @@ def build_reference(strengths: dict, narabi_pos: dict | None, venue_code: str,
         "fav": fav,
         "points": points,
         "combos": combos,
+        "trio": trio,                        # 三連複2点(保険)
+        "upset": round(upset, 3) if upset is not None else None,
+        "band": ("固い<20%" if (upset is not None and upset < 0.20) else "荒れ・標準"),
         "model_hit_pct": hit,               # モデル確率合計（このレース固有の想定的中率）
         "pockets": pockets,                  # 該当妙味ポケット（空=ポケット外）
         "primary": primary,
         "hist": {str(k): {"hit": h, "roi": r} for k, (h, r) in stats.items()},  # 過去実測(pocket平均)
-        "note": "参考・実弾非推奨（回収率<100%）。過去実測はポケット平均。",
+        "note": "参考・実弾非推奨（回収率<100%）。点数は万車券率ベース(固い6/荒れ8)、三連複2点は的中保険。",
     }

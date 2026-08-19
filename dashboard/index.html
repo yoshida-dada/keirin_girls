@@ -376,6 +376,7 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .rf-pk.none{background:var(--muted)}
 .rf-combos{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px}
 .rf-combo{font-variant-numeric:tabular-nums;font-weight:800;font-size:.82rem;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:3px 9px;letter-spacing:.03em}
+.rf-combo.trio{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .rf-model{font-size:.66rem;color:var(--muted);font-weight:600;margin:2px 0 6px}
 .rf-hist-t{font-size:.62rem;letter-spacing:.03em;color:var(--muted);font-weight:800;margin:6px 2px 4px;text-transform:uppercase}
 .rf-hist table.t{max-width:280px}
@@ -1222,17 +1223,25 @@ function boot(DB){
         ? (R.pockets||[]).map(p=>`<span class="rf-pk">${esc(p)}</span>`).join("")
         : `<span class="rf-pk none">妙味ポケット外</span>`;
       const combos = (R.combos||[]).map(c=>`<span class="rf-combo">${esc(c)}</span>`).join("");
+      const trio = (R.trio||[]).map(c=>`<span class="rf-combo trio">${esc(c)}</span>`).join("");
       const hist = Object.keys(R.hist||{}).sort((a,b)=>(+a)-(+b)).map(k=>{
         const h = R.hist[k];
         return `<tr><td>${k}点</td><td>${(+h.hit).toFixed(1)}%</td><td>${(+h.roi).toFixed(1)}%</td></tr>`;
       }).join("");
+      // 型別の過去実測（doc全体・◎軸中心, formation_stats_girls）
+      const fk = (DB.formation_stats||{}).kinds||{};
+      const frows = Object.keys(fk).map(k=>{ const v=fk[k];
+        return `<tr><td>${esc(k)}</td><td>${(v.hit*100).toFixed(1)}%</td><td>${(v.roi*100).toFixed(1)}%</td></tr>`;}).join("");
+      const bandTxt = R.upset!=null ? `万車券率${(R.upset*100).toFixed(0)}%＝${esc(R.band||"")}` : "";
       return `<div class="rf">`
-        +`<div class="rf-head">🧭 参考フォーメーション（◎頭固定・${R.points}点） ${pk}</div>`
+        +`<div class="rf-head">🧭 推奨買い目（◎頭固定・${R.points}点${bandTxt?"／"+bandTxt:""}） ${pk}</div>`
         +`<div class="rf-combos">${combos}</div>`
-        +(R.model_hit_pct!=null?`<div class="rf-model">このレースのモデル想定的中率（${R.points}点合計）: <b>${(+R.model_hit_pct).toFixed(1)}%</b></div>`:"")
-        +`<div class="rf-hist"><div class="rf-hist-t">過去実測（${esc(R.primary)}・ポケット平均, out-of-sample）</div>`
+        +(trio?`<div class="rf-hist-t" style="margin-top:7px">＋三連複2点（3人合えば着順違いでも拾う保険）</div><div class="rf-combos">${trio}</div>`:"")
+        +(R.model_hit_pct!=null?`<div class="rf-model">このレースのモデル想定的中率（三連単${R.points}点合計）: <b>${(+R.model_hit_pct).toFixed(1)}%</b></div>`:"")
+        +(frows?`<div class="rf-hist"><div class="rf-hist-t">型別の過去実測（◎軸中心・out-of-sample）</div><div class="tblwrap"><table class="t"><thead><tr><th>型</th><th>的中率</th><th>回収率</th></tr></thead><tbody>${frows}</tbody></table></div></div>`:"")
+        +`<div class="rf-hist"><div class="rf-hist-t">妙味ポケット別 過去実測（${esc(R.primary)}）</div>`
         +`<div class="tblwrap"><table class="t"><thead><tr><th>点数</th><th>的中率</th><th>回収率</th></tr></thead><tbody>${hist}</tbody></table></div></div>`
-        +`<div class="rf-note">⚠️ ${esc(R.note||"")} <b>回収率は全て100%未満＝実弾投入は非推奨</b>。的中率で点数を選ぶ“参考”用です。</div>`
+        +`<div class="rf-note">⚠️ ${esc(R.note||"")} <b>回収率は全て100%未満＝実弾投入は非推奨</b>。</div>`
         +`</div>`;
     }
     // 1レースのブロック。結果確定後は「予測／確定結果」をタブで分ける（tab: 'pred'|'res'）。
