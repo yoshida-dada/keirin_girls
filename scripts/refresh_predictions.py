@@ -75,6 +75,9 @@ def main() -> None:
     ap.add_argument("--men-only-near", type=float,
                     help="男子だけ別の窓（分）にする。未指定なら --only-near と同じ。"
                          "男子は同時進行の会場数が多く、広い窓で1分回すと取得数が跳ね上がる")
+    ap.add_argument("--lock-within", type=float, default=5.0,
+                    help="締切まで N 分以内は『発走前オッズで最終確定』とみなし、窓に関わらず必ず"
+                         "取得して final_locked / final_update_time を刻む（既定5分）")
     args = ap.parse_args()
     set_default_interval(0.5)
 
@@ -134,17 +137,24 @@ def main() -> None:
                 dl = dl_cache.get((tstr, venue, rno))
                 if dl:                                   # 締切既知→窓外なら取得しない
                     m = _minutes_to_deadline(dl, now, tstr)
-                    if m is None or m < -5 or m > near:
+                    # 発走5分前(lock窓)は窓に関わらず必ず取得＝「発走5分前オッズで最終確定」を保証
+                    _lock = m is not None and 0 <= m <= args.lock_within
+                    if not _lock and (m is None or m < -5 or m > near):
                         continue
             try:
                 d = predict_race_dict(k.kaisai_code, k.kaisai_day_code, rno, venue=venue)
             except Exception as e:
                 print(f"  {venue} R{rno} 失敗: {e}")
                 continue
-            if near is not None:                         # 取得後の締切で最終判定
-                mins = _minutes_to_deadline(d.get("deadline", ""), now, d.get("date"))
-                if mins is None or mins < -5 or mins > near:
+            mins = _minutes_to_deadline(d.get("deadline", ""), now, d.get("date"))
+            if near is not None:                         # 取得後の締切で最終判定（lock窓は残す）
+                _lock = mins is not None and 0 <= mins <= args.lock_within
+                if not _lock and (mins is None or mins < -5 or mins > near):
                     continue
+            # 発走5分前オッズでの最終更新バッジ用フラグ（EV・合成オッズ・二車単はこの時点の値）
+            if mins is not None and 0 <= mins <= args.lock_within:
+                d["final_locked"] = True
+                d["final_update_time"] = now.strftime("%H:%M")
             _store_snapshot(snap_repo, build_race_id(k.kaisai_day_code, rno), d, now)
             races.append(d)
 

@@ -553,6 +553,11 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .ev-subsum{font-size:.7rem;font-weight:700;color:var(--ink);margin:2px 0 4px}
 .ev-subsum b{color:var(--edge);font-variant-numeric:tabular-nums}
 .pred-ev-note{font-size:.64rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.5}
+/* 二車単の買い目（P8: ◎軸→相手人気薄）。三連単EVブロックの下に置く */
+.pred-ev.exacta{border-color:var(--accent);background:var(--surface2)}
+.pred-ev.exacta .pred-ev-head{color:var(--accent)}
+/* 発走5分前の確定オッズで最終更新したことを示すバッジ */
+.final-badge{display:inline-block;font-size:.62rem;font-weight:800;color:#fff;background:var(--good);border-radius:6px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
 /* predictions: 三連単オッズテーブル（1着固定マトリクス） */
 .om{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden}
 .om>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:.74rem;font-weight:800;color:var(--ink);user-select:none}
@@ -1165,6 +1170,24 @@ function evBlock(r){
     +`</div>`;
 }
 
+// 二車単の買い目（P8: ◎軸固定→相手を市場人気薄で2〜3点。発走5分前オッズでEV）。
+// 三連単の展開買い目で的中の土台、二車単で妙味を取る役割分担。回収率<100%（黒字ではない）。
+function exactaBlock(r){
+  const x = r.exacta;
+  if(!x || !x.buys || !x.buys.length) return "";
+  const rows = x.buys.map(b=>`<tr><td class="l combo">${esc(b.combo)}</td>`
+    +`<td>${pct1(b.prob)}</td><td>${oddsF(b.odds)}</td>`
+    +`<td class="hl-ev${b.ev>=1?"":" none"}">${b.ev!=null?(+b.ev).toFixed(2):"—"}</td></tr>`).join("");
+  return `<div class="pred-ev exacta">`
+    +`<div class="pred-ev-head">🎫 二車単の買い目 <span class="nb">${x.points}点</span> <span class="more">${esc(x.policy||"")}</span></div>`
+    +`<div class="ev-allsum">◎${carChip(x.anchor)}軸 ｜ 的中率 <b>${(x.hit_prob*100).toFixed(1)}%</b> ｜ 合成オッズ <b>${x.synth_odds!=null?(+x.synth_odds).toFixed(1):"—"}倍</b></div>`
+    +`<div class="tblwrap"><table class="t"><thead><tr>`
+    +`<th class="l">買い目</th><th>モデル確率</th><th>オッズ</th><th>EV</th>`
+    +`</tr></thead><tbody>${rows}</tbody></table></div>`
+    +`<div class="pred-ev-note">${esc(x.note||"")} EV=モデル確率×オッズ。合成オッズ=1/Σ(1/オッズ)。</div>`
+    +`</div>`;
+}
+
 // 三連単オッズテーブル（1着固定マトリクス。確率×市場オッズの比較・買い目推奨ではない）
 let omUid = 0;
 const omReg = {};
@@ -1245,6 +1268,7 @@ function raceHead(r){
     +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
     +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
     +(r.updated_at?`<span class="pred-rupd">更新 ${esc(String(r.updated_at).slice(11,16)||r.updated_at)}</span>`:"")
+    +(r.final_locked?`<span class="final-badge" title="発走5分前の確定オッズでEV・合成オッズ・二車単買い目を最終更新">🔒 発走前確定${r.final_update_time?" "+esc(r.final_update_time):""}</span>`:"")
     +`<span class="pred-src">${esc(r.source||"")}</span>`
     +`</div>`
     +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　万車券率 ${uptTag(up)}`
@@ -1271,7 +1295,7 @@ function predContent(r){
   // 出走表 → 並び予想 → 展開分岐と買い目 → ライン別の強さ の順。
   // 展開を読んだ直後に買い目を見せ、ラインの数値評価はその裏付けとして後ろに置く。
   return riderTable(r) + devBlock(r) + branchBlock(r) + lineBlock(r) + h2hBlock(r) + tfBlock
-       + refBlock(r) + evBlock(r) + omBlock(r);
+       + refBlock(r) + evBlock(r) + exactaBlock(r) + omBlock(r);
 }
 // 展開分岐（男子）: 「誰が主導権を取るか」で場合分けし、分岐ごとに買い目を出す。
 // 主導権の確率は展開AI(62.5%的中)、分岐内の着順は実測の役割別シェアへ合わせた条件付き分布。
