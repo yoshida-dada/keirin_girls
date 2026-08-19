@@ -36,7 +36,15 @@ NOTIFIED_PATH = ROOT / "data" / "notified.json"
 PY = sys.executable
 
 WINDOW_MIN = 30        # 発走何分前から1分更新を始めるか（ガールズ）
-MEN_WINDOW_MIN = 10    # 男子の1分更新窓。同時開催が十数会場あるので広げると取得数が跳ねる
+MEN_WINDOW_MIN = 12    # 男子の1分更新窓。同時開催が十数会場あるので広げると取得数が跳ねる。
+                       # 発走10分前に「確定＆Pagesへ反映済み」にするため、T-12から回して
+                       # push+デプロイ+CDN（実効1〜2分）のリードタイムを吸収する
+# 締切この分以内に男子レースがある間は、Pagesへ**毎分即push**（通常のmen throttleを外す）。
+# 目的: 発走5分前までにスマホ(Pages)へ確定買い目を届ける。T-10で算出→即push→CDN反映で
+# 概ねT-7〜T-8には反映。副作用: 男子開催時間帯のcommitが増える（churn許容の設定値）。
+MEN_FINAL_PUSH_MIN = 10
+# 発走この分前からのオッズで「最終確定」バッジを付け、必ず取得する（refresh --lock-within）。
+LOCK_WITHIN_MIN = 10
 EARLY_WINDOW = 120     # 締切何分前から粗い間隔でオッズ時系列を取り始めるか（ソフトなオッズ捕捉）
 LIVE_SLEEP = 60        # 更新窓内のループ間隔(秒)=1分
 IDLE_SLEEP = 300       # 更新対象が無いときのループ間隔(秒)=5分（早期スナップショットにも使う）
@@ -133,7 +141,8 @@ def live_refresh() -> None:
     # 男子は同時開催が十数会場あり、ガールズと同じ30分窓で1分回すと毎分20レース超を
     # 取りに行くことになる（規約・負荷の両面で過大）。男子はオッズが動く締切10分前だけにする。
     rc, out = _run([PY, "scripts/refresh_predictions.py", "--only-near", str(WINDOW_MIN),
-                    "--men-only-near", str(MEN_WINDOW_MIN), "--include", "all"], timeout=900)
+                    "--men-only-near", str(MEN_WINDOW_MIN), "--lock-within", str(LOCK_WITHIN_MIN),
+                    "--include", "all"], timeout=900)
     if rc == 0:
         last = out.strip().splitlines()[-1] if out.strip() else ""
         _log("オッズ更新 " + last)
@@ -369,10 +378,12 @@ def main() -> None:
         ndm = _next_deadline_min(now, "men")
         g_live = ndg is not None and ndg <= WINDOW_MIN + 5
         m_live = ndm is not None and ndm <= MEN_WINDOW_MIN + 5
+        # 男子でも発走直前(<=MEN_FINAL_PUSH_MIN)は即pushして、締切5分前までにPagesへ反映させる
+        m_final = ndm is not None and ndm <= MEN_FINAL_PUSH_MIN
         nd = min([x for x in (ndg, ndm) if x is not None], default=None)
         if g_live or m_live:
             live_refresh()                        # 締切30分前〜→1分更新（予測+オッズ、時系列も保存）
-            push_iv = PUSH_INTERVAL_LIVE if g_live else PUSH_INTERVAL_LIVE_MEN
+            push_iv = PUSH_INTERVAL_LIVE if (g_live or m_final) else PUSH_INTERVAL_LIVE_MEN
             if not args.no_push and time.time() - last_push >= push_iv:
                 git_push(); last_push = time.time()
             time.sleep(LIVE_SLEEP)

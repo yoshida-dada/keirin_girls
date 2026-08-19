@@ -76,6 +76,62 @@ def parse_trifecta_odds(html: str) -> dict[tuple[int, int, int], float]:
     return out
 
 
+def build_exacta_odds_url(kaisai_code: str, kaisai_day_code: str, race_no: int) -> str:
+    """二車単オッズページのURLを組む（スラッグは 2shatan、2026-08調査で確認）。"""
+    return f"{BASE}/{kaisai_code}/{kaisai_day_code}/{race_no}/2shatan/"
+
+
+def parse_exacta_odds(html: str) -> dict[tuple[int, int], float]:
+    """二車単オッズページHTMLから {(1着,2着): オッズ} を返す。
+
+    構造（2026-08調査）: 単一 <table class="odds_table">。先頭行の th.n{k}=2着車番（列）、
+    データ行の先頭 th.n{k}=1着車番、続く td が各2着列のオッズ。td.empty は対角(同一車=不可)、
+    "9999.9" は非発売のセンチネルなので除外する。
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.select_one("table.odds_table")
+    if table is None:
+        return {}
+    rows = table.find_all("tr")
+    # 列ヘッダ（2着車番）: th.n{digit} の数字テキストを列順に
+    second_cars: list[int] = []
+    for tr in rows:
+        ths = [th for th in tr.find_all("th")
+               if th.get_text(strip=True).isdigit()
+               and any(c.startswith("n") for c in th.get("class", []))]
+        if len(ths) >= 2:
+            second_cars = [int(th.get_text(strip=True)) for th in ths]
+            break
+    if not second_cars:
+        return {}
+
+    out: dict[tuple[int, int], float] = {}
+    for tr in rows:
+        head = tr.find("th")
+        if head is None or not head.get_text(strip=True).isdigit():
+            continue
+        if not any(c.startswith("n") for c in head.get("class", [])):
+            continue
+        first = int(head.get_text(strip=True))
+        tds = tr.find_all("td", recursive=False) or tr.find_all("td")
+        for col, td in enumerate(tds):
+            if col >= len(second_cars):
+                break
+            if "empty" in td.get("class", []):
+                continue
+            txt = td.get_text(strip=True).replace(",", "")
+            try:
+                odds = float(txt)
+            except ValueError:
+                continue
+            if odds >= 9999:                       # 非発売センチネル
+                continue
+            second = second_cars[col]
+            if first != second:
+                out[(first, second)] = odds
+    return out
+
+
 def parse_deadline(html: str) -> str | None:
     """オッズページから投票締切時刻 "HH:MM" を返す（<dt>締切</dt><dd>16:25</dd>）。無ければNone。"""
     soup = BeautifulSoup(html, "html.parser")
@@ -135,3 +191,11 @@ def fetch_trifecta_odds(
     url = build_odds_url(kaisai_code, kaisai_day_code, race_no)
     res = fetch(url)
     return parse_trifecta_odds(res.text), parse_deadline(res.text)
+
+
+def fetch_exacta_odds(
+    kaisai_code: str, kaisai_day_code: str, race_no: int
+) -> dict[tuple[int, int], float]:
+    """二車単オッズページを取得しパースする。戻り値: {(1着,2着): オッズ}。ネットワークあり。"""
+    url = build_exacta_odds_url(kaisai_code, kaisai_day_code, race_no)
+    return parse_exacta_odds(fetch(url).text)
