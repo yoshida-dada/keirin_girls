@@ -444,6 +444,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "upset_prob": man_prob(probs, is_girls=_girls, field_size=len(entries)),
         "riders": riders, "top_trifecta": top_tri, "ev": ev,
         "role": race_role,                          # レース種別(勝ち上がり)+勝ち上がり条件
+        "meet_day": (int(day_code[10:12]) if day_code and len(day_code) >= 12 and day_code[10:12].isdigit() else None),  # 開催日目(NN)
+        "venue_code": kaisai_code[:2] if kaisai_code else None,
         "development": development,                 # 展開予想（並び予想の隊列＋モデル読み）
         "dev_patterns": dev_patterns,               # 展開6パターンの上位3つ（実測分岐比）
         "bank_profile": bank_profile,               # バンク諸元＋統計的な有利脚質（表示用）

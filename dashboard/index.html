@@ -51,7 +51,10 @@ header{padding:calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-i
 
 .badge{display:inline-block;font-size:.6rem;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px}
 .badge.sample{background:var(--accent-soft);color:var(--accent)}
-.badge.rrole{background:#0b7285;color:#fff;cursor:help}
+.badge.rrole{background:#0b7285;color:#fff;cursor:pointer}
+.rrole-pop{display:inline-block;font-size:.62rem;font-weight:700;color:var(--ink);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.vday{font-size:.6rem;font-weight:800;color:#0b7285;background:var(--surface2);border-radius:999px;padding:1px 7px;margin-left:5px}
+.pred-vtab[aria-selected="true"] .vday{background:rgba(255,255,255,.22);color:#fff}
 .badge.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
 .badge.ok{background:var(--good-soft);color:var(--good)}
 
@@ -978,7 +981,7 @@ function boot(DB){
       return `<div class="pred-rhead">`
         +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
         +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
-        +((r.role&&r.role.class_role)?`<span class="badge rrole" title="${esc(roleDesc(r.role.role))}">${esc(r.role.class_role)}</span>`:"")
+        +((r.role&&r.role.class_role)?`<span class="badge rrole" role="button" tabindex="0" title="${esc(roleDesc(r.role.role))}">${esc(r.role.class_role)}</span><span class="rrole-pop" hidden>${esc(roleDesc(r.role.role)||r.role.class_role)}</span>`:"")
         +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
         +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
         +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
@@ -1384,10 +1387,15 @@ function boot(DB){
       html += highlightCard();
       if(selVenue>=venues.length) selVenue=0;
       // 会場タブ（開催時間順）
-      const vtabs = venues.map((v,i)=>
-        `<button class="pred-vtab" type="button" role="tab" data-venue="${i}"`
-        +` aria-selected="${i===selVenue?"true":"false"}" tabindex="${i===selVenue?0:-1}">`
-        +`${esc(v)}<span class="vc">${byVenue.get(v).length}R</span></button>`).join("");
+      const vtabs = venues.map((v,i)=>{
+        const vr = byVenue.get(v)||[];
+        const md = (vr.find(x=>x.meet_day!=null)||{}).meet_day;
+        const isFinal = vr.some(x=>x.role&&x.role.role==="決勝");
+        const dl = isFinal?"最終日":(md!=null?md+"日目":"");
+        return `<button class="pred-vtab" type="button" role="tab" data-venue="${i}"`
+          +` aria-selected="${i===selVenue?"true":"false"}" tabindex="${i===selVenue?0:-1}">`
+          +`${esc(v)}${dl?`<span class="vday">${esc(dl)}</span>`:""}<span class="vc">${vr.length}R</span></button>`;
+      }).join("");
       // 選択会場のレースを開催時間順に並べ、レース番号タブを出す
       const vraces = (byVenue.get(venues[selVenue])||[]).slice()
         .sort((a,b)=> String(a.deadline||"~~").localeCompare(String(b.deadline||"~~")) || ((a.race_no||0)-(b.race_no||0)));
@@ -1963,5 +1971,12 @@ async function enableNotify(){
 document.addEventListener("DOMContentLoaded",()=>{
   const btn=document.getElementById("notifyBtn");
   if(btn){ btn.addEventListener("click", enableNotify); refreshNotifyBtn(); }
+});
+// 種別バッジをタップ/クリックで勝ち上がり説明をトグル（PWA/タッチはtitleツールチップが出ないため）
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".rrole");
+  if(!b) return;
+  const pop=b.nextElementSibling;
+  if(pop&&pop.classList.contains("rrole-pop")) pop.hidden=!pop.hidden;
 });
 </script>
