@@ -135,6 +135,27 @@ CREATE TABLE IF NOT EXISTS payouts_trifecta (
     PRIMARY KEY (race_id, combo)
 );
 
+-- 三連複（順不同）の実払戻。combo は車番昇順で "a-b-c"。
+-- 三連単と同じ結果ページの払戻テーブルから取れる（`a=b=c` 形式）。別プールのため
+-- 三連単6通りの合成オッズとは一致しない（回収率検証には実払戻が必要）。
+CREATE TABLE IF NOT EXISTS payouts_trio (
+    race_id     TEXT        NOT NULL REFERENCES races(race_id),
+    combo       TEXT        NOT NULL,   -- 車番昇順で "-" 連結
+    payout      INTEGER     NOT NULL,
+    popularity  INTEGER,
+    PRIMARY KEY (race_id, combo)
+);
+
+-- 二車単（車単・着順どおり）の実払戻。combo は "a-b"（1着-2着）。
+-- 同じ結果ページの払戻テーブルの末尾のハイフン2車組から取る（枠単の後＝車単）。
+CREATE TABLE IF NOT EXISTS payouts_exacta (
+    race_id     TEXT        NOT NULL REFERENCES races(race_id),
+    combo       TEXT        NOT NULL,   -- "1着-2着"
+    payout      INTEGER     NOT NULL,   -- 100円あたり払戻金
+    popularity  INTEGER,
+    PRIMARY KEY (race_id, combo)
+);
+
 -- ============================================================
 -- 運用（買い目記録 / バケット定義）
 -- ============================================================

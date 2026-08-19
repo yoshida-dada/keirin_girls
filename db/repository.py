@@ -143,6 +143,25 @@ CREATE TABLE IF NOT EXISTS payouts_trifecta (
     popularity INTEGER,
     PRIMARY KEY (race_id, combo)
 );
+-- 三連複（順不同）の払戻。combo は車番昇順で "a-b-c"。
+-- 三連単と同じ結果ページの払戻テーブルから取れる（`a=b=c` 形式）。
+-- 三連単プールとは別プールなので、配当は6通りの合成オッズとは一致しない。
+CREATE TABLE IF NOT EXISTS payouts_trio (
+    race_id    TEXT NOT NULL,
+    combo      TEXT NOT NULL,
+    payout     INTEGER NOT NULL,
+    popularity INTEGER,
+    PRIMARY KEY (race_id, combo)
+);
+-- 二車単（車単・着順どおり）の払戻。combo は "1着-2着"。
+-- 同じ結果ページの払戻テーブル末尾のハイフン2車組（枠単の後）から取る。
+CREATE TABLE IF NOT EXISTS payouts_exacta (
+    race_id    TEXT NOT NULL,
+    combo      TEXT NOT NULL,
+    payout     INTEGER NOT NULL,
+    popularity INTEGER,
+    PRIMARY KEY (race_id, combo)
+);
 CREATE TABLE IF NOT EXISTS narabi (
     race_id     TEXT NOT NULL,
     car_number  INTEGER NOT NULL,
@@ -273,6 +292,26 @@ class DatasetRepo:
         self.conn.execute(
             "INSERT OR REPLACE INTO payouts_trifecta VALUES (?,?,?,?)",
             (race_id, combo_to_str(payout.combo), payout.payout, payout.popularity))
+        self.conn.commit()
+
+    def save_trio_payout(self, race_id: str, payout) -> None:
+        """三連複の払戻。combo は車番昇順で保存する（モデル側のキーと揃える）。"""
+        if payout is None:
+            return
+        self.conn.execute(
+            "INSERT OR REPLACE INTO payouts_trio VALUES (?,?,?,?)",
+            (race_id, combo_to_str(tuple(sorted(payout.combo))),
+             payout.payout, payout.popularity))
+        self.conn.commit()
+
+    def save_exacta_payout(self, race_id: str, payout) -> None:
+        """二車単の払戻。combo は着順どおり "1着-2着" で保存する。"""
+        if payout is None:
+            return
+        self.conn.execute(
+            "INSERT OR REPLACE INTO payouts_exacta VALUES (?,?,?,?)",
+            (race_id, "-".join(str(x) for x in payout.combo),
+             payout.payout, payout.popularity))
         self.conn.commit()
 
     def race_ids(self) -> list[str]:
