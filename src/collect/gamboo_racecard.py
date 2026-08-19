@@ -177,6 +177,40 @@ def fetch_race_card(kaisai_code: str, kaisai_day_code: str, race_no: int) -> lis
     return parse_race_card(res.text)
 
 
+# レース種別（勝ち上がり構造）。準決勝は決勝を含むので順序が重要。
+_RACE_ROLES = ["準決勝", "決勝", "予選", "選抜", "特選", "一般"]
+
+
+def parse_race_role(html: str) -> dict:
+    """レース種別(予選/準決勝/決勝/選抜/一般/特選)と勝ち上がり条件を抽出する。
+
+    番組表の race_title_header に `<span>Ａ級予選</span>` 等の種別、
+    `<dt>勝ち上がり条件</dt><dd>1着〜3着と4着2名は準決勝…</dd>` に勝ち上がり条件がある。
+    返り値: {"class_role": "Ａ級予選", "role": "予選", "name": "関東強力", "advance": "…"}（無い項目はNone）。
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    out = {"class_role": None, "role": None, "name": None, "advance": None}
+    hdr = soup.find(class_="race_title_header")
+    if hdr:
+        t = hdr.find(class_="title")
+        if t:
+            out["name"] = t.get_text(strip=True) or None
+        for sp in hdr.find_all("span"):
+            txt = sp.get_text(strip=True)
+            role = next((r for r in _RACE_ROLES if r in txt), None)
+            if role:
+                out["class_role"] = txt
+                out["role"] = role
+                break
+    for dt in soup.find_all("dt"):
+        if "勝ち上がり" in dt.get_text():
+            dd = dt.find_next_sibling("dd")
+            if dd:
+                out["advance"] = dd.get_text(strip=True) or None
+            break
+    return out
+
+
 def parse_narabi(html: str) -> dict:
     """オッズページの「並び予想」(dl.line_position)から予想隊列と各車の脚質を抽出する。
 

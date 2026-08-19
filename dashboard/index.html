@@ -51,6 +51,7 @@ header{padding:calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-i
 
 .badge{display:inline-block;font-size:.6rem;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px}
 .badge.sample{background:var(--accent-soft);color:var(--accent)}
+.badge.rrole{background:#0b7285;color:#fff;cursor:help}
 .badge.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
 .badge.ok{background:var(--good-soft);color:var(--good)}
 
@@ -963,6 +964,13 @@ function boot(DB){
         +`</div></div>`;
     }
 
+    // 種別→勝ち上がりの一言説明（標準ルール）。男子で特に決着傾向に直結。
+    function roleDesc(role){
+      const m={"予選":"上位が準決勝へ／先行が主導権で堅め","準決勝":"上位が決勝へ・高ステークス／先行(逃)が勝ち堅い",
+        "決勝":"優勝決定戦／先行・単騎の強豪","選抜":"最終日の敗者戦／追込で荒れやすい",
+        "一般":"最終日の敗者戦／追込で荒れやすい","特選":"特別選抜戦"};
+      return role&&m[role]?`${role}: ${m[role]}`:"";
+    }
     function raceHead(r){
       // upsetOf と同じ優先順で取る（1着確率と波乱確率が必ず足して100%になるように）
       const up = upsetOf(r);
@@ -970,6 +978,7 @@ function boot(DB){
       return `<div class="pred-rhead">`
         +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
         +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
+        +((r.role&&r.role.class_role)?`<span class="badge rrole" title="${esc(roleDesc(r.role.role))}">${esc(r.role.class_role)}</span>`:"")
         +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
         +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
         +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
