@@ -64,6 +64,28 @@ def _to_int(s: str) -> int | None:
     return int(m.group(0)) if m else None
 
 
+def parse_weather(html: str) -> dict:
+    """結果ページの天候・風速を返す（風向はGambooBETに無い）。{"weather": "晴", "wind_ms": 0.5}。
+
+    雨は視界不良で先頭(先行)有利、風速は脚質に影響し得るので分析・特徴化の材料になる。
+    値が無ければ None。天候は 晴/曇/雨/雪 等の生文字列。
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    el = soup.find(class_=re.compile("weather"))
+    txt = el.get_text(" ", strip=True) if el else ""
+    out = {"weather": None, "wind_ms": None}
+    m = re.search(r"天候\s*([^\s/]+)", txt)
+    if m:
+        out["weather"] = m.group(1)
+    m = re.search(r"風速\s*([\d.]+)\s*m", txt)
+    if m:
+        try:
+            out["wind_ms"] = float(m.group(1))
+        except ValueError:
+            pass
+    return out
+
+
 def parse_results(html: str) -> list[ResultRow]:
     """着順テーブルから結果行（着順昇順）を返す。"""
     soup = BeautifulSoup(html, "html.parser")
