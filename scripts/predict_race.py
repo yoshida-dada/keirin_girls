@@ -411,10 +411,10 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     dev_patterns = build_dev_patterns(rt.top1_win_prob, _pace_lv, riders,
                                       is_girls=_girls)
 
-    # 二車単(exacta)の推奨買い目（発走5分前オッズ運用・P8=◎軸固定→相手を市場人気薄で2〜3点）。
-    # 三連単オッズが出ている＝二車単も発売中。二車単オッズページを追加で1フェッチするが、
-    # 朝ビルド(全レース)や窓の毎分更新で取得数が倍増しないよう **発走20分以内に限定**する
-    # （T-5ロックはこの窓の内側。規約・負荷への配慮）。
+    # 二車単(exacta)の推奨買い目（発走5分前オッズ運用・◎軸固定→相手はEV優先で2〜3点）。
+    # 三連単オッズが出ている＝二車単も発売中。三連単EV買い目と同じ可視性にするため、
+    # **オッズが出ていれば発走180分前まで**取得する（`odds` 自体が発売の関所＝発売前レースは
+    # ここに来ない。ライブ窓の毎分更新は≤12分の男子レースだけを触るので取得数は跳ねない）。
     def _mins_to_dl(dl: str | None) -> float | None:
         if not dl or ":" not in dl:
             return None
@@ -427,7 +427,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         return (_n.replace(hour=_h, minute=_m, second=0, microsecond=0) - _n).total_seconds() / 60.0
     exacta_block = None
     _mtd = _mins_to_dl(deadline)
-    if odds and strengths and _mtd is not None and 0 <= _mtd <= 20:
+    if odds and strengths and (_mtd is None or _mtd <= 180):
         try:
             from src.collect.gamboo_odds import fetch_exacta_odds
             from src.betting.exacta_select import select_exacta
