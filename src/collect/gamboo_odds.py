@@ -84,25 +84,27 @@ def build_exacta_odds_url(kaisai_code: str, kaisai_day_code: str, race_no: int) 
 def parse_exacta_odds(html: str) -> dict[tuple[int, int], float]:
     """二車単オッズページHTMLから {(1着,2着): オッズ} を返す。
 
-    構造（2026-08調査）: 単一 <table class="odds_table">。先頭行の th.n{k}=2着車番（列）、
-    データ行の先頭 th.n{k}=1着車番、続く td が各2着列のオッズ。td.empty は対角(同一車=不可)、
+    構造（2026-08調査・軸を実オッズで検証）: 単一 <table class="odds_table">。
+    **列ヘッダ th.n{k}=1着車番、データ行の先頭 th.n{k}=2着車番**（当初は逆に読んでいた）。
+    セル = その(1着=列, 2着=行)のオッズ。td.empty は対角(同一車=不可)、
     "9999.9" は非発売のセンチネルなので除外する。
+    ◎(本命)が1着で相手が2着なら低オッズ＝人気、になる向きでこの割当が正しいことを実盤で確認済み。
     """
     soup = BeautifulSoup(html, "html.parser")
     table = soup.select_one("table.odds_table")
     if table is None:
         return {}
     rows = table.find_all("tr")
-    # 列ヘッダ（2着車番）: th.n{digit} の数字テキストを列順に
-    second_cars: list[int] = []
+    # 列ヘッダ = 1着車番: th.n{digit} の数字テキストを列順に
+    col_cars: list[int] = []
     for tr in rows:
         ths = [th for th in tr.find_all("th")
                if th.get_text(strip=True).isdigit()
                and any(c.startswith("n") for c in th.get("class", []))]
         if len(ths) >= 2:
-            second_cars = [int(th.get_text(strip=True)) for th in ths]
+            col_cars = [int(th.get_text(strip=True)) for th in ths]
             break
-    if not second_cars:
+    if not col_cars:
         return {}
 
     out: dict[tuple[int, int], float] = {}
@@ -112,10 +114,10 @@ def parse_exacta_odds(html: str) -> dict[tuple[int, int], float]:
             continue
         if not any(c.startswith("n") for c in head.get("class", [])):
             continue
-        first = int(head.get_text(strip=True))
+        row_car = int(head.get_text(strip=True))    # データ行の先頭 th = 2着車番
         tds = tr.find_all("td", recursive=False) or tr.find_all("td")
         for col, td in enumerate(tds):
-            if col >= len(second_cars):
+            if col >= len(col_cars):
                 break
             if "empty" in td.get("class", []):
                 continue
@@ -126,7 +128,8 @@ def parse_exacta_odds(html: str) -> dict[tuple[int, int], float]:
                 continue
             if odds >= 9999:                       # 非発売センチネル
                 continue
-            second = second_cars[col]
+            first = col_cars[col]                  # 列 = 1着
+            second = row_car                       # 行 = 2着
             if first != second:
                 out[(first, second)] = odds
     return out

@@ -1180,7 +1180,7 @@ function exactaBlock(r){
     +`<td class="hl-ev${b.ev>=1?"":" none"}">${b.ev!=null?(+b.ev).toFixed(2):"—"}</td></tr>`).join("");
   return `<div class="pred-ev exacta">`
     +`<div class="pred-ev-head">🎫 二車単の買い目 <span class="nb">${x.points}点</span> <span class="more">${esc(x.policy||"")}</span></div>`
-    +`<div class="ev-allsum">◎${carChip(x.anchor)}軸 ｜ 的中率 <b>${(x.hit_prob*100).toFixed(1)}%</b> ｜ 合成オッズ <b>${x.synth_odds!=null?(+x.synth_odds).toFixed(1):"—"}倍</b></div>`
+    +`<div class="ev-allsum">◎${carChip(x.anchor)}軸 ｜ 的中率 <b>${(x.hit_prob*100).toFixed(1)}%</b> ｜ 合成オッズ <b>${x.synth_odds!=null?(+x.synth_odds).toFixed(1):"—"}倍</b>${r.odds_at?` ｜ <b>${esc(r.odds_at)}</b>時点のオッズ`:""}</div>`
     +`<div class="tblwrap"><table class="t"><thead><tr>`
     +`<th class="l">買い目</th><th>モデル確率</th><th>オッズ</th><th>EV</th>`
     +`</tr></thead><tbody>${rows}</tbody></table></div>`
