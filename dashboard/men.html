@@ -1295,7 +1295,7 @@ function predContent(r){
   // 出走表 → 並び予想 → 展開分岐と買い目 → ライン別の強さ の順。
   // 展開を読んだ直後に買い目を見せ、ラインの数値評価はその裏付けとして後ろに置く。
   return riderTable(r) + devBlock(r) + branchBlock(r) + lineBlock(r) + h2hBlock(r) + tfBlock
-       + refBlock(r) + evBlock(r) + exactaBlock(r) + omBlock(r);
+       + refBlock(r) + evBlock(r) + omBlock(r);
 }
 // 展開分岐（男子）: 「誰が主導権を取るか」で場合分けし、分岐ごとに買い目を出す。
 // 主導権の確率は展開AI(62.5%的中)、分岐内の着順は実測の役割別シェアへ合わせた条件付き分布。
@@ -1389,7 +1389,8 @@ function condHtml(b, nm, pc){
 
 function branchBlock(r){
   const B = r.dev_branches;
-  if(!B || !(B.branches||[]).length) return "";
+  // 分岐が無いレースでも二車単買い目だけは出す（この関数内に集約したため）
+  if(!B || !(B.branches||[]).length) return exactaBlock(r);
   ODDS_AT = r.odds_at || null;      // 合成オッズの「いつ時点か」（レース共通）
   const pc = v => v==null ? "—" : Math.round(v*100)+"%";
   const nm = {};
@@ -1459,6 +1460,7 @@ function branchBlock(r){
     +`<span class="upt mid">上位${B.branches.length}分岐で${pc(B.covered)}</span></summary>`
     + merged
     +rows
+    + exactaBlock(r)
     +`<div class="br-warn">⚠ 買い目の推奨ではありません（回収率100%超のゾーンは無いと検証済み）</div>`
     +`</details>`;
 }
