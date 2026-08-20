@@ -75,26 +75,47 @@ def _rank_prob(mex):
     return [ab for ab, _ in sorted(mex.items(), key=lambda kv: -kv[1])]
 
 
-def policies(mex, so):
+def _fill(primary, backup, n):
+    """primary→backup の順で重複を除きつつ n 点埋める。"""
+    out = []
+    for ab in list(primary) + list(backup):
+        if ab and ab not in out:
+            out.append(ab)
+        if len(out) >= n:
+            break
+    return out[:n]
+
+
+def policies(st, mex, so):
     ev = {ab: mex.get(ab, 0) * so.get(ab, 0) for ab in mex}
     rp = _rank_prob(mex)
     rev = [ab for ab, _ in sorted(ev.items(), key=lambda kv: -kv[1])]
-    floor = mex[rp[9]] if len(rp) >= 10 else (mex[rp[-1]] if rp else 0)  # 上位10点をプール
     pool = [ab for ab in rp[:10]]
     ana = sorted(pool, key=lambda ab: -so.get(ab, 0))                    # プール内オッズ降順=穴
-    anchor = rp[0][0] if rp else None
-    av = [ab for ab in rp if ab[0] == anchor][:4]                        # ◎軸相手top4(prob)
-    av_ana = sorted(av, key=lambda ab: -so.get(ab, 0))                   # ◎軸で相手を穴寄り
+    cars = sorted(st, key=st.get, reverse=True)
+    c1 = cars[0] if cars else None                                      # ◎
+    c2 = cars[1] if len(cars) > 1 else None                            # ○
+    av = [ab for ab in rp if ab[0] == c1][:4]                           # ◎1着相手top4(prob)
+    av_ana = sorted(av, key=lambda ab: -so.get(ab, 0))                  # ◎1着で相手を穴寄り
     evpos = [ab for ab in rev if ev.get(ab, 0) >= 1.0]
+    # ユーザー案: ◎1着でEVが無い場合に ◎2着 / ○軸 へ逃がす柔軟型
+    f1 = [ab for ab in rp if ab[0] == c1]                              # ◎1着(prob順)
+    f1_ev = [ab for ab in f1 if ev.get(ab, 0) >= 1.0]                  # ◎1着 EV≥1
+    s1_ev = [ab for ab in sorted([ab for ab in rp if ab[1] == c1],
+                                 key=lambda ab: -ev.get(ab, 0)) if ev.get(ab, 0) >= 1.0]  # ◎2着 EV≥1
+    f2_ev = [ab for ab in sorted([ab for ab in rp if ab[0] == c2],
+                                 key=lambda ab: -ev.get(ab, 0)) if ev.get(ab, 0) >= 1.0]  # ○1着 EV≥1
+    av_ana_ev = [ab for ab in av_ana if ev.get(ab, 0) >= 1.0]
+    s1_ana = sorted([ab for ab in rp if ab[1] == c1], key=lambda ab: -so.get(ab, 0))  # ◎2着 人気薄
     return {
-        "P1 本命prob2": rp[:2],
         "P2 本命prob3": rp[:3],
-        "P3 EV上位2": rev[:2],
-        "P4 EV上位3": rev[:3],
-        "P5 EV足切→prob3": (sorted(evpos, key=lambda ab: -mex[ab])[:3] or rp[:2]),
-        "P6 中穴prob10内オッズ上位3": ana[:3],
-        "P7 ◎軸-相手穴2": av_ana[:2],
         "P8 ◎軸-相手穴3": av_ana[:3],
+        # --- 柔軟型(◎1着でEV無→◎2着/○軸へ) ---
+        "FA ◎1着EV≥1優先→prob3": _fill(sorted(f1_ev, key=lambda ab: -ev[ab]), f1, 3),
+        "FB ◎1着EV→◎2着EV→prob3": _fill(f1_ev + s1_ev, f1, 3),
+        "FC ◎/○1着EV≥1 prob3": _fill(sorted(f1_ev + f2_ev, key=lambda ab: -mex[ab]), f1, 3),
+        "FD ◎1着EV→◎2着EV→○1着EV→prob": _fill(f1_ev + s1_ev + f2_ev, f1, 3),
+        "FE ◎軸穴EV→無ければ◎2着穴": _fill(av_ana_ev + s1_ana, av_ana, 3),
     }
 
 
@@ -128,7 +149,7 @@ def main():
     print(f"男子7車 {samples[0].date}〜{samples[-1].date}  {n}レース  as-of walk-forward "
           f"{len(bounds)}fold  合成二車単オッズ控除校正 k={k:.3f}\n")
 
-    names = list(policies({(1, 2): 1.0}, {(1, 2): 1.0}).keys())
+    names = list(policies({1: 0.6, 2: 0.4}, {(1, 2): 1.0}, {(1, 2): 2.0}).keys())
     # per policy per fold: [pts, ret, hit, oddsum(of hits)]
     stat = {nm: [defaultdict(float) for _ in bounds] for nm in names}
     for fi, (a, b, c) in enumerate(bounds):
@@ -140,7 +161,7 @@ def main():
             mex = _model_exacta(st, lines[s.race_id])
             so = _synth_odds(odds[s.race_id], k)
             combo, pay = exa[s.race_id]; combo = tuple(combo)
-            for nm, picks in policies(mex, so).items():
+            for nm, picks in policies(st, mex, so).items():
                 d = stat[nm][fi]
                 d["pts"] += len(picks)
                 if combo in picks:
