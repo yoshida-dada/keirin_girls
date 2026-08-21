@@ -179,11 +179,21 @@ def parse_race_meta(html: str) -> dict:
     vd = h2.find("span", class_="velodrome") if h2 else None
     rc = h2.find("span", class_="race") if h2 else None
     st = soup.select_one("div.race_title_header p.status")  # レース名
+    # 勝ち上がり条件（<dl class="condition"><dt>勝ち上がり条件</dt><dd>1着〜3着と4着2名は準決勝…</dd>）。
+    # 予選・準決勝など進出のあるレースにのみ在り、決勝/敗者戦には無い（その場合 None）。
+    win_condition = None
+    for dt in soup.find_all("dt"):
+        if "勝ち上がり" in dt.get_text():
+            dd = dt.find_next_sibling("dd")
+            if dd:
+                win_condition = dd.get_text(strip=True)
+            break
     return {
         "grade": grade,
         "venue": vd.get_text(strip=True) if vd else None,
         "meet_name": rc.get_text(strip=True) if rc else None,
         "race_name": st.get_text(strip=True) if st else None,
+        "win_condition": win_condition,
     }
 
 

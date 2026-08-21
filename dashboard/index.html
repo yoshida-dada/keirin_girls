@@ -975,6 +975,12 @@ function boot(DB){
         "一般":"最終日の敗者戦／追込で荒れやすい","特選":"特別選抜戦"};
       return role&&m[role]?`${role}: ${m[role]}`:"";
     }
+    // バッジのポップ: 実際の勝ち上がり条件(着順ベース)があればそれを、無ければ種別の一言説明。
+    function roleText(r){
+      const R=r.role||{};
+      if(R.condition) return "勝ち上がり条件： "+R.condition;
+      return roleDesc(R.role) || R.class_role || "";
+    }
     function raceHead(r){
       // upsetOf と同じ優先順で取る（1着確率と波乱確率が必ず足して100%になるように）
       const up = upsetOf(r);
@@ -982,7 +988,7 @@ function boot(DB){
       return `<div class="pred-rhead">`
         +`<span class="pred-rno">${r.race_no!=null?r.race_no:"?"}<small>R</small></span>`
         +`<span class="rtag ${rtagCls(r.race_type)}">${esc(r.race_type||"—")}</span>`
-        +((r.role&&r.role.class_role)?`<span class="badge rrole" role="button" tabindex="0" title="${esc(roleDesc(r.role.role))}">${esc(r.role.class_role)}</span><span class="rrole-pop" hidden>${esc(roleDesc(r.role.role)||r.role.class_role)}</span>`:"")
+        +((r.role&&r.role.class_role)?`<span class="badge rrole" role="button" tabindex="0" title="${esc(roleText(r))}">${esc(r.role.class_role)}</span><span class="rrole-pop" hidden>${esc(roleText(r))}</span>`:"")
         +(r.is_girls?`<span class="badge sample">ガールズ</span>`:"")
         +(r.field_size?`<span class="pred-dl">${r.field_size}車</span>`:"")
         +(r.deadline?`<span class="pred-dl">締切 ${esc(r.deadline)}</span>`:"")
