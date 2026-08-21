@@ -285,3 +285,33 @@ def parse_narabi(html: str) -> dict:
     if cur:
         lines.append(cur)
     return {"order": order, "legs": legs, "lines": lines, "seri": seri}
+
+
+def parse_meet_kaku(html: str) -> dict[int, dict]:
+    """出走表の「今場所成績」から各車の直近前走の競走種目(格)と着位を返す。
+
+    戻り値: {車番: {"kaku": "特選"/"予選"/"一般"/…, "pos": 着位int}}。
+    勝ち上がりの同一着位タイブレークは「直近前走の格→着位」で決まる（番組編成の要領 第4章第4節）。
+    2日目の準決勝メンバーなら直近前走＝初日の競走。past_racecard_table の今場所成績セル
+    （例 "8/20 Ａ級初日特選 2着 10.2"）から種目と着位を抽出する。
+    """
+    import re
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.select_one("table.past_racecard_table")
+    out: dict[int, dict] = {}
+    if table is None:
+        return out
+    for tr in table.find_all("tr"):
+        num = tr.find("td", class_="num")
+        if num is None or not num.get_text(strip=True).isdigit():
+            continue
+        car = int(num.get_text(strip=True))
+        for td in tr.find_all("td"):
+            tx = td.get_text(" ", strip=True)
+            if "着" in tx and "/" in tx:                 # 今場所成績セル
+                mk = re.search(r"(特選|予選|一般|選抜|準決|決勝)", tx)
+                mp = re.search(r"(\d+)着", tx)
+                if mk and mp:
+                    out[car] = {"kaku": mk.group(1), "pos": int(mp.group(1))}
+                break
+    return out
