@@ -47,7 +47,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     _rn = meta.get("race_name")
     _rrole = next((r for r in ["準決勝", "決勝", "予選", "選抜", "特選", "一般"]
                    if _rn and r in _rn), None)
-    race_role = {"class_role": _rn, "role": _rrole, "grade": meta.get("grade")}
+    race_role = {"class_role": _rn, "role": _rrole, "grade": meta.get("grade"),
+                 "condition": meta.get("win_condition")}   # 実際の勝ち上がり条件(着順ベース)
     # 翌日ぶんは出走表が未公開のことがある（前日夕方に順次published）。空のまま進むと
     # 特徴量組み立てが "None of ['car_number'] are in the columns" で落ち、原因が読めない。
     if not entries:
