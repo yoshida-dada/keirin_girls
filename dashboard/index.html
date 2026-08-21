@@ -53,6 +53,9 @@ header{padding:calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-i
 .badge.sample{background:var(--accent-soft);color:var(--accent)}
 .badge.rrole{background:#0b7285;color:#fff;cursor:pointer}
 .rrole-pop{display:inline-block;font-size:.62rem;font-weight:700;color:var(--ink);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+/* 勝ち上がり条件（着順ベース）を見出し直下に常時表示 */
+.pred-cond{margin-top:6px;font-size:.74rem;font-weight:700;color:var(--ink);background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:6px 10px;line-height:1.55}
+.pred-cond .cl{color:var(--muted);font-weight:800;margin-right:4px}
 .vday{font-size:.6rem;font-weight:800;color:#0b7285;background:var(--surface2);border-radius:999px;padding:1px 7px;margin-left:5px}
 .pred-vtab[aria-selected="true"] .vday{background:rgba(255,255,255,.22);color:#fff}
 .badge.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
@@ -981,6 +984,13 @@ function boot(DB){
       if(R.condition) return "勝ち上がり条件： "+R.condition;
       return roleDesc(R.role) || R.class_role || "";
     }
+    // 勝ち上がり条件を常時1行で全文表示（読点→／、と→・で整形）。条件が無い決勝/敗者戦は非表示。
+    function condLine(r){
+      const c=r.role&&r.role.condition;
+      if(!c) return "";
+      const t=c.replace(/、/g,"／").replace(/と/g,"・");
+      return `<div class="pred-cond"><span class="cl">🏁 勝ち上がり</span>${esc(t)}</div>`;
+    }
     function raceHead(r){
       // upsetOf と同じ優先順で取る（1着確率と波乱確率が必ず足して100%になるように）
       const up = upsetOf(r);
@@ -996,7 +1006,8 @@ function boot(DB){
         +`<span class="pred-src">${esc(r.source||"")}</span>`
         +`</div>`
         +`<div class="pred-top1">1着確率トップ <b>${pct1(top1)}</b>　波乱確率 ${uptTag(up)}`
-        +`　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`;
+        +`　正規化エントロピー <b>${r.entropy!=null?r.entropy.toFixed(2):"—"}</b></div>`
+        + condLine(r);
     }
     // 予測タブの中身（出走表・対戦・三連単モデル確率・EV買い目・オッズテーブル）
     function predContent(r){
