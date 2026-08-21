@@ -206,7 +206,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             "line_id": _lp[0] if _lp else None,                # 所属ライン（並び予想由来）
             "pos_in_line": _lp[1] if _lp else None,            # 0=ライン先頭 1=番手 2=3番手
             "narabi_leg": (narabi_ctx or {}).get("legs", {}).get(e.car_number),
-            "pref": (e.prefecture or "").strip() or None,        # 登録府県
+            "pref": (e.prefecture or "").strip() or None,        # 登録府県(所属)
+            "age": e.age,                                        # 年齢
+            "term": e.term,                                      # 期別(89期 等)
             "home": is_home_pref(e.prefecture, venue_code),      # 地元(同県)開催か
             "home_dist": is_home_district(e.prefecture, venue_code),  # 同地区開催か
             "win_rate": (f.win_rate if f else None),

@@ -250,6 +250,7 @@ table.rt th.rt-name{z-index:3;background:var(--surface2)}
 .rt .rn-nm{display:block;white-space:nowrap;font-weight:800}
 .rt .rn-home{display:inline-block;margin-left:6px;font-size:.56rem;font-weight:800;color:#fff;background:#e8590c;border-radius:5px;padding:1px 5px;vertical-align:middle;letter-spacing:.03em}
 .rt .rn-home.dist{background:var(--muted)}
+.rt .rn-meta{display:block;font-size:.58rem;color:var(--muted);font-weight:600;margin-top:1px;letter-spacing:.02em}
 .rt .rn-meet{display:flex;gap:5px;align-items:baseline;margin-top:2px;font-size:.6rem;font-weight:700;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .rt .rn-meet .rn-md{color:var(--muted)}
 .rt .rn-meet .rn-mr{color:var(--muted)}
@@ -1032,6 +1033,9 @@ function riderTable(r){
     + cols.map(c=>`<th class="${c.cls}">${c.th}</th>`).join("");
   const body = (r.riders||[]).map((rd,i)=>{
     const tds = cols.map(c=>`<td class="${c.cls}">${c.get(rd)}</td>`).join("");
+    // 所属/年齢/期（例: 高知/45歳/89期）を選手名の下に表示
+    const metaTxt = [rd.pref, rd.age!=null?rd.age+"歳":null, rd.term!=null?rd.term+"期":null]
+      .filter(Boolean).join("/");
     // 今場所成績を選手名の下に統合（新しい開催日から順に、初日を除く最大日数分）
     const meet = (rd.meet||[]).slice().reverse();
     const meetHtml = meet.map(m=>{
@@ -1046,7 +1050,7 @@ function riderTable(r){
       +`<td class="rt-car">${carChip(rd.car)}</td>`
       +`<td class="rt-name l"><span class="rn-nm">${esc(rd.name||"")}`
       +`${rd.home?`<span class="rn-home" title="地元(同県)開催">地元</span>`:(rd.home_dist?`<span class="rn-home dist" title="同地区開催">地区</span>`:"")}`
-      +`</span>${lsBadge(rd,r)}${meetHtml}</td>${tds}</tr>`
+      +`</span>${lsBadge(rd,r)}${metaTxt?`<span class="rn-meta">${esc(metaTxt)}</span>`:""}${meetHtml}</td>${tds}</tr>`
       + (rd.line_stats ? `<tr class="ls-r" data-lsrow="${rd.car}" hidden>`
           +`<td colspan="${cols.length+3}">${lsPanel(rd,r)}</td></tr>` : "");
   }).join("");
