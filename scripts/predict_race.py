@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.collect.base import fetch, set_default_interval
 from src.collect.gamboo_odds import (
     build_odds_url, parse_trifecta_odds, parse_deadline, parse_race_meta)
-from src.collect.gamboo_racecard import parse_race_card, parse_recent_form, is_girls_race
+from src.collect.gamboo_racecard import parse_race_card, parse_recent_form, is_girls_race, parse_meet_kaku
 from src.model.persist import load_model, strengths_from_model, load_elo_state
 from src.model.plackett_luce import all_trifecta_probs
 from src.model.himo_adjust import corrected_trifecta_probs
@@ -43,6 +43,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     odds = {k: v for k, v in odds.items() if v and v < 9999}
     deadline = parse_deadline(html)
     meta = parse_race_meta(html)      # 開催格/開催名/レース名（同じHTMLから。追加フェッチなし）
+    _meet_kaku = parse_meet_kaku(html)  # 各車の直近前走(初日)の格・着位（決勝ボーダー用）
     # レース種別(勝ち上がり): race_name(例"Ａ級予選"/"Ｓ級決勝")から種別語を判定。追加フェッチ無し。
     _rn = meta.get("race_name")
     _rrole = next((r for r in ["準決勝", "決勝", "予選", "選抜", "特選", "一般"]
@@ -209,6 +210,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             "pref": (e.prefecture or "").strip() or None,        # 登録府県(所属)
             "age": e.age,                                        # 年齢
             "term": e.term,                                      # 期別(89期 等)
+            # 直近前走(2日目準決なら初日)の格・着位。決勝ボーダー(3着枠タイブレーク)用
+            "pre_kaku": (_meet_kaku.get(e.car_number) or {}).get("kaku"),
+            "pre_pos": (_meet_kaku.get(e.car_number) or {}).get("pos"),
             "home": is_home_pref(e.prefecture, venue_code),      # 地元(同県)開催か
             "home_dist": is_home_district(e.prefecture, venue_code),  # 同地区開催か
             "win_rate": (f.win_rate if f else None),
