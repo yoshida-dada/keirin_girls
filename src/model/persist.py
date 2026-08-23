@@ -81,7 +81,8 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
                          elo_state: dict | None = None,
                          tactics_ctx: dict | None = None,
                          narabi_ctx: dict | None = None,
-                         venue_code: str | None = None) -> dict[int, float]:
+                         venue_code: str | None = None,
+                         gap_ctx: dict | None = None) -> dict[int, float]:
     """出走選手 → {車番: 1着確率}(Σ=1)。特徴量を組み立てて学習済みモデルで推論する。
 
     モデルの学習特徴（model.feature_names）に追従。拡張モデルは直近4ヶ月(recent)を、
@@ -158,6 +159,13 @@ def strengths_from_model(model: PLModel, entries: list[Entry],
         scols = seri_columns(list(df.index), nb.get("seri"))
         for i, name in enumerate(SERI_KEYS):
             df[name] = [scols[c][i] for c in df.index]
+    from src.features.interval_features import INTERVAL_KEYS
+    if any(n in feats for n in INTERVAL_KEYS):  # 出走間隔（前走からの日数, 学習と同一関数）
+        from src.features.interval_features import interval_columns
+        # gap_ctx={車番:前走からの日数}。未指定なら0（=直近に走った扱い・ペナルティ無しの良性既定）
+        icols = interval_columns(list(df.index), gap_ctx or {})
+        for i, name in enumerate(INTERVAL_KEYS):
+            df[name] = [icols[c][i] for c in df.index]
     # 欠損はレース内平均で補完する。1名の gear_ratio 欠け等だけで全車の推論を捨てて
     # 競走得点ベースラインへ落ちるのを防ぐ（2026-07-28 実測: 本日8R中2Rが該当）。
     # ただし CORE_FEATURES（強さの主信号）が欠けた選手がいる場合と、列が全車欠損の場合は
