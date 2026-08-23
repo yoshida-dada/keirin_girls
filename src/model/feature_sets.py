@@ -24,6 +24,7 @@ from src.features.tactics_features import TACTIC_NAMES
 from src.features.rider_narabi import NARABI_KEYS
 from src.features.bank_features import BANK_KEYS
 from src.features.line_features import LINE_KEYS, LEGOH_KEYS, SERI_KEYS
+from src.features.interval_features import INTERVAL_KEYS
 
 
 def girls_features() -> list[str]:
@@ -33,7 +34,7 @@ def girls_features() -> list[str]:
 
 
 def men_features() -> list[str]:
-    """男子本番モデルの特徴（46列）。
+    """男子本番モデルの特徴（47列）。
 
     ライン8列が主役（tri10 +4.61pt・5/5fold）。展開10列はその上にも純増する
     （+0.40pt・4/5fold）。並び5列(NARABI_KEYS)は不採用。
@@ -49,9 +50,13 @@ def men_features() -> list[str]:
     ただし競りレースはテストfoldあたり35〜43件しかなく、この検証はそもそも検定力が足りない
     （tri10 の1レース = 約2.7pt）。「差が無い」ことを示せたわけではなく「測れなかった」。
     データ自体（narabi.seri_group）は収集済みなので、母数が増えたら再検証する。
+
+    出走間隔1列(INTERVAL_KEYS=gap_lin)は **採用**（2026-08-23, validate_interval_wf/_e1.py）。
+    E1(線形・120日上限)で全体top1 +0.36pt(5/5fold一貫)・ECE悪化なし・長期ブランク在籍Rで
+    top1+2pt級。長期斡旋切れ/故障明けの過大評価を正す（tri10は中立=1着精度向上）。
     """
     return (list(PL_FEATURES_FULL) + ["rel_elo"] + list(LINE_KEYS)
-            + list(TACTIC_NAMES) + list(LEGOH_KEYS))
+            + list(TACTIC_NAMES) + list(LEGOH_KEYS) + list(INTERVAL_KEYS))
 
 
 # 学習・推論の両方から参照する定数

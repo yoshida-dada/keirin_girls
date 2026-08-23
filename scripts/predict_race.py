@@ -108,6 +108,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
     narabi_ctx = parse_narabi(html)
     tactics_ctx = None
     strengths = {}
+    # 出走間隔（前走からの日数）: 当日−前走日。着順モデル/展開AI(backstretch)が共有する特徴
+    gap_ctx = {e.car_number: _days_since(e.rider_name) for e in entries}
     _mfeats = (model.feature_names or []) if model is not None else []
     if model is not None:
         if "rel_elo" not in _mfeats:
@@ -118,7 +120,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             tactics_ctx = current_tactics(feat_db)
         strengths = strengths_from_model(model, entries, recent, elo_state,
                                          tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
-                                         venue_code=venue_code)
+                                         venue_code=venue_code, gap_ctx=gap_ctx)
     _mtype = "LightGBM" if type(model).__name__ == "GBDTModel" else "PL線形"
     source = f"学習済みモデル({_mlabel}・{_mtype} {len(_mfeats)}特徴)"
     if not strengths:
@@ -154,7 +156,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         if _bs_model is not None:
             _pB = strengths_from_model(_bs_model, entries, recent, elo_state,
                                        tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
-                                       venue_code=venue_code)
+                                       venue_code=venue_code, gap_ctx=gap_ctx)
             if _pB:
                 from src.model.development_branches import branch_mixture
                 _mix, _dists = branch_mixture(strengths, _narabi_lines, _pB)
@@ -348,7 +350,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             if _bs is not None:
                 pB = strengths_from_model(_bs, entries, recent, elo_state,
                                           tactics_ctx=tactics_ctx, narabi_ctx=narabi_ctx,
-                                          venue_code=venue_code)
+                                          venue_code=venue_code, gap_ctx=gap_ctx)
         if pB:
             _rk = sorted(pB.items(), key=lambda kv: -kv[1])
             _rfront = _order[0] if _order else None

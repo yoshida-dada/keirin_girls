@@ -21,6 +21,7 @@ from src.features.bank_features import BANK_KEYS, bank_columns
 from src.features.line_features import (LINE_KEYS, line_columns, class_level,
                                         LEGOH_KEYS, legoh_columns,
                                         SERI_KEYS, seri_columns, positions_with_seri)
+from src.features.interval_features import INTERVAL_KEYS, interval_columns, compute_pre_race_gap
 
 
 def _line_ctx(db_path):
@@ -100,7 +101,8 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     need_line = any(n in names for n in LINE_KEYS)
     need_legoh = any(n in names for n in LEGOH_KEYS)
     need_seri = any(n in names for n in SERI_KEYS)
-    if not (need_elo or need_tac or need_nb or need_line or need_legoh or need_seri):
+    need_gap = any(n in names for n in INTERVAL_KEYS)
+    if not (need_elo or need_tac or need_nb or need_line or need_legoh or need_seri or need_gap):
         return samples
 
     pre_elo = compute_pre_race_elo(db_path) if need_elo else None
@@ -116,6 +118,7 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
     line_of = scores = cls = legs = seri = None
     if need_line or need_legoh or need_seri:
         line_of, scores, cls, legs, seri = _line_ctx(db_path)
+    gap_by = compute_pre_race_gap(db_path) if need_gap else None   # (rid,car)->前走からの日数(as-of)
 
     out = []
     for s in samples:
@@ -176,6 +179,14 @@ def augment_samples(samples: list, db_path, feature_names: list | None) -> list:
             smat = np.array([[scols[c][i] for i, _ in skeep] for c in cars], dtype=float)
             X = np.hstack([X, smat])
             fn = fn + [name for _, name in skeep]
+        if need_gap:                            # 出走間隔（前走からの日数, as-of。推論と同一関数）
+            cars = list(s.car_numbers)
+            gbc = {c: gap_by.get((s.race_id, c)) for c in cars}
+            icols = interval_columns(cars, gbc)
+            ikeep = [(i, name) for i, name in enumerate(INTERVAL_KEYS) if name in names]
+            imat = np.array([[icols[c][i] for i, _ in ikeep] for c in cars], dtype=float)
+            X = np.hstack([X, imat])
+            fn = fn + [name for _, name in ikeep]
         # 最後に model.feature_names の並びへ揃える。ここが無いと「どの順で hstack したか」に
         # 暗黙依存し、呼び出し側が列を挟み直す羽目になる（実際 deploy_men.py がそうしていて、
         # analyze_dev_patterns から男子モデルを使った時に 31列 vs 39列 で落ちた）。
