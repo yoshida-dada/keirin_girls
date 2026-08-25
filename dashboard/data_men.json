@@ -41,7 +41,7 @@
     ],
     "model": "LightGBM lambdarank(拡張20+Elo+展開10+並び5:中団込)",
     "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
-    "last_updated": "2026-08-25 23:03 JST",
+    "last_updated": "2026-08-25 23:04 JST",
     "races": [
       {
         "date": "2026-08-24",
@@ -244172,19 +244172,1362 @@
         "is_girls": false,
         "field_size": 7,
         "class_group": "A3",
-        "lines": [],
+        "lines": [
+          [
+            1,
+            5,
+            7,
+            4
+          ],
+          [
+            3
+          ],
+          [
+            2,
+            6
+          ]
+        ],
         "seri": [],
-        "line_strength": null,
-        "dev_branches": null,
+        "line_strength": {
+          "lines": [
+            {
+              "line_id": 0,
+              "size": 4,
+              "cars": [
+                {
+                  "car": 1,
+                  "name": "渡邉 拓",
+                  "pos": 0,
+                  "pos_label": "先頭",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "先行",
+                  "class_rank": "A3",
+                  "win_prob": 0.5659
+                },
+                {
+                  "car": 5,
+                  "name": "齋藤 昌太",
+                  "pos": 1,
+                  "pos_label": "番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.1088
+                },
+                {
+                  "car": 7,
+                  "name": "菅藤 智",
+                  "pos": 2,
+                  "pos_label": "3番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.0209
+                },
+                {
+                  "car": 4,
+                  "name": "佐藤 純嘉",
+                  "pos": 3,
+                  "pos_label": "4番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.0321
+                }
+              ],
+              "p_win": 0.7277,
+              "p_12": 0.5067,
+              "p_top3_any": 0.9843,
+              "score_avg": 71.4,
+              "rank": 1
+            },
+            {
+              "line_id": 1,
+              "size": 1,
+              "cars": [
+                {
+                  "car": 3,
+                  "name": "川本 琢也",
+                  "pos": 0,
+                  "pos_label": "単騎",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "自在",
+                  "class_rank": "A3",
+                  "win_prob": 0.1119
+                }
+              ],
+              "p_win": 0.1119,
+              "p_12": 0.0,
+              "p_top3_any": 0.4616,
+              "score_avg": 72.6,
+              "rank": 3
+            },
+            {
+              "line_id": 2,
+              "size": 2,
+              "cars": [
+                {
+                  "car": 2,
+                  "name": "鴨下 佳朋",
+                  "pos": 0,
+                  "pos_label": "先頭",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "押え先",
+                  "class_rank": "A3",
+                  "win_prob": 0.0919
+                },
+                {
+                  "car": 6,
+                  "name": "花田 雄飛",
+                  "pos": 1,
+                  "pos_label": "番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.0685
+                }
+              ],
+              "p_win": 0.1604,
+              "p_12": 0.0449,
+              "p_top3_any": 0.5538,
+              "score_avg": 71.2,
+              "rank": 2
+            }
+          ],
+          "settle_prob": 0.5516,
+          "settle_baseline": 0.562,
+          "settle_bias_note": "分岐混合で出している場合は実測とほぼ一致する（walk-forward n=12,420: 予測56.8% vs 実測55.6%）。並び予想が無く紐補正になる場合のみ、実測より約20pt低く出る。",
+          "note": "数値はこのレースのモデル分布から算出（1着確率の和・ライン決着確率）。実測では1着は強いラインの先頭に集中し、3着内では最強ラインの番手が先頭とほぼ同格＝紐として同価値。3番手は1着がほぼ無い。"
+        },
+        "dev_branches": {
+          "branches": [
+            {
+              "b_car": 1,
+              "b_name": "渡邉 拓",
+              "prob": 0.5189,
+              "line": [
+                1,
+                5,
+                7,
+                4
+              ],
+              "is_solo": false,
+              "label": "1番ラインが主導権",
+              "win": {
+                "1": 0.5955,
+                "2": 0.0812,
+                "3": 0.1048,
+                "4": 0.0194,
+                "5": 0.1543,
+                "6": 0.0323,
+                "7": 0.0126
+              },
+              "formation": {
+                "first": [
+                  1,
+                  5
+                ],
+                "second": [
+                  5,
+                  1,
+                  3
+                ],
+                "third": [
+                  3,
+                  4,
+                  2,
+                  6,
+                  7
+                ],
+                "points": 18,
+                "text": "15-135-23467",
+                "cover": 0.5051,
+                "cover_cond": 0.6736,
+                "p_model": 0.4421,
+                "odds": {
+                  "synth": 4.1,
+                  "min": 17.7,
+                  "max": 1139.0,
+                  "covered": 18,
+                  "points": 18
+                }
+              },
+              "conditional": [
+                {
+                  "car": 1,
+                  "name": "渡邉 拓",
+                  "prob": 0.5955,
+                  "second": [
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "番手",
+                      "prob": 0.5821
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.1138
+                    },
+                    {
+                      "car": 4,
+                      "name": "佐藤 純嘉",
+                      "role": "同ライン",
+                      "prob": 0.1029
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.0699
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.2709
+                    },
+                    {
+                      "car": 4,
+                      "name": "佐藤 純嘉",
+                      "role": "同ライン",
+                      "prob": 0.1968
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1571
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.1553
+                    }
+                  ],
+                  "second_inline": 0.7518,
+                  "third_inline": 0.4167
+                },
+                {
+                  "car": 5,
+                  "name": "齋藤 昌太",
+                  "prob": 0.1543,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "同ライン",
+                      "prob": 0.6448
+                    },
+                    {
+                      "car": 7,
+                      "name": "菅藤 智",
+                      "role": "番手",
+                      "prob": 0.0888
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.0864
+                    },
+                    {
+                      "car": 4,
+                      "name": "佐藤 純嘉",
+                      "role": "同ライン",
+                      "prob": 0.0781
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.2528
+                    },
+                    {
+                      "car": 4,
+                      "name": "佐藤 純嘉",
+                      "role": "同ライン",
+                      "prob": 0.181
+                    },
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "同ライン",
+                      "prob": 0.1675
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1418
+                    }
+                  ],
+                  "second_inline": 0.8117,
+                  "third_inline": 0.4656
+                },
+                {
+                  "car": 3,
+                  "name": "川本 琢也",
+                  "prob": 0.1048,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.5242
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.2052
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.0863
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.0795
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.2376
+                    },
+                    {
+                      "car": 4,
+                      "name": "佐藤 純嘉",
+                      "role": "別線3番手",
+                      "prob": 0.1912
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.1576
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1443
+                    }
+                  ],
+                  "second_inline": 0.0,
+                  "third_inline": 0.0
+                }
+              ],
+              "form_types": [
+                {
+                  "kind": "◎頭",
+                  "scenario_prob": 0.5955,
+                  "cover": 0.7988,
+                  "cover_abs": 0.4757,
+                  "formation": {
+                    "first": [
+                      1
+                    ],
+                    "second": [
+                      5,
+                      3,
+                      4
+                    ],
+                    "third": [
+                      3,
+                      4,
+                      2,
+                      6,
+                      7,
+                      5
+                    ],
+                    "points": 15,
+                    "text": "1-345-234567",
+                    "cover": 0.7988,
+                    "cover_cond": 0.7988,
+                    "p_model": 0.4442
+                  },
+                  "odds": {
+                    "synth": 2.7,
+                    "min": 11.7,
+                    "max": 241.6,
+                    "covered": 15,
+                    "points": 15
+                  }
+                },
+                {
+                  "kind": "◎2着",
+                  "scenario_prob": 0.2208,
+                  "cover": 0.8533,
+                  "cover_abs": 0.1884,
+                  "formation": {
+                    "first": [
+                      5,
+                      3,
+                      2
+                    ],
+                    "second": [
+                      1
+                    ],
+                    "third": [
+                      4,
+                      3,
+                      6,
+                      7,
+                      2,
+                      5
+                    ],
+                    "points": 15,
+                    "text": "235-1-234567",
+                    "cover": 0.8533,
+                    "cover_cond": 1.0,
+                    "p_model": 0.1563
+                  },
+                  "odds": {
+                    "synth": 11.8,
+                    "min": 62.7,
+                    "max": 1000.3,
+                    "covered": 15,
+                    "points": 15
+                  }
+                },
+                {
+                  "kind": "◎3着",
+                  "scenario_prob": 0.0873,
+                  "cover": 0.8304,
+                  "cover_abs": 0.0725,
+                  "formation": {
+                    "first": [
+                      5,
+                      3,
+                      2
+                    ],
+                    "second": [
+                      5,
+                      6,
+                      3,
+                      4,
+                      7,
+                      2
+                    ],
+                    "third": [
+                      1
+                    ],
+                    "points": 15,
+                    "text": "235-234567-1",
+                    "cover": 0.8304,
+                    "cover_cond": 1.0,
+                    "p_model": 0.0791
+                  },
+                  "odds": {
+                    "synth": 4.8,
+                    "min": 25.2,
+                    "max": 447.6,
+                    "covered": 15,
+                    "points": 15
+                  }
+                },
+                {
+                  "kind": "◎抜き",
+                  "scenario_prob": 0.0965,
+                  "cover": 0.258,
+                  "cover_abs": 0.0249,
+                  "formation": {
+                    "first": [
+                      5
+                    ],
+                    "second": [
+                      7,
+                      3,
+                      4,
+                      2
+                    ],
+                    "third": [
+                      3,
+                      6,
+                      4,
+                      2,
+                      7
+                    ],
+                    "points": 16,
+                    "text": "5-2347-23467",
+                    "cover": 0.258,
+                    "cover_cond": 0.8589,
+                    "p_model": 0.0183
+                  },
+                  "odds": {
+                    "synth": 39.2,
+                    "min": 440.7,
+                    "max": 1855.5,
+                    "covered": 16,
+                    "points": 16
+                  }
+                }
+              ]
+            },
+            {
+              "b_car": 2,
+              "b_name": "鴨下 佳朋",
+              "prob": 0.347,
+              "line": [
+                2,
+                6
+              ],
+              "is_solo": false,
+              "label": "2番ラインが主導権",
+              "win": {
+                "1": 0.5747,
+                "2": 0.1113,
+                "3": 0.1205,
+                "4": 0.0138,
+                "5": 0.059,
+                "6": 0.1117,
+                "7": 0.009
+              },
+              "formation": {
+                "first": [
+                  1
+                ],
+                "second": [
+                  5,
+                  2,
+                  3
+                ],
+                "third": [
+                  3,
+                  2,
+                  6,
+                  4,
+                  5,
+                  7
+                ],
+                "points": 15,
+                "text": "1-235-234567",
+                "cover": 0.4299,
+                "cover_cond": 0.7479,
+                "p_model": 0.4503,
+                "odds": {
+                  "synth": 2.2,
+                  "min": 11.7,
+                  "max": 277.8,
+                  "covered": 15,
+                  "points": 15
+                }
+              },
+              "conditional": [
+                {
+                  "car": 1,
+                  "name": "渡邉 拓",
+                  "prob": 0.5747,
+                  "second": [
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "番手",
+                      "prob": 0.4564
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1465
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.145
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.1333
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.3026
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1921
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "番手",
+                      "prob": 0.1602
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.1317
+                    }
+                  ],
+                  "second_inline": 0.5752,
+                  "third_inline": 0.3736
+                },
+                {
+                  "car": 3,
+                  "name": "川本 琢也",
+                  "prob": 0.1205,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.412
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1834
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.167
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.1633
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.301
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.2288
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1657
+                    },
+                    {
+                      "car": 4,
+                      "name": "佐藤 純嘉",
+                      "role": "別線3番手",
+                      "prob": 0.1151
+                    }
+                  ],
+                  "second_inline": 0.0,
+                  "third_inline": 0.0
+                },
+                {
+                  "car": 6,
+                  "name": "花田 雄飛",
+                  "prob": 0.1117,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.3439
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "同ライン",
+                      "prob": 0.3062
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.1516
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.1363
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.3016
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.2245
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.1946
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "同ライン",
+                      "prob": 0.1198
+                    }
+                  ],
+                  "second_inline": 0.3062,
+                  "third_inline": 0.1198
+                }
+              ],
+              "form_types": [
+                {
+                  "kind": "◎頭",
+                  "scenario_prob": 0.5747,
+                  "cover": 0.7479,
+                  "cover_abs": 0.4299,
+                  "formation": {
+                    "first": [
+                      1
+                    ],
+                    "second": [
+                      5,
+                      2,
+                      3
+                    ],
+                    "third": [
+                      3,
+                      2,
+                      6,
+                      4,
+                      5,
+                      7
+                    ],
+                    "points": 15,
+                    "text": "1-235-234567",
+                    "cover": 0.7479,
+                    "cover_cond": 0.7479,
+                    "p_model": 0.4503
+                  },
+                  "odds": {
+                    "synth": 2.2,
+                    "min": 11.7,
+                    "max": 277.8,
+                    "covered": 15,
+                    "points": 15
+                  }
+                },
+                {
+                  "kind": "◎2着",
+                  "scenario_prob": 0.1624,
+                  "cover": 0.8513,
+                  "cover_abs": 0.1382,
+                  "formation": {
+                    "first": [
+                      3,
+                      6,
+                      2,
+                      5
+                    ],
+                    "second": [
+                      1
+                    ],
+                    "third": [
+                      5,
+                      3,
+                      2,
+                      4,
+                      6
+                    ],
+                    "points": 16,
+                    "text": "2356-1-23456",
+                    "cover": 0.8513,
+                    "cover_cond": 0.9103,
+                    "p_model": 0.1573
+                  },
+                  "odds": {
+                    "synth": 9.9,
+                    "min": 62.7,
+                    "max": 815.9,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎3着",
+                  "scenario_prob": 0.1259,
+                  "cover": 0.9124,
+                  "cover_abs": 0.1149,
+                  "formation": {
+                    "first": [
+                      2,
+                      3,
+                      6,
+                      5
+                    ],
+                    "second": [
+                      6,
+                      2,
+                      5,
+                      3,
+                      4
+                    ],
+                    "third": [
+                      1
+                    ],
+                    "points": 16,
+                    "text": "2356-23456-1",
+                    "cover": 0.9124,
+                    "cover_cond": 0.9539,
+                    "p_model": 0.0888
+                  },
+                  "odds": {
+                    "synth": 4.9,
+                    "min": 25.2,
+                    "max": 489.5,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎抜き",
+                  "scenario_prob": 0.1369,
+                  "cover": 0.4687,
+                  "cover_abs": 0.0642,
+                  "formation": {
+                    "first": [
+                      2,
+                      6,
+                      3
+                    ],
+                    "second": [
+                      6,
+                      2,
+                      5
+                    ],
+                    "third": [
+                      3,
+                      5,
+                      4
+                    ],
+                    "points": 15,
+                    "text": "236-256-345",
+                    "cover": 0.4687,
+                    "cover_cond": 0.5523,
+                    "p_model": 0.0406
+                  },
+                  "odds": {
+                    "synth": 27.0,
+                    "min": 171.4,
+                    "max": 1769.8,
+                    "covered": 15,
+                    "points": 15
+                  }
+                }
+              ]
+            },
+            {
+              "b_car": 3,
+              "b_name": "川本 琢也",
+              "prob": 0.1096,
+              "line": [
+                3
+              ],
+              "is_solo": true,
+              "label": "単騎3番が主導権",
+              "win": {
+                "1": 0.6231,
+                "2": 0.1012,
+                "3": 0.1468,
+                "4": 0.0149,
+                "5": 0.064,
+                "6": 0.0403,
+                "7": 0.0097
+              },
+              "formation": {
+                "first": [
+                  1
+                ],
+                "second": [
+                  5,
+                  3,
+                  2
+                ],
+                "third": [
+                  3,
+                  6,
+                  2,
+                  4,
+                  5,
+                  7
+                ],
+                "points": 15,
+                "text": "1-235-234567",
+                "cover": 0.4877,
+                "cover_cond": 0.7828,
+                "p_model": 0.4503,
+                "odds": {
+                  "synth": 2.2,
+                  "min": 11.7,
+                  "max": 277.8,
+                  "covered": 15,
+                  "points": 15
+                }
+              },
+              "conditional": [
+                {
+                  "car": 1,
+                  "name": "渡邉 拓",
+                  "prob": 0.6231,
+                  "second": [
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "番手",
+                      "prob": 0.4936
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.1929
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.0963
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.0888
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.2347
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1909
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.1892
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "番手",
+                      "prob": 0.1574
+                    }
+                  ],
+                  "second_inline": 0.622,
+                  "third_inline": 0.3852
+                },
+                {
+                  "car": 3,
+                  "name": "川本 琢也",
+                  "prob": 0.1468,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.4769
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.189
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1291
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.119
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.2669
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.2282
+                    },
+                    {
+                      "car": 2,
+                      "name": "鴨下 佳朋",
+                      "role": "別線先頭",
+                      "prob": 0.1563
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "別線番手",
+                      "prob": 0.155
+                    }
+                  ],
+                  "second_inline": 0.0,
+                  "third_inline": 0.0
+                },
+                {
+                  "car": 2,
+                  "name": "鴨下 佳朋",
+                  "prob": 0.1012,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.3342
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "番手",
+                      "prob": 0.2918
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.1812
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.1325
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 1,
+                      "name": "渡邉 拓",
+                      "role": "別線先頭",
+                      "prob": 0.3237
+                    },
+                    {
+                      "car": 5,
+                      "name": "齋藤 昌太",
+                      "role": "別線番手",
+                      "prob": 0.2108
+                    },
+                    {
+                      "car": 3,
+                      "name": "川本 琢也",
+                      "role": "単騎",
+                      "prob": 0.1791
+                    },
+                    {
+                      "car": 6,
+                      "name": "花田 雄飛",
+                      "role": "番手",
+                      "prob": 0.1139
+                    }
+                  ],
+                  "second_inline": 0.2918,
+                  "third_inline": 0.1139
+                }
+              ],
+              "form_types": [
+                {
+                  "kind": "◎頭",
+                  "scenario_prob": 0.6231,
+                  "cover": 0.7828,
+                  "cover_abs": 0.4877,
+                  "formation": {
+                    "first": [
+                      1
+                    ],
+                    "second": [
+                      5,
+                      3,
+                      2
+                    ],
+                    "third": [
+                      3,
+                      6,
+                      2,
+                      4,
+                      5,
+                      7
+                    ],
+                    "points": 15,
+                    "text": "1-235-234567",
+                    "cover": 0.7828,
+                    "cover_cond": 0.7828,
+                    "p_model": 0.4503
+                  },
+                  "odds": {
+                    "synth": 2.2,
+                    "min": 11.7,
+                    "max": 277.8,
+                    "covered": 15,
+                    "points": 15
+                  }
+                },
+                {
+                  "kind": "◎2着",
+                  "scenario_prob": 0.1673,
+                  "cover": 0.8374,
+                  "cover_abs": 0.1401,
+                  "formation": {
+                    "first": [
+                      3,
+                      5,
+                      2
+                    ],
+                    "second": [
+                      1
+                    ],
+                    "third": [
+                      5,
+                      6,
+                      2,
+                      4,
+                      3,
+                      7
+                    ],
+                    "points": 15,
+                    "text": "235-1-234567",
+                    "cover": 0.8374,
+                    "cover_cond": 1.0,
+                    "p_model": 0.1563
+                  },
+                  "odds": {
+                    "synth": 11.8,
+                    "min": 62.7,
+                    "max": 1000.3,
+                    "covered": 15,
+                    "points": 15
+                  }
+                },
+                {
+                  "kind": "◎3着",
+                  "scenario_prob": 0.1043,
+                  "cover": 0.886,
+                  "cover_abs": 0.0924,
+                  "formation": {
+                    "first": [
+                      3,
+                      2,
+                      5,
+                      6
+                    ],
+                    "second": [
+                      6,
+                      5,
+                      3,
+                      2,
+                      4
+                    ],
+                    "third": [
+                      1
+                    ],
+                    "points": 16,
+                    "text": "2356-23456-1",
+                    "cover": 0.886,
+                    "cover_cond": 0.939,
+                    "p_model": 0.0888
+                  },
+                  "odds": {
+                    "synth": 4.9,
+                    "min": 25.2,
+                    "max": 489.5,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎抜き",
+                  "scenario_prob": 0.1053,
+                  "cover": 0.4563,
+                  "cover_abs": 0.0481,
+                  "formation": {
+                    "first": [
+                      3,
+                      2
+                    ],
+                    "second": [
+                      6,
+                      5,
+                      2,
+                      3
+                    ],
+                    "third": [
+                      5,
+                      4,
+                      6,
+                      3
+                    ],
+                    "points": 16,
+                    "text": "23-2356-3456",
+                    "cover": 0.4563,
+                    "cover_cond": 0.6653,
+                    "p_model": 0.0406
+                  },
+                  "odds": {
+                    "synth": 18.5,
+                    "min": 128.5,
+                    "max": 1769.8,
+                    "covered": 16,
+                    "points": 16
+                  }
+                }
+              ]
+            }
+          ],
+          "merged": {
+            "forms": [
+              {
+                "b_car": 1,
+                "prob": 0.5189,
+                "text": "15-15-23467",
+                "first": [
+                  1,
+                  5
+                ],
+                "second": [
+                  5,
+                  1
+                ],
+                "third": [
+                  3,
+                  4,
+                  2,
+                  6,
+                  7
+                ],
+                "points": 10
+              },
+              {
+                "b_car": 2,
+                "prob": 0.347,
+                "text": "1-25-236",
+                "first": [
+                  1
+                ],
+                "second": [
+                  5,
+                  2
+                ],
+                "third": [
+                  3,
+                  2,
+                  6
+                ],
+                "points": 5
+              },
+              {
+                "b_car": 3,
+                "prob": 0.1096,
+                "text": "1-35-236",
+                "first": [
+                  1
+                ],
+                "second": [
+                  5,
+                  3
+                ],
+                "third": [
+                  3,
+                  2,
+                  6
+                ],
+                "points": 5
+              }
+            ],
+            "before": {
+              "points": 14,
+              "p_model": 0.4396,
+              "synth": 3.3,
+              "min": 17.7,
+              "max": 440.7
+            },
+            "floor": 10.0,
+            "cut": [],
+            "after": {
+              "points": 14,
+              "p_model": 0.4396,
+              "synth": 3.3,
+              "min": 17.7,
+              "max": 440.7
+            }
+          },
+          "merged_each": {
+            "points": 24,
+            "p_model": 0.5236
+          },
+          "covered": 0.9755,
+          "hit_rate": 0.625,
+          "note": "主導権の確率は展開AI（男子62.5%的中）。分岐内の着順は実測の役割別シェアへ合わせた条件付き分布。買い目は展開の読み・紐選びの材料であって推奨ではない（期待値ゾーンは検証済みで存在しない: 全点均等買いROI 58.0%・上限75%）。"
+        },
         "grade": "F2",
         "meet_name": "オッズパーク杯",
         "race_name": "チャレンジ準決勝",
         "race_type": "標準",
-        "top1_prob": 0.5382,
-        "entropy": 0.7251,
+        "top1_prob": 0.5659,
+        "entropy": 0.7209,
         "source": "学習済みモデル(男子・LightGBM 47特徴)",
-        "prob_source": "紐補正",
-        "upset_prob": 0.2322,
+        "prob_source": "分岐混合",
+        "upset_prob": 0.2494,
         "riders": [
           {
             "car": 1,
@@ -244192,9 +245535,9 @@
             "score": 77.69,
             "leg": "逃",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 0,
+            "narabi_leg": "先行",
             "pref": "栃木",
             "age": 27,
             "term": 129,
@@ -244203,10 +245546,10 @@
             "home": true,
             "home_dist": true,
             "win_rate": 0.478,
-            "win_prob": 0.5382,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 1.86,
-            "win_ev": null,
+            "win_prob": 0.5659,
+            "synth_odds_1st": 1.31,
+            "fair_odds_1st": 1.77,
+            "win_ev": 0.74,
             "career_win_rate": 0.5,
             "career_starts": 24,
             "recent5_finish": 3.0,
@@ -244279,9 +245622,9 @@
             "score": 72.62,
             "leg": "両",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 1,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "岡山",
             "age": 39,
             "term": 100,
@@ -244290,10 +245633,10 @@
             "home": false,
             "home_dist": false,
             "win_rate": 0.222,
-            "win_prob": 0.1557,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 6.42,
-            "win_ev": null,
+            "win_prob": 0.1119,
+            "synth_odds_1st": 5.32,
+            "fair_odds_1st": 8.94,
+            "win_ev": 0.6,
             "career_win_rate": 0.202,
             "career_starts": 99,
             "recent5_finish": 3.0,
@@ -244377,291 +245720,14 @@
             }
           },
           {
-            "car": 2,
-            "name": "鴨下 佳朋",
-            "score": 73.57,
-            "leg": "逃",
-            "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
-            "pref": "愛知",
-            "age": 21,
-            "term": 129,
-            "pre_kaku": "予選",
-            "pre_pos": 3,
-            "home": false,
-            "home_dist": false,
-            "win_rate": 0.142,
-            "win_prob": 0.1381,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 7.24,
-            "win_ev": null,
-            "career_win_rate": 0.1,
-            "career_starts": 20,
-            "recent5_finish": 2.4,
-            "venue_win_rate": 0.0,
-            "venue_starts": 1,
-            "days_since": 1,
-            "s_cnt": 5,
-            "b_cnt": 10,
-            "nige": 2,
-            "makuri": 0,
-            "sashi": 0,
-            "style_races": 20,
-            "meet": [
-              [
-                "2026-08-24",
-                1,
-                3,
-                14.3
-              ]
-            ],
-            "line_stats": {
-              "pos": {
-                "先頭": {
-                  "n": 11,
-                  "win": 0.1818,
-                  "top2": 0.4545,
-                  "top3": 0.6364,
-                  "win_k": 2,
-                  "top3_k": 7
-                },
-                "単騎": {
-                  "n": 9,
-                  "win": 0.0,
-                  "top2": 0.1111,
-                  "top3": 0.3333,
-                  "win_k": 0,
-                  "top3_k": 3
-                }
-              },
-              "kamashi": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "tsuppari": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "seri": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "cut_head": {
-                "n": 11,
-                "k": 5,
-                "rate": 0.4545
-              },
-              "cut_mate": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              }
-            }
-          },
-          {
-            "car": 6,
-            "name": "花田 雄飛",
-            "score": 68.83,
-            "leg": "逃",
-            "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
-            "pref": "愛知",
-            "age": 25,
-            "term": 127,
-            "pre_kaku": "予選",
-            "pre_pos": 3,
-            "home": false,
-            "home_dist": false,
-            "win_rate": 0.2,
-            "win_prob": 0.0771,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 12.97,
-            "win_ev": null,
-            "career_win_rate": 0.2796,
-            "career_starts": 93,
-            "recent5_finish": 3.4,
-            "venue_win_rate": 0.0,
-            "venue_starts": 1,
-            "days_since": 1,
-            "s_cnt": 3,
-            "b_cnt": 44,
-            "nige": 24,
-            "makuri": 2,
-            "sashi": 0,
-            "style_races": 89,
-            "meet": [
-              [
-                "2026-08-24",
-                5,
-                3,
-                14.9
-              ]
-            ],
-            "line_stats": {
-              "pos": {
-                "先頭": {
-                  "n": 90,
-                  "win": 0.2889,
-                  "top2": 0.4222,
-                  "top3": 0.5444,
-                  "win_k": 26,
-                  "top3_k": 49
-                },
-                "単騎": {
-                  "n": 3,
-                  "win": null,
-                  "top2": null,
-                  "top3": null,
-                  "win_k": 0,
-                  "top3_k": 1
-                }
-              },
-              "kamashi": {
-                "n": 4,
-                "k": 1,
-                "rate": null
-              },
-              "tsuppari": {
-                "n": 2,
-                "k": 2,
-                "rate": null
-              },
-              "seri": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "cut_head": {
-                "n": 90,
-                "k": 14,
-                "rate": 0.1556
-              },
-              "cut_mate": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              }
-            }
-          },
-          {
-            "car": 4,
-            "name": "佐藤 純嘉",
-            "score": 71.09,
-            "leg": "追",
-            "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
-            "pref": "青森",
-            "age": 43,
-            "term": 94,
-            "pre_kaku": "予選",
-            "pre_pos": 3,
-            "home": false,
-            "home_dist": false,
-            "win_rate": 0.0,
-            "win_prob": 0.0347,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 28.82,
-            "win_ev": null,
-            "career_win_rate": 0.0172,
-            "career_starts": 58,
-            "recent5_finish": 4.0,
-            "venue_win_rate": 0.0,
-            "venue_starts": 1,
-            "days_since": 1,
-            "s_cnt": 19,
-            "b_cnt": 0,
-            "nige": 0,
-            "makuri": 0,
-            "sashi": 1,
-            "style_races": 58,
-            "meet": [
-              [
-                "2026-08-24",
-                6,
-                3,
-                15.0
-              ]
-            ],
-            "line_stats": {
-              "pos": {
-                "先頭": {
-                  "n": 1,
-                  "win": null,
-                  "top2": null,
-                  "top3": null,
-                  "win_k": 0,
-                  "top3_k": 0
-                },
-                "番手": {
-                  "n": 32,
-                  "win": 0.0312,
-                  "top2": 0.4375,
-                  "top3": 0.5312,
-                  "win_k": 1,
-                  "top3_k": 17
-                },
-                "3番手以降": {
-                  "n": 19,
-                  "win": 0.0,
-                  "top2": 0.0526,
-                  "top3": 0.2632,
-                  "win_k": 0,
-                  "top3_k": 5
-                },
-                "単騎": {
-                  "n": 6,
-                  "win": 0.0,
-                  "top2": 0.3333,
-                  "top3": 0.3333,
-                  "win_k": 0,
-                  "top3_k": 2
-                }
-              },
-              "kamashi": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "tsuppari": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "seri": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "cut_head": {
-                "n": 1,
-                "k": 0,
-                "rate": null
-              },
-              "cut_mate": {
-                "n": 32,
-                "k": 8,
-                "rate": 0.25
-              }
-            }
-          },
-          {
             "car": 5,
             "name": "齋藤 昌太",
             "score": 69.59,
             "leg": "追",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 1,
+            "narabi_leg": "追込",
             "pref": "栃木",
             "age": 39,
             "term": 93,
@@ -244670,10 +245736,10 @@
             "home": true,
             "home_dist": true,
             "win_rate": 0.07400000000000001,
-            "win_prob": 0.0313,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 31.95,
-            "win_ev": null,
+            "win_prob": 0.1088,
+            "synth_odds_1st": 7.14,
+            "fair_odds_1st": 9.19,
+            "win_ev": 0.78,
             "career_win_rate": 0.0899,
             "career_starts": 89,
             "recent5_finish": 3.4,
@@ -244757,14 +245823,291 @@
             }
           },
           {
+            "car": 2,
+            "name": "鴨下 佳朋",
+            "score": 73.57,
+            "leg": "逃",
+            "class_rank": "A3",
+            "line_id": 2,
+            "pos_in_line": 0,
+            "narabi_leg": "押え先",
+            "pref": "愛知",
+            "age": 21,
+            "term": 129,
+            "pre_kaku": "予選",
+            "pre_pos": 3,
+            "home": false,
+            "home_dist": false,
+            "win_rate": 0.142,
+            "win_prob": 0.0919,
+            "synth_odds_1st": 9.59,
+            "fair_odds_1st": 10.88,
+            "win_ev": 0.88,
+            "career_win_rate": 0.1,
+            "career_starts": 20,
+            "recent5_finish": 2.4,
+            "venue_win_rate": 0.0,
+            "venue_starts": 1,
+            "days_since": 1,
+            "s_cnt": 5,
+            "b_cnt": 10,
+            "nige": 2,
+            "makuri": 0,
+            "sashi": 0,
+            "style_races": 20,
+            "meet": [
+              [
+                "2026-08-24",
+                1,
+                3,
+                14.3
+              ]
+            ],
+            "line_stats": {
+              "pos": {
+                "先頭": {
+                  "n": 11,
+                  "win": 0.1818,
+                  "top2": 0.4545,
+                  "top3": 0.6364,
+                  "win_k": 2,
+                  "top3_k": 7
+                },
+                "単騎": {
+                  "n": 9,
+                  "win": 0.0,
+                  "top2": 0.1111,
+                  "top3": 0.3333,
+                  "win_k": 0,
+                  "top3_k": 3
+                }
+              },
+              "kamashi": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "tsuppari": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "seri": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "cut_head": {
+                "n": 11,
+                "k": 5,
+                "rate": 0.4545
+              },
+              "cut_mate": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              }
+            }
+          },
+          {
+            "car": 6,
+            "name": "花田 雄飛",
+            "score": 68.83,
+            "leg": "逃",
+            "class_rank": "A3",
+            "line_id": 2,
+            "pos_in_line": 1,
+            "narabi_leg": "追込",
+            "pref": "愛知",
+            "age": 25,
+            "term": 127,
+            "pre_kaku": "予選",
+            "pre_pos": 3,
+            "home": false,
+            "home_dist": false,
+            "win_rate": 0.2,
+            "win_prob": 0.0685,
+            "synth_odds_1st": 10.13,
+            "fair_odds_1st": 14.6,
+            "win_ev": 0.69,
+            "career_win_rate": 0.2796,
+            "career_starts": 93,
+            "recent5_finish": 3.4,
+            "venue_win_rate": 0.0,
+            "venue_starts": 1,
+            "days_since": 1,
+            "s_cnt": 3,
+            "b_cnt": 44,
+            "nige": 24,
+            "makuri": 2,
+            "sashi": 0,
+            "style_races": 89,
+            "meet": [
+              [
+                "2026-08-24",
+                5,
+                3,
+                14.9
+              ]
+            ],
+            "line_stats": {
+              "pos": {
+                "先頭": {
+                  "n": 90,
+                  "win": 0.2889,
+                  "top2": 0.4222,
+                  "top3": 0.5444,
+                  "win_k": 26,
+                  "top3_k": 49
+                },
+                "単騎": {
+                  "n": 3,
+                  "win": null,
+                  "top2": null,
+                  "top3": null,
+                  "win_k": 0,
+                  "top3_k": 1
+                }
+              },
+              "kamashi": {
+                "n": 4,
+                "k": 1,
+                "rate": null
+              },
+              "tsuppari": {
+                "n": 2,
+                "k": 2,
+                "rate": null
+              },
+              "seri": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "cut_head": {
+                "n": 90,
+                "k": 14,
+                "rate": 0.1556
+              },
+              "cut_mate": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              }
+            }
+          },
+          {
+            "car": 4,
+            "name": "佐藤 純嘉",
+            "score": 71.09,
+            "leg": "追",
+            "class_rank": "A3",
+            "line_id": 0,
+            "pos_in_line": 3,
+            "narabi_leg": "追込",
+            "pref": "青森",
+            "age": 43,
+            "term": 94,
+            "pre_kaku": "予選",
+            "pre_pos": 3,
+            "home": false,
+            "home_dist": false,
+            "win_rate": 0.0,
+            "win_prob": 0.0321,
+            "synth_odds_1st": 49.23,
+            "fair_odds_1st": 31.15,
+            "win_ev": 1.58,
+            "career_win_rate": 0.0172,
+            "career_starts": 58,
+            "recent5_finish": 4.0,
+            "venue_win_rate": 0.0,
+            "venue_starts": 1,
+            "days_since": 1,
+            "s_cnt": 19,
+            "b_cnt": 0,
+            "nige": 0,
+            "makuri": 0,
+            "sashi": 1,
+            "style_races": 58,
+            "meet": [
+              [
+                "2026-08-24",
+                6,
+                3,
+                15.0
+              ]
+            ],
+            "line_stats": {
+              "pos": {
+                "先頭": {
+                  "n": 1,
+                  "win": null,
+                  "top2": null,
+                  "top3": null,
+                  "win_k": 0,
+                  "top3_k": 0
+                },
+                "番手": {
+                  "n": 32,
+                  "win": 0.0312,
+                  "top2": 0.4375,
+                  "top3": 0.5312,
+                  "win_k": 1,
+                  "top3_k": 17
+                },
+                "3番手以降": {
+                  "n": 19,
+                  "win": 0.0,
+                  "top2": 0.0526,
+                  "top3": 0.2632,
+                  "win_k": 0,
+                  "top3_k": 5
+                },
+                "単騎": {
+                  "n": 6,
+                  "win": 0.0,
+                  "top2": 0.3333,
+                  "top3": 0.3333,
+                  "win_k": 0,
+                  "top3_k": 2
+                }
+              },
+              "kamashi": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "tsuppari": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "seri": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "cut_head": {
+                "n": 1,
+                "k": 0,
+                "rate": null
+              },
+              "cut_mate": {
+                "n": 32,
+                "k": 8,
+                "rate": 0.25
+              }
+            }
+          },
+          {
             "car": 7,
             "name": "菅藤 智",
             "score": 67.37,
             "leg": "追",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 2,
+            "narabi_leg": "追込",
             "pref": "群馬",
             "age": 42,
             "term": 95,
@@ -244773,10 +246116,10 @@
             "home": false,
             "home_dist": true,
             "win_rate": 0.0,
-            "win_prob": 0.025,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 40.0,
-            "win_ev": null,
+            "win_prob": 0.0209,
+            "synth_odds_1st": 53.53,
+            "fair_odds_1st": 47.85,
+            "win_ev": 1.12,
             "career_win_rate": 0.0345,
             "career_starts": 58,
             "recent5_finish": 4.8,
@@ -244788,7 +246131,7 @@
             "nige": 0,
             "makuri": 1,
             "sashi": 1,
-            "style_races": 56,
+            "style_races": 55,
             "meet": [
               [
                 "2026-08-24",
@@ -244854,59 +246197,108 @@
         ],
         "top_trifecta": [
           {
-            "combo": "1→3→2",
-            "prob": 0.0636,
-            "odds": null,
-            "need_odds": 15.7
+            "combo": "1→5→3",
+            "prob": 0.1025,
+            "odds": 17.7,
+            "need_odds": 9.8
           },
           {
-            "combo": "1→2→3",
-            "prob": 0.0604,
-            "odds": null,
+            "combo": "1→5→2",
+            "prob": 0.0602,
+            "odds": 29.1,
             "need_odds": 16.6
           },
           {
-            "combo": "1→3→6",
-            "prob": 0.0419,
-            "odds": null,
-            "need_odds": 23.9
+            "combo": "1→5→4",
+            "prob": 0.0589,
+            "odds": 131.1,
+            "need_odds": 17.0
           },
           {
-            "combo": "1→2→6",
-            "prob": 0.0366,
-            "odds": null,
-            "need_odds": 27.4
+            "combo": "1→5→6",
+            "prob": 0.0524,
+            "odds": 41.5,
+            "need_odds": 19.1
           },
           {
-            "combo": "3→1→2",
-            "prob": 0.0335,
-            "odds": null,
-            "need_odds": 29.8
+            "combo": "1→5→7",
+            "prob": 0.0383,
+            "odds": 81.8,
+            "need_odds": 26.1
           },
           {
-            "combo": "1→6→3",
-            "prob": 0.0324,
-            "odds": null,
-            "need_odds": 30.9
+            "combo": "1→3→5",
+            "prob": 0.0227,
+            "odds": 11.7,
+            "need_odds": 44.1
           },
           {
-            "combo": "2→1→3",
-            "prob": 0.0308,
-            "odds": null,
-            "need_odds": 32.5
+            "combo": "5→1→3",
+            "prob": 0.0218,
+            "odds": 113.1,
+            "need_odds": 46.0
           },
           {
-            "combo": "1→6→2",
-            "prob": 0.0297,
-            "odds": null,
-            "need_odds": 33.6
+            "combo": "1→2→3",
+            "prob": 0.0188,
+            "odds": 27.9,
+            "need_odds": 53.2
           }
         ],
         "ev": {
-          "status": "no_odds",
+          "status": "ok",
           "threshold": 1.1,
-          "n_buy": 0,
-          "buys": [],
+          "n_buy": 29,
+          "buys": [
+            {
+              "combo": "1→5→4",
+              "prob": 0.0399,
+              "odds": 131.1,
+              "ev": 5.23
+            },
+            {
+              "combo": "5→1→4",
+              "prob": 0.0098,
+              "odds": 440.7,
+              "ev": 4.31
+            },
+            {
+              "combo": "3→1→4",
+              "prob": 0.008,
+              "odds": 475.3,
+              "ev": 3.82
+            },
+            {
+              "combo": "1→5→7",
+              "prob": 0.031,
+              "odds": 81.8,
+              "ev": 2.54
+            },
+            {
+              "combo": "5→1→6",
+              "prob": 0.0093,
+              "odds": 265.0,
+              "ev": 2.46
+            },
+            {
+              "combo": "5→1→2",
+              "prob": 0.0103,
+              "odds": 225.1,
+              "ev": 2.31
+            },
+            {
+              "combo": "5→1→3",
+              "prob": 0.0185,
+              "odds": 113.1,
+              "ev": 2.1
+            },
+            {
+              "combo": "1→5→6",
+              "prob": 0.0457,
+              "odds": 41.5,
+              "ev": 1.9
+            }
+          ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
         },
         "role": {
@@ -244916,12 +246308,200 @@
           "condition": "1着〜2着と3着1名はチ決勝、3着2名と4着〜7着はチ選抜へ"
         },
         "meet_day": 2,
-        "development": null,
+        "development": {
+          "source": "並び予想（記者予想の隊列, 発走前確定情報）",
+          "line": [
+            {
+              "car": 1,
+              "leg": "先行",
+              "is_fav": true,
+              "pos": 0
+            },
+            {
+              "car": 5,
+              "leg": "追込",
+              "is_fav": false,
+              "pos": 1
+            },
+            {
+              "car": 7,
+              "leg": "追込",
+              "is_fav": false,
+              "pos": 2
+            },
+            {
+              "car": 4,
+              "leg": "追込",
+              "is_fav": false,
+              "pos": 3
+            },
+            {
+              "car": 3,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 4
+            },
+            {
+              "car": 2,
+              "leg": "押え先",
+              "is_fav": false,
+              "pos": 5
+            },
+            {
+              "car": 6,
+              "leg": "追込",
+              "is_fav": false,
+              "pos": 6
+            }
+          ],
+          "fav": 1,
+          "marker": 5,
+          "patterns": [
+            {
+              "label": "先行・主導権型",
+              "icon": "🚴",
+              "prob": 0.5659,
+              "lead_car": 1,
+              "cars": [
+                1
+              ],
+              "has_fav": true
+            },
+            {
+              "label": "中団抜け出し型(捲り)",
+              "icon": "🌀",
+              "prob": 0.1649,
+              "lead_car": 3,
+              "cars": [
+                3,
+                4,
+                7
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "後方一気型",
+              "icon": "⚡",
+              "prob": 0.1604,
+              "lead_car": 2,
+              "cars": [
+                2,
+                6
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "番手抜け出し型",
+              "icon": "🔗",
+              "prob": 0.1088,
+              "lead_car": 5,
+              "cars": [
+                5
+              ],
+              "has_fav": false
+            }
+          ],
+          "backstretch": {
+            "lead_car": 1,
+            "lead_p": 0.5189,
+            "second_car": 2,
+            "second_p": 0.347,
+            "reporter_front": 1,
+            "diverges": false,
+            "hit_rate": 0.625,
+            "probs": {
+              "1": 0.5189,
+              "2": 0.347,
+              "3": 0.1096,
+              "6": 0.0212,
+              "5": 0.0016,
+              "7": 0.0009,
+              "4": 0.0007
+            }
+          },
+          "pace": {
+            "n_front": 4,
+            "level": "ハイ",
+            "note": "逃げは残りにくく差し・捲りが台頭",
+            "kimarite_hint": {
+              "逃": 12,
+              "捲": 33,
+              "差": 55
+            },
+            "b_reliability": {
+              "rentai": 38,
+              "gaiji": 54,
+              "note": "主導権を取っても垂れやすい（差し・捲りを評価）"
+            },
+            "basis": "ペース(ハイ)×バンク500m 実測n=98",
+            "bank": 500
+          },
+          "note": "◎1番が予想先頭＝主導権を握る展開が本線。番手5番が連れて2着有力。◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。",
+          "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。"
+        },
         "dev_patterns": {
           "top": [
             {
+              "key": "③◎差し",
+              "prob": 0.2337,
+              "fav_wins": true,
+              "n": 3959,
+              "second": [
+                {
+                  "mark": "○",
+                  "car": "3川本 琢也",
+                  "p": 0.414
+                },
+                {
+                  "mark": "×",
+                  "car": "人気薄(6,4,7)",
+                  "p": 0.245
+                },
+                {
+                  "mark": "▲",
+                  "car": "5齋藤 昌太",
+                  "p": 0.199
+                },
+                {
+                  "mark": "△",
+                  "car": "2鴨下 佳朋",
+                  "p": 0.14
+                }
+              ],
+              "third": [
+                {
+                  "mark": "×",
+                  "car": "人気薄(6,4,7)",
+                  "p": 0.415
+                },
+                {
+                  "mark": "○",
+                  "car": "3川本 琢也",
+                  "p": 0.208
+                },
+                {
+                  "mark": "▲",
+                  "car": "5齋藤 昌太",
+                  "p": 0.191
+                },
+                {
+                  "mark": "△",
+                  "car": "2鴨下 佳朋",
+                  "p": 0.181
+                }
+              ],
+              "winner": [
+                {
+                  "mark": "◎",
+                  "car": "1渡邉 拓",
+                  "p": 1.0
+                }
+              ],
+              "b_second": 0.409
+            },
+            {
               "key": "⑥差し/マーク",
-              "prob": 0.2498,
+              "prob": 0.2162,
               "fav_wins": false,
               "n": 6932,
               "second": [
@@ -244932,12 +246512,12 @@
                 },
                 {
                   "mark": "×",
-                  "car": "人気薄(4,5,7)",
+                  "car": "人気薄(6,4,7)",
                   "p": 0.211
                 },
                 {
                   "mark": "▲",
-                  "car": "2鴨下 佳朋",
+                  "car": "5齋藤 昌太",
                   "p": 0.124
                 },
                 {
@@ -244947,14 +246527,14 @@
                 },
                 {
                   "mark": "△",
-                  "car": "6花田 雄飛",
+                  "car": "2鴨下 佳朋",
                   "p": 0.107
                 }
               ],
               "third": [
                 {
                   "mark": "×",
-                  "car": "人気薄(4,5,7)",
+                  "car": "人気薄(6,4,7)",
                   "p": 0.375
                 },
                 {
@@ -244964,12 +246544,12 @@
                 },
                 {
                   "mark": "▲",
-                  "car": "2鴨下 佳朋",
+                  "car": "5齋藤 昌太",
                   "p": 0.153
                 },
                 {
                   "mark": "△",
-                  "car": "6花田 雄飛",
+                  "car": "2鴨下 佳朋",
                   "p": 0.145
                 },
                 {
@@ -244986,17 +246566,17 @@
                 },
                 {
                   "mark": "×",
-                  "car": "人気薄(4,5,7)",
+                  "car": "人気薄(6,4,7)",
                   "p": 0.224
                 },
                 {
                   "mark": "▲",
-                  "car": "2鴨下 佳朋",
+                  "car": "5齋藤 昌太",
                   "p": 0.212
                 },
                 {
                   "mark": "△",
-                  "car": "6花田 雄飛",
+                  "car": "2鴨下 佳朋",
                   "p": 0.16
                 }
               ],
@@ -245010,7 +246590,7 @@
             },
             {
               "key": "②◎捲り",
-              "prob": 0.198,
+              "prob": 0.2079,
               "fav_wins": true,
               "n": 3179,
               "second": [
@@ -245021,34 +246601,34 @@
                 },
                 {
                   "mark": "×",
-                  "car": "人気薄(4,5,7)",
+                  "car": "人気薄(6,4,7)",
                   "p": 0.22
                 },
                 {
                   "mark": "▲",
-                  "car": "2鴨下 佳朋",
+                  "car": "5齋藤 昌太",
                   "p": 0.2
                 },
                 {
                   "mark": "△",
-                  "car": "6花田 雄飛",
+                  "car": "2鴨下 佳朋",
                   "p": 0.148
                 }
               ],
               "third": [
                 {
                   "mark": "×",
-                  "car": "人気薄(4,5,7)",
+                  "car": "人気薄(6,4,7)",
                   "p": 0.405
                 },
                 {
                   "mark": "▲",
-                  "car": "2鴨下 佳朋",
+                  "car": "5齋藤 昌太",
                   "p": 0.219
                 },
                 {
                   "mark": "△",
-                  "car": "6花田 雄飛",
+                  "car": "2鴨下 佳朋",
                   "p": 0.194
                 },
                 {
@@ -245065,105 +246645,47 @@
                 }
               ],
               "b_second": 0.092
-            },
-            {
-              "key": "③◎差し",
-              "prob": 0.1935,
-              "fav_wins": true,
-              "n": 3959,
-              "second": [
-                {
-                  "mark": "○",
-                  "car": "3川本 琢也",
-                  "p": 0.414
-                },
-                {
-                  "mark": "×",
-                  "car": "人気薄(4,5,7)",
-                  "p": 0.245
-                },
-                {
-                  "mark": "▲",
-                  "car": "2鴨下 佳朋",
-                  "p": 0.199
-                },
-                {
-                  "mark": "△",
-                  "car": "6花田 雄飛",
-                  "p": 0.14
-                }
-              ],
-              "third": [
-                {
-                  "mark": "×",
-                  "car": "人気薄(4,5,7)",
-                  "p": 0.415
-                },
-                {
-                  "mark": "○",
-                  "car": "3川本 琢也",
-                  "p": 0.208
-                },
-                {
-                  "mark": "▲",
-                  "car": "2鴨下 佳朋",
-                  "p": 0.191
-                },
-                {
-                  "mark": "△",
-                  "car": "6花田 雄飛",
-                  "p": 0.181
-                }
-              ],
-              "winner": [
-                {
-                  "mark": "◎",
-                  "car": "1渡邉 拓",
-                  "p": 1.0
-                }
-              ],
-              "b_second": 0.409
             }
           ],
           "insights": [
             "◎1渡邉 拓が勝つ形（上位2つ）では、2着は○3川本 琢也が41%〜43%で最有力。◎-○の1-2着が軸になる。",
             "◎1渡邉 拓が負ける形では勝ち頭は○3川本 琢也が40%。ただしその時も◎は3着以内に62%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
-            "最も割れるのは3着。上位3形の加重では ×人気薄(4,5,7) 40% / ▲2鴨下 佳朋 18% / △6花田 雄飛 17%。穴を拾うならここで、人気薄(4,5,7)が40%を占める。"
+            "最も割れるのは3着。上位3形の加重では ×人気薄(6,4,7) 40% / ▲5齋藤 昌太 19% / △2鴨下 佳朋 17%。穴を拾うならここで、人気薄(6,4,7)が40%を占める。"
           ],
           "all": [
             {
               "key": "①◎逃げ切り",
-              "prob": 0.146,
+              "prob": 0.1235,
               "fav_wins": true
             },
             {
               "key": "②◎捲り",
-              "prob": 0.198,
+              "prob": 0.2079,
               "fav_wins": true
             },
             {
               "key": "③◎差し",
-              "prob": 0.1935,
+              "prob": 0.2337,
               "fav_wins": true
             },
             {
               "key": "④別の逃げ残り",
-              "prob": 0.0568,
+              "prob": 0.0526,
               "fav_wins": false
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.1552,
+              "prob": 0.1652,
               "fav_wins": false
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.2498,
+              "prob": 0.2162,
               "fav_wins": false
             }
           ],
           "n_races": 22901,
-          "pace": "ミドル",
+          "pace": "ハイ",
           "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、分岐の目安として読む（回収率の根拠にはならない）。"
         },
         "bank_profile": {
@@ -245204,8 +246726,1723 @@
           },
           "note": "諸元は競輪場データ（みなし直線はWikipediaと照合）。有利脚質はバンク別の実測決まり手（全期間）に基づく。会場別の数値は標本が薄く参考値。カント・直線は決まり手の予測には使えないことが検証済み（同一周長内で無相関）。"
         },
-        "combos": [],
-        "exacta": null,
+        "combos": [
+          [
+            1,
+            2,
+            3,
+            27.9,
+            0.0188,
+            0.52
+          ],
+          [
+            1,
+            2,
+            4,
+            222.0,
+            0.00953,
+            2.11
+          ],
+          [
+            1,
+            2,
+            5,
+            16.1,
+            0.01521,
+            0.24
+          ],
+          [
+            1,
+            2,
+            6,
+            26.0,
+            0.00912,
+            0.24
+          ],
+          [
+            1,
+            2,
+            7,
+            277.8,
+            0.00619,
+            1.72
+          ],
+          [
+            1,
+            3,
+            2,
+            30.2,
+            0.01694,
+            0.51
+          ],
+          [
+            1,
+            3,
+            4,
+            130.5,
+            0.01528,
+            1.99
+          ],
+          [
+            1,
+            3,
+            5,
+            11.7,
+            0.02269,
+            0.27
+          ],
+          [
+            1,
+            3,
+            6,
+            29.3,
+            0.01435,
+            0.42
+          ],
+          [
+            1,
+            3,
+            7,
+            187.6,
+            0.00993,
+            1.86
+          ],
+          [
+            1,
+            4,
+            2,
+            125.4,
+            0.00946,
+            1.19
+          ],
+          [
+            1,
+            4,
+            3,
+            70.0,
+            0.0163,
+            1.14
+          ],
+          [
+            1,
+            4,
+            5,
+            33.1,
+            0.01229,
+            0.41
+          ],
+          [
+            1,
+            4,
+            6,
+            147.3,
+            0.00839,
+            1.24
+          ],
+          [
+            1,
+            4,
+            7,
+            241.6,
+            0.00631,
+            1.52
+          ],
+          [
+            1,
+            5,
+            2,
+            29.1,
+            0.06023,
+            1.75
+          ],
+          [
+            1,
+            5,
+            3,
+            17.7,
+            0.10249,
+            1.81
+          ],
+          [
+            1,
+            5,
+            4,
+            131.1,
+            0.05887,
+            7.72
+          ],
+          [
+            1,
+            5,
+            6,
+            41.5,
+            0.05238,
+            2.17
+          ],
+          [
+            1,
+            5,
+            7,
+            81.8,
+            0.03826,
+            3.13
+          ],
+          [
+            1,
+            6,
+            2,
+            21.8,
+            0.00997,
+            0.22
+          ],
+          [
+            1,
+            6,
+            3,
+            25.8,
+            0.01655,
+            0.43
+          ],
+          [
+            1,
+            6,
+            4,
+            218.2,
+            0.00848,
+            1.85
+          ],
+          [
+            1,
+            6,
+            5,
+            21.0,
+            0.01336,
+            0.28
+          ],
+          [
+            1,
+            6,
+            7,
+            313.4,
+            0.00551,
+            1.73
+          ],
+          [
+            1,
+            7,
+            2,
+            134.2,
+            0.00579,
+            0.78
+          ],
+          [
+            1,
+            7,
+            3,
+            61.2,
+            0.00995,
+            0.61
+          ],
+          [
+            1,
+            7,
+            4,
+            251.7,
+            0.00591,
+            1.49
+          ],
+          [
+            1,
+            7,
+            5,
+            12.0,
+            0.00752,
+            0.09
+          ],
+          [
+            1,
+            7,
+            6,
+            163.6,
+            0.00512,
+            0.84
+          ],
+          [
+            2,
+            1,
+            3,
+            182.3,
+            0.0104,
+            1.9
+          ],
+          [
+            2,
+            1,
+            4,
+            815.9,
+            0.00584,
+            4.76
+          ],
+          [
+            2,
+            1,
+            5,
+            198.0,
+            0.00809,
+            1.6
+          ],
+          [
+            2,
+            1,
+            6,
+            80.5,
+            0.00526,
+            0.42
+          ],
+          [
+            2,
+            1,
+            7,
+            1000.3,
+            0.0038,
+            3.8
+          ],
+          [
+            2,
+            3,
+            1,
+            115.0,
+            0.00603,
+            0.69
+          ],
+          [
+            2,
+            3,
+            4,
+            1139.0,
+            0.00143,
+            1.62
+          ],
+          [
+            2,
+            3,
+            5,
+            471.4,
+            0.00223,
+            1.05
+          ],
+          [
+            2,
+            3,
+            6,
+            137.6,
+            0.00137,
+            0.19
+          ],
+          [
+            2,
+            3,
+            7,
+            1643.4,
+            0.00093,
+            1.52
+          ],
+          [
+            2,
+            4,
+            1,
+            405.0,
+            0.00176,
+            0.71
+          ],
+          [
+            2,
+            4,
+            3,
+            804.4,
+            0.00079,
+            0.64
+          ],
+          [
+            2,
+            4,
+            5,
+            1186.0,
+            0.00061,
+            0.72
+          ],
+          [
+            2,
+            4,
+            6,
+            593.0,
+            0.0004,
+            0.24
+          ],
+          [
+            2,
+            4,
+            7,
+            1797.5,
+            0.0003,
+            0.53
+          ],
+          [
+            2,
+            5,
+            1,
+            80.1,
+            0.00628,
+            0.5
+          ],
+          [
+            2,
+            5,
+            3,
+            444.1,
+            0.00283,
+            1.26
+          ],
+          [
+            2,
+            5,
+            4,
+            1769.8,
+            0.00158,
+            2.79
+          ],
+          [
+            2,
+            5,
+            6,
+            193.0,
+            0.00143,
+            0.28
+          ],
+          [
+            2,
+            5,
+            7,
+            1402.9,
+            0.00102,
+            1.44
+          ],
+          [
+            2,
+            6,
+            1,
+            67.2,
+            0.01318,
+            0.89
+          ],
+          [
+            2,
+            6,
+            3,
+            244.7,
+            0.00611,
+            1.5
+          ],
+          [
+            2,
+            6,
+            4,
+            1075.1,
+            0.00301,
+            3.23
+          ],
+          [
+            2,
+            6,
+            5,
+            257.9,
+            0.00499,
+            1.29
+          ],
+          [
+            2,
+            6,
+            7,
+            1717.0,
+            0.00195,
+            3.36
+          ],
+          [
+            2,
+            7,
+            1,
+            447.6,
+            0.0011,
+            0.49
+          ],
+          [
+            2,
+            7,
+            3,
+            942.9,
+            0.0005,
+            0.47
+          ],
+          [
+            2,
+            7,
+            4,
+            2212.3,
+            0.00028,
+            0.63
+          ],
+          [
+            2,
+            7,
+            5,
+            530.1,
+            0.00038,
+            0.2
+          ],
+          [
+            2,
+            7,
+            6,
+            649.9,
+            0.00025,
+            0.16
+          ],
+          [
+            3,
+            1,
+            2,
+            135.5,
+            0.0115,
+            1.56
+          ],
+          [
+            3,
+            1,
+            4,
+            475.3,
+            0.01096,
+            5.21
+          ],
+          [
+            3,
+            1,
+            5,
+            62.7,
+            0.01522,
+            0.95
+          ],
+          [
+            3,
+            1,
+            6,
+            123.9,
+            0.00994,
+            1.23
+          ],
+          [
+            3,
+            1,
+            7,
+            520.5,
+            0.00712,
+            3.71
+          ],
+          [
+            3,
+            2,
+            1,
+            72.9,
+            0.00748,
+            0.55
+          ],
+          [
+            3,
+            2,
+            4,
+            891.8,
+            0.0017,
+            1.52
+          ],
+          [
+            3,
+            2,
+            5,
+            258.5,
+            0.00284,
+            0.74
+          ],
+          [
+            3,
+            2,
+            6,
+            128.5,
+            0.00167,
+            0.21
+          ],
+          [
+            3,
+            2,
+            7,
+            1210.9,
+            0.0011,
+            1.34
+          ],
+          [
+            3,
+            4,
+            1,
+            136.7,
+            0.00316,
+            0.43
+          ],
+          [
+            3,
+            4,
+            2,
+            389.9,
+            0.00083,
+            0.32
+          ],
+          [
+            3,
+            4,
+            5,
+            335.4,
+            0.00109,
+            0.37
+          ],
+          [
+            3,
+            4,
+            6,
+            333.4,
+            0.00072,
+            0.24
+          ],
+          [
+            3,
+            4,
+            7,
+            1173.9,
+            0.00053,
+            0.62
+          ],
+          [
+            3,
+            5,
+            1,
+            25.2,
+            0.01129,
+            0.28
+          ],
+          [
+            3,
+            5,
+            2,
+            268.1,
+            0.00301,
+            0.81
+          ],
+          [
+            3,
+            5,
+            4,
+            798.9,
+            0.00283,
+            2.26
+          ],
+          [
+            3,
+            5,
+            6,
+            184.0,
+            0.00259,
+            0.48
+          ],
+          [
+            3,
+            5,
+            7,
+            419.8,
+            0.00184,
+            0.77
+          ],
+          [
+            3,
+            6,
+            1,
+            62.9,
+            0.00666,
+            0.42
+          ],
+          [
+            3,
+            6,
+            2,
+            92.0,
+            0.00186,
+            0.17
+          ],
+          [
+            3,
+            6,
+            4,
+            649.9,
+            0.00152,
+            0.99
+          ],
+          [
+            3,
+            6,
+            5,
+            171.4,
+            0.00252,
+            0.43
+          ],
+          [
+            3,
+            6,
+            7,
+            561.1,
+            0.00099,
+            0.55
+          ],
+          [
+            3,
+            7,
+            1,
+            102.0,
+            0.00196,
+            0.2
+          ],
+          [
+            3,
+            7,
+            2,
+            787.9,
+            0.00052,
+            0.41
+          ],
+          [
+            3,
+            7,
+            4,
+            1116.9,
+            0.0005,
+            0.56
+          ],
+          [
+            3,
+            7,
+            5,
+            180.3,
+            0.00068,
+            0.12
+          ],
+          [
+            3,
+            7,
+            6,
+            392.6,
+            0.00045,
+            0.18
+          ],
+          [
+            4,
+            1,
+            2,
+            927.7,
+            0.00161,
+            1.49
+          ],
+          [
+            4,
+            1,
+            3,
+            1055.4,
+            0.00279,
+            2.94
+          ],
+          [
+            4,
+            1,
+            5,
+            827.6,
+            0.00208,
+            1.72
+          ],
+          [
+            4,
+            1,
+            6,
+            1438.0,
+            0.00144,
+            2.07
+          ],
+          [
+            4,
+            1,
+            7,
+            1513.7,
+            0.0011,
+            1.66
+          ],
+          [
+            4,
+            2,
+            1,
+            714.5,
+            0.0005,
+            0.36
+          ],
+          [
+            4,
+            2,
+            3,
+            2018.3,
+            0.00023,
+            0.47
+          ],
+          [
+            4,
+            2,
+            5,
+            3195.6,
+            0.00018,
+            0.59
+          ],
+          [
+            4,
+            2,
+            6,
+            1667.2,
+            0.00011,
+            0.19
+          ],
+          [
+            4,
+            2,
+            7,
+            3486.1,
+            8e-05,
+            0.28
+          ],
+          [
+            4,
+            3,
+            1,
+            974.9,
+            0.00076,
+            0.74
+          ],
+          [
+            4,
+            3,
+            2,
+            2018.3,
+            0.0002,
+            0.41
+          ],
+          [
+            4,
+            3,
+            5,
+            2614.6,
+            0.00027,
+            0.7
+          ],
+          [
+            4,
+            3,
+            6,
+            742.2,
+            0.00017,
+            0.13
+          ],
+          [
+            4,
+            3,
+            7,
+            2739.1,
+            0.00012,
+            0.34
+          ],
+          [
+            4,
+            5,
+            1,
+            649.9,
+            0.00168,
+            1.09
+          ],
+          [
+            4,
+            5,
+            2,
+            3286.9,
+            0.00043,
+            1.43
+          ],
+          [
+            4,
+            5,
+            3,
+            2170.6,
+            0.00075,
+            1.63
+          ],
+          [
+            4,
+            5,
+            6,
+            1307.3,
+            0.00039,
+            0.5
+          ],
+          [
+            4,
+            5,
+            7,
+            2255.7,
+            0.00029,
+            0.66
+          ],
+          [
+            4,
+            6,
+            1,
+            1000.3,
+            0.00045,
+            0.45
+          ],
+          [
+            4,
+            6,
+            2,
+            1743.0,
+            0.00012,
+            0.21
+          ],
+          [
+            4,
+            6,
+            3,
+            1292.6,
+            0.00021,
+            0.27
+          ],
+          [
+            4,
+            6,
+            5,
+            1264.2,
+            0.00016,
+            0.21
+          ],
+          [
+            4,
+            6,
+            7,
+            4793.4,
+            7e-05,
+            0.34
+          ],
+          [
+            4,
+            7,
+            1,
+            1237.0,
+            0.0003,
+            0.37
+          ],
+          [
+            4,
+            7,
+            2,
+            3486.1,
+            8e-05,
+            0.27
+          ],
+          [
+            4,
+            7,
+            3,
+            2949.8,
+            0.00013,
+            0.4
+          ],
+          [
+            4,
+            7,
+            5,
+            2130.4,
+            0.0001,
+            0.21
+          ],
+          [
+            4,
+            7,
+            6,
+            3967.0,
+            7e-05,
+            0.28
+          ],
+          [
+            5,
+            1,
+            2,
+            225.1,
+            0.01236,
+            2.78
+          ],
+          [
+            5,
+            1,
+            3,
+            113.1,
+            0.02176,
+            2.46
+          ],
+          [
+            5,
+            1,
+            4,
+            440.7,
+            0.01377,
+            6.07
+          ],
+          [
+            5,
+            1,
+            6,
+            265.0,
+            0.01133,
+            3.0
+          ],
+          [
+            5,
+            1,
+            7,
+            202.5,
+            0.00895,
+            1.81
+          ],
+          [
+            5,
+            2,
+            1,
+            68.2,
+            0.00351,
+            0.24
+          ],
+          [
+            5,
+            2,
+            3,
+            583.9,
+            0.00159,
+            0.93
+          ],
+          [
+            5,
+            2,
+            4,
+            1855.5,
+            0.0009,
+            1.68
+          ],
+          [
+            5,
+            2,
+            6,
+            473.4,
+            0.0008,
+            0.38
+          ],
+          [
+            5,
+            2,
+            7,
+            772.1,
+            0.00059,
+            0.45
+          ],
+          [
+            5,
+            3,
+            1,
+            45.5,
+            0.00553,
+            0.25
+          ],
+          [
+            5,
+            3,
+            2,
+            545.2,
+            0.00143,
+            0.78
+          ],
+          [
+            5,
+            3,
+            4,
+            1139.0,
+            0.00147,
+            1.68
+          ],
+          [
+            5,
+            3,
+            6,
+            525.3,
+            0.00127,
+            0.67
+          ],
+          [
+            5,
+            3,
+            7,
+            440.7,
+            0.00096,
+            0.42
+          ],
+          [
+            5,
+            4,
+            1,
+            92.7,
+            0.00383,
+            0.36
+          ],
+          [
+            5,
+            4,
+            2,
+            1106.1,
+            0.00096,
+            1.06
+          ],
+          [
+            5,
+            4,
+            3,
+            572.3,
+            0.0017,
+            0.97
+          ],
+          [
+            5,
+            4,
+            6,
+            732.7,
+            0.00089,
+            0.65
+          ],
+          [
+            5,
+            4,
+            7,
+            462.0,
+            0.00071,
+            0.33
+          ],
+          [
+            5,
+            6,
+            1,
+            81.7,
+            0.00317,
+            0.26
+          ],
+          [
+            5,
+            6,
+            2,
+            432.4,
+            0.00084,
+            0.36
+          ],
+          [
+            5,
+            6,
+            3,
+            458.3,
+            0.00143,
+            0.66
+          ],
+          [
+            5,
+            6,
+            4,
+            766.9,
+            0.00082,
+            0.63
+          ],
+          [
+            5,
+            6,
+            7,
+            537.5,
+            0.00053,
+            0.29
+          ],
+          [
+            5,
+            7,
+            1,
+            43.7,
+            0.00416,
+            0.18
+          ],
+          [
+            5,
+            7,
+            2,
+            766.9,
+            0.00104,
+            0.8
+          ],
+          [
+            5,
+            7,
+            3,
+            451.1,
+            0.00184,
+            0.83
+          ],
+          [
+            5,
+            7,
+            4,
+            798.9,
+            0.00118,
+            0.94
+          ],
+          [
+            5,
+            7,
+            6,
+            495.8,
+            0.00096,
+            0.48
+          ],
+          [
+            6,
+            1,
+            2,
+            89.4,
+            0.00434,
+            0.39
+          ],
+          [
+            6,
+            1,
+            3,
+            156.0,
+            0.00721,
+            1.12
+          ],
+          [
+            6,
+            1,
+            4,
+            798.9,
+            0.00356,
+            2.84
+          ],
+          [
+            6,
+            1,
+            5,
+            210.3,
+            0.0058,
+            1.22
+          ],
+          [
+            6,
+            1,
+            7,
+            1307.3,
+            0.00231,
+            3.02
+          ],
+          [
+            6,
+            2,
+            1,
+            95.3,
+            0.00704,
+            0.67
+          ],
+          [
+            6,
+            2,
+            3,
+            208.4,
+            0.00339,
+            0.71
+          ],
+          [
+            6,
+            2,
+            4,
+            1127.8,
+            0.00147,
+            1.66
+          ],
+          [
+            6,
+            2,
+            5,
+            435.7,
+            0.00282,
+            1.23
+          ],
+          [
+            6,
+            2,
+            7,
+            661.1,
+            0.00096,
+            0.63
+          ],
+          [
+            6,
+            3,
+            1,
+            106.3,
+            0.00444,
+            0.47
+          ],
+          [
+            6,
+            3,
+            2,
+            121.3,
+            0.00128,
+            0.16
+          ],
+          [
+            6,
+            3,
+            4,
+            787.9,
+            0.00096,
+            0.76
+          ],
+          [
+            6,
+            3,
+            5,
+            346.5,
+            0.00174,
+            0.6
+          ],
+          [
+            6,
+            3,
+            7,
+            1533.9,
+            0.00063,
+            0.96
+          ],
+          [
+            6,
+            4,
+            1,
+            489.5,
+            0.00116,
+            0.57
+          ],
+          [
+            6,
+            4,
+            2,
+            563.9,
+            0.00032,
+            0.18
+          ],
+          [
+            6,
+            4,
+            3,
+            605.4,
+            0.00054,
+            0.33
+          ],
+          [
+            6,
+            4,
+            5,
+            701.4,
+            0.00043,
+            0.3
+          ],
+          [
+            6,
+            4,
+            7,
+            2396.7,
+            0.00018,
+            0.42
+          ],
+          [
+            6,
+            5,
+            1,
+            128.8,
+            0.00431,
+            0.55
+          ],
+          [
+            6,
+            5,
+            2,
+            201.4,
+            0.00122,
+            0.25
+          ],
+          [
+            6,
+            5,
+            3,
+            368.7,
+            0.00202,
+            0.74
+          ],
+          [
+            6,
+            5,
+            4,
+            927.7,
+            0.00098,
+            0.91
+          ],
+          [
+            6,
+            5,
+            7,
+            871.5,
+            0.00064,
+            0.56
+          ],
+          [
+            6,
+            7,
+            1,
+            506.7,
+            0.00073,
+            0.37
+          ],
+          [
+            6,
+            7,
+            2,
+            649.9,
+            0.0002,
+            0.13
+          ],
+          [
+            6,
+            7,
+            3,
+            878.1,
+            0.00034,
+            0.3
+          ],
+          [
+            6,
+            7,
+            4,
+            1667.2,
+            0.00017,
+            0.28
+          ],
+          [
+            6,
+            7,
+            5,
+            608.6,
+            0.00027,
+            0.16
+          ],
+          [
+            7,
+            1,
+            2,
+            2018.3,
+            0.00092,
+            1.86
+          ],
+          [
+            7,
+            1,
+            3,
+            1337.7,
+            0.00159,
+            2.13
+          ],
+          [
+            7,
+            1,
+            4,
+            1597.8,
+            0.00096,
+            1.53
+          ],
+          [
+            7,
+            1,
+            5,
+            369.9,
+            0.00119,
+            0.44
+          ],
+          [
+            7,
+            1,
+            6,
+            2130.4,
+            0.00082,
+            1.74
+          ],
+          [
+            7,
+            2,
+            1,
+            1420.2,
+            0.0003,
+            0.42
+          ],
+          [
+            7,
+            2,
+            3,
+            2396.7,
+            0.00014,
+            0.33
+          ],
+          [
+            7,
+            2,
+            4,
+            4793.4,
+            7e-05,
+            0.34
+          ],
+          [
+            7,
+            2,
+            5,
+            1691.8,
+            0.00011,
+            0.18
+          ],
+          [
+            7,
+            2,
+            6,
+            3711.0,
+            7e-05,
+            0.25
+          ],
+          [
+            7,
+            3,
+            1,
+            1438.0,
+            0.00044,
+            0.64
+          ],
+          [
+            7,
+            3,
+            2,
+            3967.0,
+            0.00012,
+            0.47
+          ],
+          [
+            7,
+            3,
+            4,
+            2949.8,
+            0.00011,
+            0.33
+          ],
+          [
+            7,
+            3,
+            5,
+            1173.9,
+            0.00016,
+            0.18
+          ],
+          [
+            7,
+            3,
+            6,
+            3027.4,
+            0.0001,
+            0.31
+          ],
+          [
+            7,
+            4,
+            1,
+            1438.0,
+            0.0005,
+            0.71
+          ],
+          [
+            7,
+            4,
+            2,
+            3967.0,
+            0.00013,
+            0.5
+          ],
+          [
+            7,
+            4,
+            3,
+            3711.0,
+            0.00022,
+            0.82
+          ],
+          [
+            7,
+            4,
+            5,
+            1237.0,
+            0.00016,
+            0.2
+          ],
+          [
+            7,
+            4,
+            6,
+            4601.7,
+            0.00011,
+            0.52
+          ],
+          [
+            7,
+            5,
+            1,
+            421.4,
+            0.00098,
+            0.41
+          ],
+          [
+            7,
+            5,
+            2,
+            2347.8,
+            0.00025,
+            0.6
+          ],
+          [
+            7,
+            5,
+            3,
+            2018.3,
+            0.00044,
+            0.88
+          ],
+          [
+            7,
+            5,
+            4,
+            2255.7,
+            0.00026,
+            0.59
+          ],
+          [
+            7,
+            5,
+            6,
+            1307.3,
+            0.00022,
+            0.29
+          ],
+          [
+            7,
+            6,
+            1,
+            2054.3,
+            0.00027,
+            0.55
+          ],
+          [
+            7,
+            6,
+            2,
+            3383.6,
+            7e-05,
+            0.25
+          ],
+          [
+            7,
+            6,
+            3,
+            3486.1,
+            0.00012,
+            0.42
+          ],
+          [
+            7,
+            6,
+            4,
+            5478.2,
+            6e-05,
+            0.35
+          ],
+          [
+            7,
+            6,
+            5,
+            1018.0,
+            0.0001,
+            0.1
+          ]
+        ],
+        "exacta": {
+          "policy": "◎軸・EV優先",
+          "anchor": 1,
+          "points": 3,
+          "buys": [
+            {
+              "combo": "1-4",
+              "first": 1,
+              "second": 4,
+              "odds": 52.8,
+              "prob": 0.05276,
+              "ev": 2.79
+            },
+            {
+              "combo": "1-7",
+              "first": 1,
+              "second": 7,
+              "odds": 35.9,
+              "prob": 0.03429,
+              "ev": 1.23
+            },
+            {
+              "combo": "1-5",
+              "first": 1,
+              "second": 5,
+              "odds": 3.6,
+              "prob": 0.31223,
+              "ev": 1.12
+            }
+          ],
+          "synth_odds": 3.1,
+          "hit_prob": 0.3993,
+          "sum_ev": 5.14,
+          "note": "◎を1着に固定し相手はEV(市場過小評価)優先＋確率で補完。回収率<100%（黒字ではない）。"
+        },
         "reference": null,
         "h2h": {
           "cars": [
@@ -245313,10 +248550,9 @@
             }
           }
         },
-        "has_odds": false,
-        "odds_at": null,
-        "updated_at": "2026-08-25 00:09",
-        "combos_pruned": true
+        "has_odds": true,
+        "odds_at": "23:04",
+        "updated_at": "2026-08-25 23:04"
       },
       {
         "date": "2026-08-25",
@@ -498616,8 +501852,8 @@
                 "p_model": 0.6052,
                 "odds": {
                   "synth": 1.7,
-                  "min": 6.8,
-                  "max": 647.5,
+                  "min": 6.9,
+                  "max": 661.5,
                   "covered": 18,
                   "points": 18
                 }
@@ -498831,9 +502067,9 @@
                     "p_model": 0.51
                   },
                   "odds": {
-                    "synth": 1.9,
-                    "min": 6.8,
-                    "max": 348.4,
+                    "synth": 1.8,
+                    "min": 6.9,
+                    "max": 375.6,
                     "covered": 15,
                     "points": 15
                   }
@@ -498867,9 +502103,9 @@
                     "p_model": 0.1448
                   },
                   "odds": {
-                    "synth": 12.7,
-                    "min": 36.0,
-                    "max": 2364.7,
+                    "synth": 13.0,
+                    "min": 36.9,
+                    "max": 2228.3,
                     "covered": 15,
                     "points": 15
                   }
@@ -498903,9 +502139,9 @@
                     "p_model": 0.1418
                   },
                   "odds": {
-                    "synth": 6.2,
-                    "min": 27.0,
-                    "max": 1252.7,
+                    "synth": 6.3,
+                    "min": 27.4,
+                    "max": 1397.9,
                     "covered": 16,
                     "points": 16
                   }
@@ -498940,9 +502176,9 @@
                     "p_model": 0.0693
                   },
                   "odds": {
-                    "synth": 17.6,
-                    "min": 55.1,
-                    "max": 2391.6,
+                    "synth": 18.3,
+                    "min": 58.1,
+                    "max": 2490.4,
                     "covered": 16,
                     "points": 16
                   }
@@ -498992,9 +502228,9 @@
                 "cover_cond": 0.8745,
                 "p_model": 0.51,
                 "odds": {
-                  "synth": 1.9,
-                  "min": 6.8,
-                  "max": 348.4,
+                  "synth": 1.8,
+                  "min": 6.9,
+                  "max": 375.6,
                   "covered": 15,
                   "points": 15
                 }
@@ -499208,9 +502444,9 @@
                     "p_model": 0.51
                   },
                   "odds": {
-                    "synth": 1.9,
-                    "min": 6.8,
-                    "max": 348.4,
+                    "synth": 1.8,
+                    "min": 6.9,
+                    "max": 375.6,
                     "covered": 15,
                     "points": 15
                   }
@@ -499244,9 +502480,9 @@
                     "p_model": 0.1448
                   },
                   "odds": {
-                    "synth": 12.7,
-                    "min": 36.0,
-                    "max": 2364.7,
+                    "synth": 13.0,
+                    "min": 36.9,
+                    "max": 2228.3,
                     "covered": 15,
                     "points": 15
                   }
@@ -499280,9 +502516,9 @@
                     "p_model": 0.1386
                   },
                   "odds": {
-                    "synth": 6.1,
-                    "min": 27.0,
-                    "max": 845.2,
+                    "synth": 6.2,
+                    "min": 27.4,
+                    "max": 882.0,
                     "covered": 15,
                     "points": 15
                   }
@@ -499332,8 +502568,8 @@
                 "p_model": 0.6052,
                 "odds": {
                   "synth": 1.7,
-                  "min": 6.8,
-                  "max": 647.5,
+                  "min": 6.9,
+                  "max": 661.5,
                   "covered": 18,
                   "points": 18
                 }
@@ -499547,9 +502783,9 @@
                     "p_model": 0.51
                   },
                   "odds": {
-                    "synth": 1.9,
-                    "min": 6.8,
-                    "max": 348.4,
+                    "synth": 1.8,
+                    "min": 6.9,
+                    "max": 375.6,
                     "covered": 15,
                     "points": 15
                   }
@@ -499583,9 +502819,9 @@
                     "p_model": 0.1448
                   },
                   "odds": {
-                    "synth": 12.7,
-                    "min": 36.0,
-                    "max": 2364.7,
+                    "synth": 13.0,
+                    "min": 36.9,
+                    "max": 2228.3,
                     "covered": 15,
                     "points": 15
                   }
@@ -499619,9 +502855,9 @@
                     "p_model": 0.1411
                   },
                   "odds": {
-                    "synth": 5.4,
-                    "min": 27.0,
-                    "max": 375.8,
+                    "synth": 5.5,
+                    "min": 27.4,
+                    "max": 382.9,
                     "covered": 16,
                     "points": 16
                   }
@@ -499655,9 +502891,9 @@
                     "p_model": 0.0553
                   },
                   "odds": {
-                    "synth": 15.4,
-                    "min": 55.1,
-                    "max": 1657.2,
+                    "synth": 15.7,
+                    "min": 58.1,
+                    "max": 1753.6,
                     "covered": 16,
                     "points": 16
                   }
@@ -499729,22 +502965,22 @@
               "points": 9,
               "p_model": 0.4294,
               "synth": 2.1,
-              "min": 6.8,
-              "max": 245.0
+              "min": 6.9,
+              "max": 254.3
             },
             "floor": 10.0,
             "cut": [
               {
                 "combo": "1-2-3",
-                "odds": 6.8
+                "odds": 6.9
               }
             ],
             "after": {
               "points": 8,
               "p_model": 0.3767,
               "synth": 3.0,
-              "min": 13.0,
-              "max": 245.0
+              "min": 12.5,
+              "max": 254.3
             }
           },
           "merged_each": {
@@ -499783,9 +503019,9 @@
             "home_dist": false,
             "win_rate": 0.6659999999999999,
             "win_prob": 0.5689,
-            "synth_odds_1st": 1.25,
+            "synth_odds_1st": 1.23,
             "fair_odds_1st": 1.76,
-            "win_ev": 0.71,
+            "win_ev": 0.7,
             "career_win_rate": 0.6818,
             "career_starts": 22,
             "recent5_finish": 2.4,
@@ -499870,9 +503106,9 @@
             "home_dist": false,
             "win_rate": 0.48100000000000004,
             "win_prob": 0.2234,
-            "synth_odds_1st": 4.37,
+            "synth_odds_1st": 4.49,
             "fair_odds_1st": 4.48,
-            "win_ev": 0.98,
+            "win_ev": 1.0,
             "career_win_rate": 0.5769,
             "career_starts": 52,
             "recent5_finish": 2.8,
@@ -499957,9 +503193,9 @@
             "home_dist": false,
             "win_rate": 0.166,
             "win_prob": 0.0918,
-            "synth_odds_1st": 13.01,
+            "synth_odds_1st": 13.71,
             "fair_odds_1st": 10.89,
-            "win_ev": 1.19,
+            "win_ev": 1.26,
             "career_win_rate": 0.0777,
             "career_starts": 103,
             "recent5_finish": 2.6,
@@ -500060,9 +503296,9 @@
             "home_dist": true,
             "win_rate": 0.066,
             "win_prob": 0.0573,
-            "synth_odds_1st": 15.82,
+            "synth_odds_1st": 15.29,
             "fair_odds_1st": 17.45,
-            "win_ev": 0.91,
+            "win_ev": 0.88,
             "career_win_rate": 0.02,
             "career_starts": 100,
             "recent5_finish": 3.2,
@@ -500163,9 +503399,9 @@
             "home_dist": false,
             "win_rate": 0.151,
             "win_prob": 0.0264,
-            "synth_odds_1st": 44.71,
+            "synth_odds_1st": 46.65,
             "fair_odds_1st": 37.88,
-            "win_ev": 1.18,
+            "win_ev": 1.23,
             "career_win_rate": 0.1702,
             "career_starts": 94,
             "recent5_finish": 3.4,
@@ -500266,7 +503502,7 @@
             "home_dist": false,
             "win_rate": 0.285,
             "win_prob": 0.0209,
-            "synth_odds_1st": 7.63,
+            "synth_odds_1st": 7.74,
             "fair_odds_1st": 47.85,
             "win_ev": 0.16,
             "career_win_rate": 0.1913,
@@ -500361,9 +503597,9 @@
             "home_dist": false,
             "win_rate": 0.027999999999999997,
             "win_prob": 0.0113,
-            "synth_odds_1st": 86.4,
+            "synth_odds_1st": 89.64,
             "fair_odds_1st": 88.5,
-            "win_ev": 0.98,
+            "win_ev": 1.01,
             "career_win_rate": 0.0273,
             "career_starts": 110,
             "recent5_finish": 3.6,
@@ -500451,104 +503687,104 @@
           {
             "combo": "1→4→3",
             "prob": 0.1062,
-            "odds": 14.6,
+            "odds": 15.1,
             "need_odds": 9.4
           },
           {
             "combo": "1→3→2",
             "prob": 0.066,
-            "odds": 13.6,
+            "odds": 13.1,
             "need_odds": 15.2
           },
           {
             "combo": "3→2→1",
             "prob": 0.0653,
-            "odds": 27.0,
+            "odds": 27.4,
             "need_odds": 15.3
           },
           {
             "combo": "1→2→3",
             "prob": 0.0527,
-            "odds": 6.8,
+            "odds": 6.9,
             "need_odds": 19.0
           },
           {
             "combo": "1→4→2",
             "prob": 0.0513,
-            "odds": 34.0,
+            "odds": 34.6,
             "need_odds": 19.5
           },
           {
             "combo": "1→3→5",
             "prob": 0.0478,
-            "odds": 88.9,
+            "odds": 91.2,
             "need_odds": 20.9
           },
           {
             "combo": "1→3→4",
             "prob": 0.0429,
-            "odds": 13.0,
+            "odds": 12.5,
             "need_odds": 23.3
           },
           {
             "combo": "1→4→5",
             "prob": 0.0306,
-            "odds": 245.0,
+            "odds": 254.3,
             "need_odds": 32.6
           }
         ],
         "ev": {
           "status": "ok",
           "threshold": 1.1,
-          "n_buy": 20,
+          "n_buy": 21,
           "buys": [
             {
               "combo": "1→4→5",
-              "prob": 0.0211,
-              "odds": 245.0,
-              "ev": 5.16
+              "prob": 0.021,
+              "odds": 254.3,
+              "ev": 5.33
             },
             {
               "combo": "4→1→3",
               "prob": 0.0121,
-              "odds": 326.3,
-              "ev": 3.94
+              "odds": 332.6,
+              "ev": 4.01
             },
             {
               "combo": "1→3→6",
-              "prob": 0.014,
-              "odds": 246.4,
-              "ev": 3.45
+              "prob": 0.0138,
+              "odds": 269.1,
+              "ev": 3.71
             },
             {
               "combo": "1→3→5",
-              "prob": 0.0368,
-              "odds": 88.9,
-              "ev": 3.27
+              "prob": 0.0367,
+              "odds": 91.2,
+              "ev": 3.35
             },
             {
               "combo": "3→2→4",
               "prob": 0.0104,
-              "odds": 279.1,
+              "odds": 282.5,
+              "ev": 2.93
+            },
+            {
+              "combo": "4→1→2",
+              "prob": 0.0066,
+              "odds": 437.1,
               "ev": 2.89
             },
             {
               "combo": "3→1→5",
-              "prob": 0.0154,
-              "odds": 181.2,
-              "ev": 2.78
-            },
-            {
-              "combo": "4→1→2",
-              "prob": 0.0067,
-              "odds": 412.6,
-              "ev": 2.75
+              "prob": 0.0153,
+              "odds": 186.9,
+              "ev": 2.86
             },
             {
               "combo": "2→3→1",
-              "prob": 0.0224,
-              "odds": 118.9,
-              "ev": 2.66
+              "prob": 0.0221,
+              "odds": 129.5,
+              "ev": 2.86
             }
           ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
@@ -500980,7 +504216,7 @@
             1,
             2,
             3,
-            6.8,
+            6.9,
             0.0527,
             0.36
           ],
@@ -500988,7 +504224,7 @@
             1,
             2,
             4,
-            16.6,
+            16.4,
             0.01519,
             0.25
           ],
@@ -500996,143 +504232,143 @@
             1,
             2,
             5,
-            137.1,
+            131.8,
             0.01671,
-            2.29
+            2.2
           ],
           [
             1,
             2,
             6,
-            348.4,
+            375.6,
             0.00668,
-            2.33
+            2.51
           ],
           [
             1,
             2,
             7,
-            81.1,
+            76.8,
             0.0068,
-            0.55
+            0.52
           ],
           [
             1,
             3,
             2,
-            13.6,
+            13.1,
             0.06599,
-            0.9
+            0.86
           ],
           [
             1,
             3,
             4,
-            13.0,
+            12.5,
             0.04287,
-            0.56
+            0.54
           ],
           [
             1,
             3,
             5,
-            88.9,
+            91.2,
             0.04777,
-            4.25
+            4.36
           ],
           [
             1,
             3,
             6,
-            246.4,
+            269.1,
             0.01842,
-            4.54
+            4.96
           ],
           [
             1,
             3,
             7,
-            51.1,
+            50.5,
             0.0191,
-            0.98
-          ],
-          [
-            1,
-            4,
-            2,
-            34.0,
-            0.05132,
-            1.74
-          ],
-          [
-            1,
-            4,
-            3,
-            14.6,
-            0.10623,
-            1.55
-          ],
-          [
-            1,
-            4,
-            5,
-            245.0,
-            0.03063,
-            7.51
-          ],
-          [
-            1,
-            4,
-            6,
-            139.1,
-            0.01552,
-            2.16
-          ],
-          [
-            1,
-            4,
-            7,
-            68.1,
-            0.01407,
             0.96
           ],
           [
             1,
+            4,
+            2,
+            34.6,
+            0.05132,
+            1.78
+          ],
+          [
+            1,
+            4,
+            3,
+            15.1,
+            0.10623,
+            1.6
+          ],
+          [
+            1,
+            4,
+            5,
+            254.3,
+            0.03063,
+            7.79
+          ],
+          [
+            1,
+            4,
+            6,
+            142.8,
+            0.01552,
+            2.22
+          ],
+          [
+            1,
+            4,
+            7,
+            66.4,
+            0.01407,
+            0.93
+          ],
+          [
+            1,
             5,
             2,
-            38.2,
+            36.3,
             0.00624,
-            0.24
+            0.23
           ],
           [
             1,
             5,
             3,
-            30.0,
+            29.8,
             0.01424,
-            0.43
+            0.42
           ],
           [
             1,
             5,
             4,
-            62.5,
+            61.1,
             0.00412,
-            0.26
+            0.25
           ],
           [
             1,
             5,
             6,
-            486.0,
+            510.9,
             0.00172,
-            0.84
+            0.88
           ],
           [
             1,
             5,
             7,
-            131.3,
+            132.1,
             0.00183,
             0.24
           ],
@@ -501140,23 +504376,23 @@
             1,
             6,
             2,
-            159.5,
+            170.7,
             0.00549,
-            0.88
+            0.94
           ],
           [
             1,
             6,
             3,
-            70.5,
+            74.1,
             0.01123,
-            0.79
+            0.83
           ],
           [
             1,
             6,
             4,
-            16.2,
+            14.9,
             0.00314,
             0.05
           ],
@@ -501164,31 +504400,31 @@
             1,
             6,
             5,
-            362.8,
+            384.3,
             0.00318,
-            1.15
+            1.22
           ],
           [
             1,
             6,
             7,
-            218.5,
+            216.3,
             0.0015,
-            0.33
+            0.32
           ],
           [
             1,
             7,
             2,
-            64.6,
+            61.4,
             0.00421,
-            0.27
+            0.26
           ],
           [
             1,
             7,
             3,
-            27.9,
+            28.3,
             0.00896,
             0.25
           ],
@@ -501196,7 +504432,7 @@
             1,
             7,
             4,
-            35.3,
+            33.2,
             0.00258,
             0.09
           ],
@@ -501204,7 +504440,7 @@
             1,
             7,
             5,
-            180.0,
+            179.5,
             0.00269,
             0.48
           ],
@@ -501212,15 +504448,15 @@
             1,
             7,
             6,
-            391.1,
+            342.2,
             0.0012,
-            0.47
+            0.41
           ],
           [
             2,
             1,
             3,
-            95.8,
+            96.1,
             0.01436,
             1.38
           ],
@@ -501228,191 +504464,191 @@
             2,
             1,
             4,
-            448.7,
+            480.3,
             0.00414,
-            1.86
+            1.99
           ],
           [
             2,
             1,
             5,
-            417.5,
+            448.3,
             0.00473,
-            1.98
+            2.12
           ],
           [
             2,
             1,
             6,
-            2364.7,
+            2228.3,
             0.00174,
-            4.12
+            3.88
           ],
           [
             2,
             1,
             7,
-            503.5,
+            516.3,
             0.00185,
-            0.93
+            0.95
           ],
           [
             2,
             3,
             1,
-            118.9,
+            129.5,
             0.02761,
-            3.28
+            3.58
           ],
           [
             2,
             3,
             4,
-            581.3,
+            625.2,
             0.0058,
-            3.37
+            3.62
           ],
           [
             2,
             3,
             5,
-            233.5,
+            256.3,
             0.00711,
-            1.66
+            1.82
           ],
           [
             2,
             3,
             6,
-            1403.1,
+            1674.4,
             0.00202,
-            2.83
+            3.38
           ],
           [
             2,
             3,
             7,
-            491.7,
+            539.8,
             0.00248,
-            1.22
+            1.34
           ],
           [
             2,
             4,
             1,
-            208.3,
+            217.7,
             0.00267,
-            0.56
+            0.58
           ],
           [
             2,
             4,
             3,
-            262.4,
+            272.3,
             0.00182,
-            0.48
+            0.5
           ],
           [
             2,
             4,
             5,
-            974.3,
+            1054.6,
             0.00061,
-            0.59
+            0.64
           ],
           [
             2,
             4,
             6,
-            1879.1,
+            2132.1,
             0.00021,
+            0.46
+          ],
+          [
+            2,
+            4,
+            7,
+            914.7,
+            0.00023,
+            0.21
+          ],
+          [
+            2,
+            5,
+            1,
+            334.8,
+            0.00561,
+            1.88
+          ],
+          [
+            2,
+            5,
+            3,
+            106.7,
+            0.00402,
+            0.43
+          ],
+          [
+            2,
+            5,
+            4,
+            1122.6,
+            0.00118,
+            1.33
+          ],
+          [
+            2,
+            5,
+            6,
+            2490.4,
+            0.00041,
+            1.01
+          ],
+          [
+            2,
+            5,
+            7,
+            790.3,
+            0.00051,
             0.4
           ],
           [
             2,
-            4,
-            7,
-            828.6,
-            0.00023,
-            0.19
-          ],
-          [
-            2,
-            5,
-            1,
-            309.5,
-            0.00561,
-            1.74
-          ],
-          [
-            2,
-            5,
-            3,
-            102.7,
-            0.00402,
-            0.41
-          ],
-          [
-            2,
-            5,
-            4,
-            1068.3,
-            0.00118,
-            1.26
-          ],
-          [
-            2,
-            5,
-            6,
-            2391.6,
-            0.00041,
-            0.97
-          ],
-          [
-            2,
-            5,
-            7,
-            759.8,
-            0.00051,
-            0.38
-          ],
-          [
-            2,
             6,
             1,
-            845.2,
+            882.0,
             0.00049,
-            0.41
+            0.43
           ],
           [
             2,
             6,
             3,
-            441.2,
+            524.5,
             0.00033,
-            0.15
+            0.17
           ],
           [
             2,
             6,
             4,
-            1090.4,
+            1224.6,
             9e-05,
-            0.1
+            0.12
           ],
           [
             2,
             6,
             5,
-            1375.5,
+            1489.2,
             0.00011,
-            0.15
+            0.16
           ],
           [
             2,
             6,
             7,
-            2192.3,
+            2101.9,
             4e-05,
             0.09
           ],
@@ -501420,39 +504656,39 @@
             2,
             7,
             1,
-            375.8,
+            382.9,
             0.00088,
-            0.33
+            0.34
           ],
           [
             2,
             7,
             3,
-            284.7,
+            279.0,
             0.00062,
-            0.18
+            0.17
           ],
           [
             2,
             7,
             4,
-            876.9,
+            940.8,
             0.00018,
-            0.16
+            0.17
           ],
           [
             2,
             7,
             5,
-            482.7,
+            516.3,
             0.00021,
-            0.1
+            0.11
           ],
           [
             2,
             7,
             6,
-            3758.3,
+            3658.8,
             7e-05,
             0.25
           ],
@@ -501460,79 +504696,79 @@
             3,
             1,
             2,
-            36.0,
+            36.9,
             0.02968,
+            1.1
+          ],
+          [
+            3,
+            1,
+            4,
+            130.0,
+            0.01806,
+            2.35
+          ],
+          [
+            3,
+            1,
+            5,
+            186.9,
+            0.01915,
+            3.58
+          ],
+          [
+            3,
+            1,
+            6,
+            748.4,
+            0.0087,
+            6.51
+          ],
+          [
+            3,
+            1,
+            7,
+            129.2,
+            0.00831,
             1.07
           ],
           [
             3,
-            1,
-            4,
-            127.7,
-            0.01806,
-            2.31
-          ],
-          [
-            3,
-            1,
-            5,
-            181.2,
-            0.01915,
-            3.47
-          ],
-          [
-            3,
-            1,
-            6,
-            692.3,
-            0.0087,
-            6.03
-          ],
-          [
-            3,
-            1,
-            7,
-            127.1,
-            0.00831,
-            1.06
-          ],
-          [
-            3,
             2,
             1,
-            27.0,
+            27.4,
             0.06526,
-            1.76
+            1.79
           ],
           [
             3,
             2,
             4,
-            279.1,
+            282.5,
             0.01306,
-            3.64
+            3.69
           ],
           [
             3,
             2,
             5,
-            217.1,
+            207.2,
             0.01502,
-            3.26
+            3.11
           ],
           [
             3,
             2,
             6,
-            1156.4,
+            1353.2,
             0.00515,
-            5.96
+            6.97
           ],
           [
             3,
             2,
             7,
-            286.3,
+            286.6,
             0.00569,
             1.63
           ],
@@ -501540,15 +504776,15 @@
             3,
             4,
             1,
-            34.5,
+            36.5,
             0.01035,
-            0.36
+            0.38
           ],
           [
             3,
             4,
             2,
-            123.0,
+            122.4,
             0.00312,
             0.38
           ],
@@ -501556,119 +504792,119 @@
             3,
             4,
             5,
-            647.5,
+            661.5,
             0.00207,
-            1.34
+            1.37
           ],
           [
             3,
             4,
             6,
-            1189.0,
+            1397.9,
             0.0009,
-            1.07
+            1.26
           ],
           [
             3,
             4,
             7,
-            280.6,
+            305.2,
             0.00088,
-            0.25
-          ],
-          [
-            3,
-            5,
-            1,
-            62.1,
-            0.0104,
-            0.65
-          ],
-          [
-            3,
-            5,
-            2,
-            55.1,
-            0.00303,
-            0.17
-          ],
-          [
-            3,
-            5,
-            4,
-            579.7,
-            0.00211,
-            1.22
-          ],
-          [
-            3,
-            5,
-            6,
-            1657.2,
-            0.0008,
-            1.33
-          ],
-          [
-            3,
-            5,
-            7,
-            371.8,
-            0.00091,
-            0.34
-          ],
-          [
-            3,
-            6,
-            1,
-            165.4,
-            0.00192,
-            0.32
-          ],
-          [
-            3,
-            6,
-            2,
-            369.2,
-            0.00058,
-            0.21
-          ],
-          [
-            3,
-            6,
-            4,
-            597.9,
-            0.00035,
-            0.21
-          ],
-          [
-            3,
-            6,
-            5,
-            715.8,
-            0.00037,
             0.27
           ],
           [
             3,
+            5,
+            1,
+            64.8,
+            0.0104,
+            0.67
+          ],
+          [
+            3,
+            5,
+            2,
+            58.1,
+            0.00303,
+            0.18
+          ],
+          [
+            3,
+            5,
+            4,
+            575.4,
+            0.00211,
+            1.21
+          ],
+          [
+            3,
+            5,
+            6,
+            1753.6,
+            0.0008,
+            1.41
+          ],
+          [
+            3,
+            5,
+            7,
+            361.4,
+            0.00091,
+            0.33
+          ],
+          [
+            3,
+            6,
+            1,
+            170.1,
+            0.00192,
+            0.33
+          ],
+          [
+            3,
+            6,
+            2,
+            388.9,
+            0.00058,
+            0.23
+          ],
+          [
+            3,
+            6,
+            4,
+            620.0,
+            0.00035,
+            0.22
+          ],
+          [
+            3,
+            6,
+            5,
+            750.3,
+            0.00037,
+            0.28
+          ],
+          [
+            3,
             6,
             7,
-            895.5,
+            871.6,
             0.00016,
-            0.15
+            0.14
           ],
           [
             3,
             7,
             1,
-            53.5,
+            55.9,
             0.00319,
-            0.17
+            0.18
           ],
           [
             3,
             7,
             2,
-            106.3,
+            102.6,
             0.00096,
             0.1
           ],
@@ -501676,15 +504912,15 @@
             3,
             7,
             4,
-            478.3,
+            493.9,
             0.00062,
-            0.3
+            0.31
           ],
           [
             3,
             7,
             5,
-            356.1,
+            357.9,
             0.00068,
             0.24
           ],
@@ -501692,87 +504928,87 @@
             3,
             7,
             6,
-            1547.5,
+            1610.7,
             0.00026,
-            0.41
+            0.42
           ],
           [
             4,
             1,
             2,
-            412.6,
+            437.1,
             0.00829,
-            3.42
+            3.62
           ],
           [
             4,
             1,
             3,
-            326.3,
+            332.6,
             0.01643,
-            5.36
+            5.46
           ],
           [
             4,
             1,
             5,
-            1323.6,
+            1299.8,
             0.00443,
-            5.87
+            5.76
           ],
           [
             4,
             1,
             6,
-            471.8,
+            486.6,
             0.00266,
-            1.26
+            1.3
           ],
           [
             4,
             1,
             7,
-            445.9,
+            435.1,
             0.00224,
-            1.0
+            0.97
           ],
           [
             4,
             2,
             1,
-            145.4,
+            135.9,
             0.00237,
-            0.34
+            0.32
           ],
           [
             4,
             2,
             3,
-            586.2,
+            599.9,
             0.00152,
-            0.89
+            0.91
           ],
           [
             4,
             2,
             5,
-            2063.3,
+            2163.2,
             0.00046,
-            0.95
+            0.99
           ],
           [
             4,
             2,
             6,
-            1169.2,
+            1334.9,
             0.00021,
-            0.25
+            0.28
           ],
           [
             4,
             2,
             7,
-            1057.6,
+            1050.9,
             0.0002,
             0.21
           ],
@@ -501780,87 +505016,87 @@
             4,
             3,
             1,
-            143.9,
+            140.1,
             0.00563,
-            0.81
+            0.79
           ],
           [
             4,
             3,
             2,
-            657.7,
+            712.4,
             0.00169,
-            1.11
+            1.2
           ],
           [
             4,
             3,
             5,
-            2391.6,
+            2262.3,
             0.00111,
-            2.65
+            2.51
           ],
           [
             4,
             3,
             6,
-            1323.6,
+            1496.8,
             0.0005,
-            0.66
+            0.75
           ],
           [
             4,
             3,
             7,
-            1283.3,
+            1219.6,
             0.00048,
-            0.61
+            0.58
           ],
           [
             4,
             5,
             1,
-            325.2,
+            265.0,
             0.00063,
-            0.21
+            0.17
           ],
           [
             4,
             5,
             2,
-            1366.6,
+            1489.2,
             0.00019,
-            0.26
+            0.28
           ],
           [
             4,
             5,
             3,
-            1366.6,
+            1277.4,
             0.00041,
-            0.56
+            0.53
           ],
           [
             4,
             5,
             6,
-            1783.6,
+            1975.7,
             6e-05,
-            0.1
+            0.11
           ],
           [
             4,
             5,
             7,
-            2263.0,
+            2058.1,
             5e-05,
-            0.12
+            0.11
           ],
           [
             4,
             6,
             1,
-            71.3,
+            68.3,
             0.00114,
             0.08
           ],
@@ -501868,31 +505104,31 @@
             4,
             6,
             2,
-            939.5,
+            1089.5,
             0.00035,
-            0.33
+            0.38
           ],
           [
             4,
             6,
             3,
-            1079.3,
+            1039.8,
             0.00069,
-            0.75
+            0.72
           ],
           [
             4,
             6,
             5,
-            1683.7,
+            1912.0,
             0.00019,
-            0.31
+            0.36
           ],
           [
             4,
             6,
             7,
-            1245.3,
+            1250.5,
             9e-05,
             0.12
           ],
@@ -501900,15 +505136,15 @@
             4,
             7,
             1,
-            182.0,
+            158.0,
             0.00046,
-            0.08
+            0.07
           ],
           [
             4,
             7,
             2,
-            988.0,
+            978.1,
             0.00014,
             0.14
           ],
@@ -501916,23 +505152,23 @@
             4,
             7,
             3,
-            1209.5,
+            1073.8,
             0.00029,
-            0.35
+            0.31
           ],
           [
             4,
             7,
             5,
-            2698.2,
+            2554.9,
             8e-05,
-            0.22
+            0.21
           ],
           [
             4,
             7,
             6,
-            1559.0,
+            1683.9,
             4e-05,
             0.07
           ],
@@ -501940,103 +505176,103 @@
             5,
             1,
             2,
-            825.3,
+            871.6,
             0.00089,
-            0.73
+            0.77
           ],
           [
             5,
             1,
             3,
-            486.0,
+            513.6,
             0.00195,
-            0.95
+            1.0
           ],
           [
             5,
             1,
             4,
-            1913.3,
+            2101.9,
             0.00056,
-            1.06
+            1.17
           ],
           [
             5,
             1,
             6,
-            3758.3,
+            3899.5,
             0.00026,
-            0.96
+            1.0
           ],
           [
             5,
             1,
             7,
-            1131.5,
+            1190.2,
             0.00025,
-            0.29
+            0.3
           ],
           [
             5,
             2,
             1,
-            939.5,
+            962.2,
             0.00141,
-            1.32
+            1.35
           ],
           [
             5,
             2,
             3,
-            613.6,
+            635.9,
             0.00098,
-            0.6
+            0.62
           ],
           [
             5,
             2,
             4,
-            3692.3,
+            3614.2,
             0.00029,
-            1.05
+            1.03
           ],
           [
             5,
             2,
             6,
-            5396.5,
+            4559.5,
             0.00011,
-            0.59
+            0.5
           ],
           [
             5,
             2,
             7,
-            1862.5,
+            1785.3,
             0.00012,
-            0.23
+            0.22
           ],
           [
             5,
             3,
             1,
-            499.9,
+            522.6,
             0.00347,
-            1.73
+            1.81
           ],
           [
             5,
             3,
             2,
-            591.1,
+            622.6,
             0.00101,
-            0.59
+            0.63
           ],
           [
             5,
             3,
             4,
-            3288.5,
+            3292.9,
             0.00071,
             2.33
           ],
@@ -502044,39 +505280,39 @@
             5,
             3,
             6,
-            3507.7,
+            3570.7,
             0.00026,
-            0.93
+            0.95
           ],
           [
             5,
             3,
             7,
-            1150.0,
+            1180.7,
             0.00031,
-            0.35
+            0.36
           ],
           [
             5,
             4,
             1,
-            1252.7,
+            1397.9,
             0.00038,
-            0.47
+            0.53
           ],
           [
             5,
             4,
             2,
-            1711.0,
+            1875.7,
             0.00011,
-            0.19
+            0.21
           ],
           [
             5,
             4,
             3,
-            2169.7,
+            2147.6,
             0.00025,
             0.54
           ],
@@ -502084,15 +505320,15 @@
             5,
             4,
             6,
-            2806.2,
+            3152.8,
             3e-05,
-            0.09
+            0.1
           ],
           [
             5,
             4,
             7,
-            3826.6,
+            3614.2,
             3e-05,
             0.12
           ],
@@ -502100,15 +505336,15 @@
             5,
             6,
             1,
-            2043.3,
+            2297.4,
             7e-05,
-            0.14
+            0.16
           ],
           [
             5,
             6,
             2,
-            2215.4,
+            2315.3,
             2e-05,
             0.05
           ],
@@ -502116,15 +505352,15 @@
             5,
             6,
             3,
-            2806.2,
+            2622.7,
             5e-05,
-            0.13
+            0.12
           ],
           [
             5,
             6,
             4,
-            1913.3,
+            2315.3,
             1e-05,
             0.03
           ],
@@ -502132,7 +505368,7 @@
             5,
             6,
             7,
-            1896.0,
+            2195.3,
             1e-05,
             0.01
           ],
@@ -502140,15 +505376,15 @@
             5,
             7,
             1,
-            948.0,
+            974.8,
             0.00012,
-            0.11
+            0.12
           ],
           [
             5,
             7,
             2,
-            1073.8,
+            1109.9,
             4e-05,
             0.04
           ],
@@ -502156,15 +505392,15 @@
             5,
             7,
             3,
-            927.1,
+            903.5,
             8e-05,
-            0.08
+            0.07
           ],
           [
             5,
             7,
             4,
-            3897.5,
+            3704.6,
             2e-05,
             0.09
           ],
@@ -502172,7 +505408,7 @@
             5,
             7,
             6,
-            2192.3,
+            2469.7,
             1e-05,
             0.02
           ],
@@ -502180,127 +505416,127 @@
             6,
             1,
             2,
-            3507.7,
+            3528.2,
             0.00072,
-            2.52
+            2.53
           ],
           [
             6,
             1,
             3,
-            1768.6,
+            1840.8,
             0.00147,
-            2.61
+            2.71
           ],
           [
             6,
             1,
             4,
-            939.5,
+            974.8,
             0.00041,
-            0.39
-          ],
-          [
-            6,
-            1,
-            5,
-            4677.0,
-            0.00042,
-            1.97
-          ],
-          [
-            6,
-            1,
-            7,
-            2104.6,
-            0.0002,
-            0.41
-          ],
-          [
-            6,
-            2,
-            1,
-            2535.7,
-            0.00024,
-            0.61
-          ],
-          [
-            6,
-            2,
-            3,
-            2630.8,
-            0.00016,
-            0.42
-          ],
-          [
-            6,
-            2,
-            4,
-            3507.7,
-            5e-05,
-            0.16
-          ],
-          [
-            6,
-            2,
-            5,
-            6789.1,
-            5e-05,
-            0.35
-          ],
-          [
-            6,
-            2,
-            7,
-            4783.2,
-            2e-05,
-            0.1
-          ],
-          [
-            6,
-            3,
-            1,
-            1441.5,
-            0.00057,
-            0.82
-          ],
-          [
-            6,
-            3,
-            2,
-            2391.6,
-            0.00017,
             0.4
           ],
           [
             6,
+            1,
+            5,
+            4423.4,
+            0.00042,
+            1.86
+          ],
+          [
+            6,
+            1,
+            7,
+            2029.9,
+            0.0002,
+            0.4
+          ],
+          [
+            6,
+            2,
+            1,
+            2646.1,
+            0.00024,
+            0.63
+          ],
+          [
+            6,
+            2,
+            3,
+            2993.6,
+            0.00016,
+            0.48
+          ],
+          [
+            6,
+            2,
+            4,
+            3799.6,
+            5e-05,
+            0.17
+          ],
+          [
+            6,
+            2,
+            5,
+            6585.9,
+            5e-05,
+            0.34
+          ],
+          [
+            6,
+            2,
+            7,
+            4423.4,
+            2e-05,
+            0.09
+          ],
+          [
+            6,
+            3,
+            1,
+            1519.8,
+            0.00057,
+            0.87
+          ],
+          [
+            6,
+            3,
+            2,
+            2769.8,
+            0.00017,
+            0.47
+          ],
+          [
+            6,
             3,
             4,
-            2215.4,
+            2554.9,
             0.00011,
-            0.24
+            0.28
           ],
           [
             6,
             3,
             5,
-            5011.0,
+            4858.5,
             0.00012,
-            0.62
+            0.6
           ],
           [
             6,
             3,
             7,
-            4209.3,
+            3704.6,
             5e-05,
-            0.21
+            0.18
           ],
           [
             6,
             4,
             1,
-            907.1,
+            892.6,
             0.0003,
             0.27
           ],
@@ -502308,31 +505544,31 @@
             6,
             4,
             2,
-            3188.8,
+            3528.2,
             9e-05,
-            0.29
+            0.32
           ],
           [
             6,
             4,
             3,
-            2169.7,
+            2469.7,
             0.00019,
-            0.41
+            0.47
           ],
           [
             6,
             4,
             5,
-            2806.2,
+            3087.1,
             6e-05,
-            0.15
+            0.17
           ],
           [
             6,
             4,
             7,
-            3288.5,
+            3186.7,
             3e-05,
             0.08
           ],
@@ -502340,15 +505576,15 @@
             6,
             5,
             1,
-            3826.6,
+            3951.5,
             7e-05,
-            0.25
+            0.26
           ],
           [
             6,
             5,
             2,
-            5846.2,
+            5811.1,
             2e-05,
             0.11
           ],
@@ -502356,7 +505592,7 @@
             6,
             5,
             3,
-            5261.6,
+            5199.4,
             4e-05,
             0.23
           ],
@@ -502364,7 +505600,7 @@
             6,
             5,
             4,
-            2844.1,
+            3221.4,
             1e-05,
             0.04
           ],
@@ -502372,7 +505608,7 @@
             6,
             5,
             7,
-            2083.8,
+            2390.0,
             1e-05,
             0.01
           ],
@@ -502380,7 +505616,7 @@
             6,
             7,
             1,
-            2104.6,
+            2058.1,
             4e-05,
             0.09
           ],
@@ -502388,23 +505624,23 @@
             6,
             7,
             2,
-            6190.1,
+            5292.3,
             1e-05,
-            0.08
+            0.07
           ],
           [
             6,
             7,
             3,
-            5261.6,
+            4939.4,
             3e-05,
-            0.15
+            0.14
           ],
           [
             6,
             7,
             4,
-            3237.9,
+            3221.4,
             1e-05,
             0.03
           ],
@@ -502412,7 +505648,7 @@
             6,
             7,
             5,
-            2338.5,
+            2744.1,
             1e-05,
             0.02
           ],
@@ -502420,7 +505656,7 @@
             7,
             1,
             2,
-            161.8,
+            157.8,
             0.00195,
             0.31
           ],
@@ -502428,15 +505664,15 @@
             7,
             1,
             3,
-            122.7,
+            125.6,
             0.00409,
-            0.5
+            0.51
           ],
           [
             7,
             1,
             4,
-            131.2,
+            132.9,
             0.00116,
             0.15
           ],
@@ -502444,31 +505680,31 @@
             7,
             1,
             5,
-            482.7,
+            498.9,
             0.00121,
-            0.58
+            0.6
           ],
           [
             7,
             1,
             6,
-            876.9,
+            854.0,
             0.00057,
-            0.5
+            0.49
           ],
           [
             7,
             2,
             1,
-            97.4,
+            94.7,
             0.00142,
-            0.14
+            0.13
           ],
           [
             7,
             2,
             3,
-            140.5,
+            140.2,
             0.00097,
             0.14
           ],
@@ -502476,7 +505712,7 @@
             7,
             2,
             4,
-            188.0,
+            191.5,
             0.00028,
             0.05
           ],
@@ -502484,15 +505720,15 @@
             7,
             2,
             5,
-            455.5,
+            501.4,
             0.00032,
-            0.14
+            0.16
           ],
           [
             7,
             2,
             6,
-            1156.4,
+            1157.6,
             0.00011,
             0.13
           ],
@@ -502500,7 +505736,7 @@
             7,
             3,
             1,
-            83.9,
+            85.2,
             0.00341,
             0.29
           ],
@@ -502508,15 +505744,15 @@
             7,
             3,
             2,
-            222.9,
+            228.6,
             0.00101,
-            0.22
+            0.23
           ],
           [
             7,
             3,
             4,
-            376.5,
+            389.4,
             0.00068,
             0.26
           ],
@@ -502524,15 +505760,15 @@
             7,
             3,
             5,
-            457.5,
+            475.7,
             0.00077,
-            0.35
+            0.37
           ],
           [
             7,
             3,
             6,
-            1559.0,
+            1535.5,
             0.00027,
             0.42
           ],
@@ -502540,7 +505776,7 @@
             7,
             4,
             1,
-            59.3,
+            59.2,
             0.00083,
             0.05
           ],
@@ -502548,23 +505784,23 @@
             7,
             4,
             2,
-            177.0,
+            182.7,
             0.00025,
-            0.04
+            0.05
           ],
           [
             7,
             4,
             3,
-            355.5,
+            367.2,
             0.00054,
-            0.19
+            0.2
           ],
           [
             7,
             4,
             5,
-            988.0,
+            1018.4,
             0.00016,
             0.16
           ],
@@ -502572,15 +505808,15 @@
             7,
             4,
             6,
-            611.8,
+            714.1,
             7e-05,
-            0.04
+            0.05
           ],
           [
             7,
             5,
             1,
-            250.2,
+            250.1,
             0.0004,
             0.1
           ],
@@ -502588,7 +505824,7 @@
             7,
             5,
             2,
-            185.9,
+            200.5,
             0.00012,
             0.02
           ],
@@ -502596,15 +505832,15 @@
             7,
             5,
             3,
-            346.7,
+            361.4,
             0.00027,
-            0.09
+            0.1
           ],
           [
             7,
             5,
             4,
-            678.9,
+            665.9,
             8e-05,
             0.05
           ],
@@ -502612,15 +505848,15 @@
             7,
             5,
             6,
-            1090.4,
+            1190.2,
             3e-05,
-            0.03
+            0.04
           ],
           [
             7,
             6,
             1,
-            204.9,
+            197.1,
             0.00016,
             0.03
           ],
@@ -502628,7 +505864,7 @@
             7,
             6,
             2,
-            295.1,
+            294.6,
             5e-05,
             0.01
           ],
@@ -502636,7 +505872,7 @@
             7,
             6,
             3,
-            762.5,
+            792.4,
             0.0001,
             0.08
           ],
@@ -502644,7 +505880,7 @@
             7,
             6,
             4,
-            210.0,
+            217.4,
             3e-05,
             0.01
           ],
@@ -502652,9 +505888,9 @@
             7,
             6,
             5,
-            818.9,
+            866.5,
             3e-05,
-            0.02
+            0.03
           ]
         ],
         "exacta": {
@@ -502666,30 +505902,30 @@
               "combo": "1-6",
               "first": 1,
               "second": 6,
-              "odds": 63.6,
+              "odds": 58.2,
               "prob": 0.02455,
-              "ev": 1.56
+              "ev": 1.43
+            },
+            {
+              "combo": "1-5",
+              "first": 1,
+              "second": 5,
+              "odds": 36.7,
+              "prob": 0.02815,
+              "ev": 1.03
             },
             {
               "combo": "1-4",
               "first": 1,
               "second": 4,
-              "odds": 4.7,
+              "odds": 4.2,
               "prob": 0.21777,
-              "ev": 1.02
-            },
-            {
-              "combo": "1-3",
-              "first": 1,
-              "second": 3,
-              "odds": 3.3,
-              "prob": 0.19413,
-              "ev": 0.64
+              "ev": 0.91
             }
           ],
-          "synth_odds": 1.9,
-          "hit_prob": 0.4365,
-          "sum_ev": 3.23,
+          "synth_odds": 3.5,
+          "hit_prob": 0.2705,
+          "sum_ev": 3.38,
           "note": "◎を1着に固定し相手はEV(市場過小評価)優先＋確率で補完。回収率<100%（黒字ではない）。"
         },
         "reference": null,
@@ -502808,10 +506044,10 @@
           }
         },
         "has_odds": true,
-        "odds_at": "23:03",
-        "updated_at": "2026-08-25 23:03",
+        "odds_at": "23:04",
+        "updated_at": "2026-08-25 23:04",
         "final_locked": true,
-        "final_update_time": "23:03"
+        "final_update_time": "23:04"
       },
       {
         "date": "2026-08-25",
