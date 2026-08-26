@@ -2,7 +2,7 @@
    - HTML(index.html/ナビゲーション) と data.json は network-first（更新を確実に反映、オフライン時はキャッシュ）
    - アイコン/マニフェスト等の静的アセットは cache-first
    キャッシュ名を上げると旧キャッシュを破棄して確実に更新できる。 */
-const CACHE = "keirin-ai-v5";
+const CACHE = "keirin-ai-v6";
 const SHELL = [
   "./",
   "./index.html",
@@ -54,9 +54,13 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
 
-  // data.json は network-first（最新の集計を確実に反映）
+  // data.json / data_men.json は network-first（最新の集計を確実に反映）
   if (url.pathname.endsWith("/data.json")) {
     e.respondWith(networkFirst(e.request, "./data.json"));
+    return;
+  }
+  if (url.pathname.endsWith("/data_men.json")) {
+    e.respondWith(networkFirst(e.request, "./data_men.json"));
     return;
   }
   // HTML（ナビゲーション / index.html / ルート）は network-first で最新の外殻を反映
