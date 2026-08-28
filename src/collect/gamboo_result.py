@@ -29,6 +29,7 @@ class ResultRow:
     kimarite: str              # 決まり手（1着以外は空のことが多い）
     sb: str                    # S / B マーク
     comment: str               # 勝敗因
+    status: str = ""           # 着が非数値の時の生ステータス（落=落車/失=失格/欠=欠車/空=未実施抽選等）
 
 
 @dataclass
@@ -101,11 +102,13 @@ def parse_results(html: str) -> list[ResultRow]:
         car = _to_int(cells[2])
         if car is None:
             continue
+        _chaku = cells[1]
         out.append(ResultRow(
-            position=_to_int(cells[1]), car_number=car, rider_name=cells[3],
+            position=_to_int(_chaku), car_number=car, rider_name=cells[3],
             margin=cells[4],
             last_lap=(float(cells[5]) if re.match(r"^\d+\.\d+$", cells[5]) else None),
             kimarite=cells[6], sb=cells[7], comment=cells[8],
+            status=("" if re.match(r"^\d+$", _chaku) else _chaku),   # 落/失/欠 等
         ))
     return out
 

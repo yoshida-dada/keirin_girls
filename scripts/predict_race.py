@@ -70,6 +70,11 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         stats = current_stats(hist_db)
     except Exception:
         stats = {}
+    try:                                  # 落車明けバッジ用（表示のみ・予測特徴ではない）
+        from src.features.crash_features import races_since_crash
+        crash_since = races_since_crash(hist_db)
+    except Exception:
+        crash_since = {}
     car_name = {e.car_number: e.rider_name for e in entries}
     try:
         h2h = head_to_head(hist_db, car_name) if stats else None
@@ -215,6 +220,8 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
             # 直近前走(2日目準決なら初日)の格・着位。決勝ボーダー(3着枠タイブレーク)用
             "pre_kaku": (_meet_kaku.get(e.car_number) or {}).get("kaku"),
             "pre_pos": (_meet_kaku.get(e.car_number) or {}).get("pos"),
+            # 落車明けからのレース数(since)。表示のみ。次走=明け(since+1)走目。None=落車履歴なし
+            "crash_since": crash_since.get(e.rider_name),
             "home": is_home_pref(e.prefecture, venue_code),      # 地元(同県)開催か
             "home_dist": is_home_district(e.prefecture, venue_code),  # 同地区開催か
             "win_rate": (f.win_rate if f else None),
