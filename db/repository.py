@@ -244,6 +244,25 @@ class DatasetRepo:
         self.conn.executemany(
             "INSERT OR REPLACE INTO results VALUES (?,?,?,?,?,?,?,?)", rows)
         self.conn.commit()
+        self.save_dnf_status(race_id, results)
+        return len(rows)
+
+    def save_dnf_status(self, race_id: str, results: list) -> int:
+        """着が非数値(落/失/欠等)の選手のステータスを dnf_status に保存（落車明けバッジ・特徴用）。
+
+        コアの results テーブル(8列固定)を壊さないよう別テーブルに持つ。status 空(=完走/未実施)は
+        入れない。落車の特定に使う（status='落'）。
+        """
+        self.conn.execute(
+            "CREATE TABLE IF NOT EXISTS dnf_status ("
+            " race_id TEXT NOT NULL, car_number INTEGER NOT NULL, rider_name TEXT,"
+            " status TEXT, PRIMARY KEY (race_id, car_number))")
+        rows = [(race_id, r.car_number, r.rider_name, getattr(r, "status", "") or "")
+                for r in results if (getattr(r, "status", "") or "")]
+        if rows:
+            self.conn.executemany(
+                "INSERT OR REPLACE INTO dnf_status VALUES (?,?,?,?)", rows)
+            self.conn.commit()
         return len(rows)
 
     def save_odds_final(self, race_id: str, odds: dict) -> int:
