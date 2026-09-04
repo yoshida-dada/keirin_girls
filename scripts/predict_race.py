@@ -258,9 +258,9 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         ev = round(p * o, 2) if o else None
         combos.append([a, b, c, o, round(p, 5), ev])
 
-    # 穴フォーメーション(F 3-4-4): 本番分布(mix/himo)の各着マージナル上位3-4-4。
-    # as-of検証で荒れ帯の万車券カバー~15%(現行6%の約2.4倍・joint mix24の13%超)。回収率<100%。
-    def _arare_form(pr, n1=3, n2=4, n3=4):
+    # 穴フォーメーション(F 3-4-5): 本番分布(mix/himo)の各着マージナル上位3-4-5(3着広め)。
+    # as-of検証で荒れ帯の万車券カバー~20%(現行6%の約3倍・約30点)。矩形と複数で効率は同等=点数で決まる。回収率<100%。
+    def _arare_form(pr, n1=3, n2=4, n3=5):
         from collections import defaultdict as _dd
         p1, p2, p3 = _dd(float), _dd(float), _dd(float)
         for (a, b, cc), p in pr.items():
