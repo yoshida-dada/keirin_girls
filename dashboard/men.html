@@ -313,6 +313,10 @@ table.res-t tr.p1 td.res-pos{color:#e03131;font-size:.9rem}
 .res-hit{font-size:.64rem;font-weight:800;border-radius:999px;padding:2px 9px}
 .res-hit.ok{background:var(--good-soft);color:var(--good);border:1px solid var(--good)}
 .res-hit.ng{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
+.res-buys{padding:9px 11px;border-top:1px solid var(--border2)}
+.res-buys-h{font-size:.7rem;font-weight:800;color:var(--muted);margin-bottom:5px}
+.res-buyrow{display:flex;align-items:baseline;gap:8px;margin:4px 0;flex-wrap:wrap}
+.res-buyf{font-weight:800;font-variant-numeric:tabular-nums;font-size:.82rem;color:var(--ink);letter-spacing:.02em}
 /* 列表示・並び順の設定パネル */
 .cc{margin:0 0 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
 .cc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:.76rem;font-weight:800;user-select:none}
@@ -916,6 +920,15 @@ function planHit(r){
     (f.first||[]).indexOf(p[0])>=0 && (f.second||[]).indexOf(p[1])>=0
     && (f.third||[]).indexOf(p[2])>=0);
 }
+// 穴フォーメーション(arare)が確定結果を的中したか。結果/穴が無ければ null。
+function araeHit(r){
+  const A = r.arare, cb = ((r.result||{}).payout||{}).combo;
+  if(!A || !cb) return null;
+  const p = String(cb).split("-").map(Number);
+  if(p.length!==3 || p.some(isNaN)) return null;
+  return (A.first||[]).indexOf(p[0])>=0 && (A.second||[]).indexOf(p[1])>=0
+    && (A.third||[]).indexOf(p[2])>=0;
+}
 // しきいは実測の万車券率（男子7車 27.0%）を中心に置く。旧しきい0.30/0.55は旧指標の尺度
 const uptCls = u => u==null ? "na" : (u<0.21 ? "lo" : (u<0.34 ? "mid" : "hi"));
 const UPT_TIP = "万車券率＝三連単の払戻が1万円以上になる確率。"
@@ -1102,18 +1115,33 @@ function resultBlock(r){
     : "払戻情報なし";
   const h = R.hit||{};
   let hitTxt = "";
-  if(h.win_hit!=null)
-    hitTxt += `<span class="res-hit ${h.win_hit?"ok":"ng"}">本命${h.win_hit?"的中":"不的中"}</span>`;
   if(h.tri_rank!=null)
     hitTxt += `<span class="res-hit ${h.tri_rank<=10?"ok":"ng"}">三連単 モデル${h.tri_rank}位</span>`;
   else if("tri_rank" in h)
     hitTxt += `<span class="res-hit ng">三連単 モデル圏外</span>`;
+  // 買い目の的中結果: 本命(展開分岐統合) / 穴(F3-4-5) の両方を並べ、どちらが的中したか示す
+  const honHit = planHit(r), anaHit = araeHit(r);
+  const B = r.dev_branches, A = r.arare;
+  const honForms = (((B||{}).merged||{}).forms||[]).map(f=>esc(f.text||fmtForm(f))).join(" ／ ");
+  const hitBadge = v => v==null ? "" : `<span class="res-hit ${v?"ok":"ng"}">${v?"的中":"不的中"}</span>`;
+  let buyRes = "";
+  if(honForms || A){
+    buyRes = `<div class="res-buys"><div class="res-buys-h">買い目の結果</div>`;
+    if(honForms)
+      buyRes += `<div class="res-buyrow"><span class="bc-tag hon">🎯本命</span>`
+        +`<span class="res-buyf">${honForms}</span>${hitBadge(honHit)}</div>`;
+    if(A)
+      buyRes += `<div class="res-buyrow"><span class="bc-tag ana">🩹穴</span>`
+        +`<span class="res-buyf">${fmtForm(A)}</span> <span class="bc-pt">${A.points}点</span>${hitBadge(anaHit)}</div>`;
+    buyRes += `</div>`;
+  }
   return `<div class="res"><div class="res-head">🏁 確定結果`
     +(R.fetched_at?`<span class="res-time">取得 ${esc(String(R.fetched_at).slice(11))}</span>`:"")+`</div>`
     +`<div class="tblwrap"><table class="rt res-t"><thead><tr>`
     +`<th class="res-pos">着</th><th class="res-car">車</th><th class="l">選手</th><th>上り</th><th class="l">決まり手</th>`
     +`</tr></thead><tbody>${rows}</tbody></table></div>`
-    +`<div class="res-foot"><span class="res-pay">${payTxt}</span>${hitTxt}</div></div>`;
+    +`<div class="res-foot"><span class="res-pay">${payTxt}</span>${hitTxt}</div>`
+    +buyRes+`</div>`;
 }
 
 // 出走者同士の過去対戦成績（同一レースでの着順比較）マトリクス。行=当該車の先着 - 相手の先着。
