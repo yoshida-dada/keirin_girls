@@ -258,6 +258,20 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         ev = round(p * o, 2) if o else None
         combos.append([a, b, c, o, round(p, 5), ev])
 
+    # 穴フォーメーション(F 3-4-4): 本番分布(mix/himo)の各着マージナル上位3-4-4。
+    # as-of検証で荒れ帯の万車券カバー~15%(現行6%の約2.4倍・joint mix24の13%超)。回収率<100%。
+    def _arare_form(pr, n1=3, n2=4, n3=4):
+        from collections import defaultdict as _dd
+        p1, p2, p3 = _dd(float), _dd(float), _dd(float)
+        for (a, b, cc), p in pr.items():
+            p1[a] += p; p2[b] += p; p3[cc] += p
+        A = [c for c, _ in sorted(p1.items(), key=lambda kv: -kv[1])[:n1]]
+        Bb = [c for c, _ in sorted(p2.items(), key=lambda kv: -kv[1])[:n2]]
+        C = [c for c, _ in sorted(p3.items(), key=lambda kv: -kv[1])[:n3]]
+        cs = [(a, b, cc) for a in A for b in Bb for cc in C if len({a, b, cc}) == 3]
+        return {"first": A, "second": Bb, "third": C, "points": len(cs)} if cs else None
+    arare = _arare_form(probs) if probs else None
+
     # 最新オッズに基づくEV判定（発走10分前更新で使う）。エッジ未確立のため参考値。
     ev = {"status": "no_odds", "threshold": 1.10, "n_buy": 0, "buys": [],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"}
@@ -493,6 +507,7 @@ def predict_race_dict(kaisai_code: str, day_code: str, race_no: int,
         "dev_patterns": dev_patterns,               # 展開6パターンの上位3つ（実測分岐比）
         "bank_profile": bank_profile,               # バンク諸元＋統計的な有利脚質（表示用）
         "combos": combos,                          # 全210通り（オッズテーブル用）
+        "arare": arare,                            # 穴フォーメーション(F3-4-4)。本命(dev_branches)と2択表示
         "exacta": exacta_block,                     # 二車単の推奨買い目（P8・発走5分前オッズでEV）
         "reference": reference,                    # 参考フォーメーション（実弾非推奨・回収率<100%）
         "h2h": h2h,                                # 出走者同士の過去対戦成績マトリクス

@@ -62,6 +62,17 @@ header{padding:calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-i
 .fbord .fb-note{font-size:.66rem;color:var(--muted);font-weight:600;line-height:1.5;margin:4px 0}
 .fbord .fb-note b{color:var(--ink)}
 .fbord .fb-nm{margin-left:4px}
+/* 買い目2択（本命/穴）。各レースでユーザーが選ぶ */
+.buychoice{margin:10px 0;border:1px solid var(--edge);border-radius:11px;background:var(--edge-soft);padding:9px 11px}
+.buychoice .bc-h{font-size:.76rem;font-weight:800;color:var(--edge);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.buychoice .bc-u{font-size:.64rem;font-weight:800;color:#fff;background:#c92a2a;border-radius:5px;padding:1px 7px}
+.buychoice .bc-row{display:flex;align-items:baseline;gap:8px;margin:5px 0;flex-wrap:wrap}
+.buychoice .bc-tag{font-size:.7rem;font-weight:800;border-radius:6px;padding:2px 8px;white-space:nowrap;color:#fff}
+.buychoice .bc-tag.hon{background:var(--accent)}
+.buychoice .bc-tag.ana{background:#c92a2a}
+.buychoice .bc-form{font-weight:800;font-variant-numeric:tabular-nums;font-size:.86rem;color:var(--ink);line-height:1.6;letter-spacing:.02em}
+.buychoice .bc-pt{font-size:.64rem;color:var(--muted);font-weight:700}
+.buychoice .bc-note{font-size:.63rem;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
 .vtab .vday{font-size:.58rem;font-weight:800;color:#0b7285;margin-left:5px}
 .vtab[aria-selected="true"] .vday{color:#fff}
 .badge.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
@@ -1304,6 +1315,27 @@ function finalBorderBlock(r){
     +`<div class="tblwrap"><table class="t"><thead><tr><th>順</th><th class="l">選手</th><th>初日(直近前走)</th></tr></thead><tbody>${rows}</tbody></table></div>`
     +`<div class="fb-note">※最終確定は他準決の3着の初日成績次第。規程=番組編成の要領 第4章第4節。</div></div>`;
 }
+// 買い目2択: 🎯本命(展開分岐統合=堅め) / 🩹穴(F3-4-4フォーメーション=荒れ向き)。荒れ度(万車券率)を併記。
+function fmtForm(f){
+  const j = a => [...(a||[])].sort((x,y)=>x-y).join("");   // 昇順・区切り無し(例 45-456-1456)
+  return `${j(f.first)}-${j(f.second)}-${j(f.third)}`;
+}
+function buyChoiceBlock(r){
+  const B = r.dev_branches, A = r.arare;
+  const forms = (((B||{}).merged||{}).forms) || [];
+  if(!forms.length && !A) return "";
+  const hon = forms.map(f=>esc(f.text||fmtForm(f))).join("<br>");
+  const honPts = (((B||{}).merged||{}).before||{}).points;
+  const u = r.upset_prob;
+  const uTag = u!=null ? `<span class="bc-u">荒れ度 ${(u*100).toFixed(0)}%</span>` : "";
+  return `<div class="buychoice"><div class="bc-h">買い目（本命／穴の2択）${uTag}</div>`
+    +`<div class="bc-row"><span class="bc-tag hon">🎯本命</span>`
+    +`<div class="bc-form">${hon||"—"}</div>${honPts?`<span class="bc-pt">${honPts}点</span>`:""}</div>`
+    +`<div class="bc-row"><span class="bc-tag ana">🩹穴</span>`
+    +`<div class="bc-form">${A?fmtForm(A):"—"}</div>${A?`<span class="bc-pt">${A.points}点</span>`:""}</div>`
+    +`<div class="bc-note">本命=堅めの統合買い目／穴=荒れ向きに広げたフォーメーション(万車券カバー重視・回収率&lt;100%)。`
+    +`荒れ度が高いほど穴向き。どちらを買うかは判断材料として。</div></div>`;
+}
 function raceHead(r){
   // 万車券率は1着確率と足して100%にはならない別の量。top1 は自前で取る
   const up = upsetOf(r);
@@ -1344,7 +1376,7 @@ function predContent(r){
   // 並びを最初に見せないと、以降のライン評価や分岐が何を指しているか読めない。
   // 出走表 → 並び予想 → 展開分岐と買い目 → ライン別の強さ の順。
   // 展開を読んだ直後に買い目を見せ、ラインの数値評価はその裏付けとして後ろに置く。
-  return riderTable(r) + finalBorderBlock(r) + devBlock(r) + branchBlock(r) + lineBlock(r) + h2hBlock(r) + tfBlock
+  return buyChoiceBlock(r) + riderTable(r) + finalBorderBlock(r) + devBlock(r) + branchBlock(r) + lineBlock(r) + h2hBlock(r) + tfBlock
        + refBlock(r) + evBlock(r) + omBlock(r);
 }
 // 展開分岐（男子）: 「誰が主導権を取るか」で場合分けし、分岐ごとに買い目を出す。
