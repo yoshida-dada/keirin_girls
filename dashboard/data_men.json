@@ -41,7 +41,7 @@
     ],
     "model": "LightGBM lambdarank(拡張20+Elo+展開10+並び5:中団込)",
     "note": "着順予測の確率です。EVは最新オッズ×モデルの参考値でエッジ未確立（実弾投入は非推奨）。",
-    "last_updated": "2026-09-19 20:42 JST",
+    "last_updated": "2026-09-19 20:43 JST",
     "races": [
       {
         "date": "2026-09-18",
@@ -327432,29 +327432,1028 @@
         "is_girls": false,
         "field_size": 6,
         "class_group": "A3",
-        "lines": [],
+        "lines": [
+          [
+            4,
+            1,
+            3,
+            2
+          ],
+          [
+            5,
+            6
+          ]
+        ],
         "seri": [],
-        "line_strength": null,
-        "dev_branches": null,
+        "line_strength": {
+          "lines": [
+            {
+              "line_id": 0,
+              "size": 4,
+              "cars": [
+                {
+                  "car": 4,
+                  "name": "三浦 綾",
+                  "pos": 0,
+                  "pos_label": "先頭",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "先行",
+                  "class_rank": "A3",
+                  "win_prob": 0.2694
+                },
+                {
+                  "car": 1,
+                  "name": "柴田 健",
+                  "pos": 1,
+                  "pos_label": "番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.3574
+                },
+                {
+                  "car": 3,
+                  "name": "齋藤 輝彦",
+                  "pos": 2,
+                  "pos_label": "3番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.1088
+                },
+                {
+                  "car": 2,
+                  "name": "中川 昌久",
+                  "pos": 3,
+                  "pos_label": "4番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.1693
+                }
+              ],
+              "p_win": 0.905,
+              "p_12": 0.879,
+              "p_top3_any": 1.0,
+              "score_avg": 70.6,
+              "rank": 1
+            },
+            {
+              "line_id": 1,
+              "size": 2,
+              "cars": [
+                {
+                  "car": 5,
+                  "name": "木下 章",
+                  "pos": 0,
+                  "pos_label": "先頭",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "自在",
+                  "class_rank": "A3",
+                  "win_prob": 0.0678
+                },
+                {
+                  "car": 6,
+                  "name": "井上 典善",
+                  "pos": 1,
+                  "pos_label": "番手",
+                  "seri": false,
+                  "seri_side": null,
+                  "leg": "追込",
+                  "class_rank": "A3",
+                  "win_prob": 0.0272
+                }
+              ],
+              "p_win": 0.095,
+              "p_12": 0.008,
+              "p_top3_any": 0.2219,
+              "score_avg": 66.1,
+              "rank": 2
+            }
+          ],
+          "settle_prob": 0.887,
+          "settle_baseline": 0.562,
+          "settle_bias_note": "分岐混合で出している場合は実測とほぼ一致する（walk-forward n=12,420: 予測56.8% vs 実測55.6%）。並び予想が無く紐補正になる場合のみ、実測より約20pt低く出る。",
+          "note": "数値はこのレースのモデル分布から算出（1着確率の和・ライン決着確率）。実測では1着は強いラインの先頭に集中し、3着内では最強ラインの番手が先頭とほぼ同格＝紐として同価値。3番手は1着がほぼ無い。"
+        },
+        "dev_branches": {
+          "branches": [
+            {
+              "b_car": 4,
+              "b_name": "三浦 綾",
+              "prob": 0.8983,
+              "line": [
+                4,
+                1,
+                3,
+                2
+              ],
+              "is_solo": false,
+              "label": "4番ラインが主導権",
+              "win": {
+                "1": 0.4918,
+                "2": 0.0991,
+                "3": 0.0637,
+                "4": 0.2749,
+                "5": 0.0581,
+                "6": 0.0125
+              },
+              "formation": {
+                "first": [
+                  1,
+                  4,
+                  2,
+                  3
+                ],
+                "second": [
+                  2,
+                  4,
+                  3,
+                  1
+                ],
+                "third": [
+                  2,
+                  3,
+                  4
+                ],
+                "points": 18,
+                "text": "1234-1234-234",
+                "cover": 0.7309,
+                "cover_cond": 0.7864,
+                "p_model": 0.7113,
+                "odds": {
+                  "synth": 1.4,
+                  "min": 4.2,
+                  "max": 226.7,
+                  "covered": 18,
+                  "points": 18
+                }
+              },
+              "conditional": [
+                {
+                  "car": 1,
+                  "name": "柴田 健",
+                  "prob": 0.4918,
+                  "second": [
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "同ライン",
+                      "prob": 0.354
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "番手",
+                      "prob": 0.3205
+                    },
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.285
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0271
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.4084
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "番手",
+                      "prob": 0.2793
+                    },
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "同ライン",
+                      "prob": 0.2108
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0661
+                    }
+                  ],
+                  "second_inline": 0.9595,
+                  "third_inline": 0.8985
+                },
+                {
+                  "car": 4,
+                  "name": "三浦 綾",
+                  "prob": 0.2749,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "番手",
+                      "prob": 0.5423
+                    },
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.2565
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "同ライン",
+                      "prob": 0.1648
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0244
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.4268
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "同ライン",
+                      "prob": 0.3469
+                    },
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "番手",
+                      "prob": 0.1214
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0683
+                    }
+                  ],
+                  "second_inline": 0.9635,
+                  "third_inline": 0.8951
+                },
+                {
+                  "car": 2,
+                  "name": "中川 昌久",
+                  "prob": 0.0991,
+                  "second": [
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "同ライン",
+                      "prob": 0.3839
+                    },
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "同ライン",
+                      "prob": 0.3735
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "同ライン",
+                      "prob": 0.1986
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0294
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "同ライン",
+                      "prob": 0.4173
+                    },
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "同ライン",
+                      "prob": 0.2512
+                    },
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "同ライン",
+                      "prob": 0.1948
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0889
+                    }
+                  ],
+                  "second_inline": 0.956,
+                  "third_inline": 0.8633
+                }
+              ],
+              "form_types": [
+                {
+                  "kind": "◎頭",
+                  "scenario_prob": 0.4918,
+                  "cover": 0.9865,
+                  "cover_abs": 0.4852,
+                  "formation": {
+                    "first": [
+                      1
+                    ],
+                    "second": [
+                      4,
+                      3,
+                      2,
+                      5
+                    ],
+                    "third": [
+                      2,
+                      3,
+                      4,
+                      5,
+                      6
+                    ],
+                    "points": 16,
+                    "text": "1-2345-23456",
+                    "cover": 0.9865,
+                    "cover_cond": 0.9865,
+                    "p_model": 0.4648
+                  },
+                  "odds": {
+                    "synth": 1.4,
+                    "min": 4.2,
+                    "max": 323.9,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎2着",
+                  "scenario_prob": 0.223,
+                  "cover": 0.9849,
+                  "cover_abs": 0.2197,
+                  "formation": {
+                    "first": [
+                      4,
+                      2,
+                      3,
+                      5
+                    ],
+                    "second": [
+                      1
+                    ],
+                    "third": [
+                      2,
+                      3,
+                      4,
+                      5,
+                      6
+                    ],
+                    "points": 16,
+                    "text": "2345-1-23456",
+                    "cover": 0.9849,
+                    "cover_cond": 1.0,
+                    "p_model": 0.2259
+                  },
+                  "odds": {
+                    "synth": 7.7,
+                    "min": 37.4,
+                    "max": 302.3,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎抜き",
+                  "scenario_prob": 0.2094,
+                  "cover": 0.8276,
+                  "cover_abs": 0.1733,
+                  "formation": {
+                    "first": [
+                      4,
+                      2,
+                      5,
+                      3
+                    ],
+                    "second": [
+                      2,
+                      3,
+                      4
+                    ],
+                    "third": [
+                      3,
+                      2,
+                      4,
+                      5
+                    ],
+                    "points": 18,
+                    "text": "2345-234-2345",
+                    "cover": 0.8276,
+                    "cover_cond": 0.8581,
+                    "p_model": 0.1725
+                  },
+                  "odds": {
+                    "synth": 11.2,
+                    "min": 76.2,
+                    "max": 647.8,
+                    "covered": 18,
+                    "points": 18
+                  }
+                }
+              ]
+            },
+            {
+              "b_car": 5,
+              "b_name": "木下 章",
+              "prob": 0.0905,
+              "line": [
+                5,
+                6
+              ],
+              "is_solo": false,
+              "label": "5番ラインが主導権",
+              "win": {
+                "1": 0.2719,
+                "2": 0.1019,
+                "3": 0.0655,
+                "4": 0.3835,
+                "5": 0.115,
+                "6": 0.0623
+              },
+              "formation": {
+                "first": [
+                  4,
+                  1
+                ],
+                "second": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "third": [
+                  2,
+                  3,
+                  5,
+                  1,
+                  4
+                ],
+                "points": 18,
+                "text": "14-1234-12345",
+                "cover": 0.5642,
+                "cover_cond": 0.8609,
+                "p_model": 0.6965,
+                "odds": {
+                  "synth": 1.2,
+                  "min": 4.2,
+                  "max": 302.3,
+                  "covered": 18,
+                  "points": 18
+                }
+              },
+              "conditional": [
+                {
+                  "car": 4,
+                  "name": "三浦 綾",
+                  "prob": 0.3835,
+                  "second": [
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "番手",
+                      "prob": 0.5342
+                    },
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.2254
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "同ライン",
+                      "prob": 0.1448
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0641
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.3776
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "同ライン",
+                      "prob": 0.2802
+                    },
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "番手",
+                      "prob": 0.1922
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.1094
+                    }
+                  ],
+                  "second_inline": 0.9044,
+                  "third_inline": 0.8501
+                },
+                {
+                  "car": 1,
+                  "name": "柴田 健",
+                  "prob": 0.2719,
+                  "second": [
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "同ライン",
+                      "prob": 0.3505
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "番手",
+                      "prob": 0.2865
+                    },
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.2548
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.0725
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "同ライン",
+                      "prob": 0.3576
+                    },
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "同ライン",
+                      "prob": 0.2575
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "番手",
+                      "prob": 0.236
+                    },
+                    {
+                      "car": 5,
+                      "name": "木下 章",
+                      "role": "別線先頭",
+                      "prob": 0.1085
+                    }
+                  ],
+                  "second_inline": 0.8919,
+                  "third_inline": 0.8511
+                },
+                {
+                  "car": 5,
+                  "name": "木下 章",
+                  "prob": 0.115,
+                  "second": [
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "別線先頭",
+                      "prob": 0.2571
+                    },
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "別線番手",
+                      "prob": 0.2531
+                    },
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "別線3番手",
+                      "prob": 0.1869
+                    },
+                    {
+                      "car": 6,
+                      "name": "井上 典善",
+                      "role": "番手",
+                      "prob": 0.1828
+                    }
+                  ],
+                  "third": [
+                    {
+                      "car": 2,
+                      "name": "中川 昌久",
+                      "role": "別線3番手",
+                      "prob": 0.301
+                    },
+                    {
+                      "car": 1,
+                      "name": "柴田 健",
+                      "role": "別線番手",
+                      "prob": 0.2338
+                    },
+                    {
+                      "car": 4,
+                      "name": "三浦 綾",
+                      "role": "別線先頭",
+                      "prob": 0.2225
+                    },
+                    {
+                      "car": 3,
+                      "name": "齋藤 輝彦",
+                      "role": "別線3番手",
+                      "prob": 0.2159
+                    }
+                  ],
+                  "second_inline": 0.1828,
+                  "third_inline": 0.0268
+                }
+              ],
+              "form_types": [
+                {
+                  "kind": "◎頭",
+                  "scenario_prob": 0.2719,
+                  "cover": 0.9644,
+                  "cover_abs": 0.2622,
+                  "formation": {
+                    "first": [
+                      1
+                    ],
+                    "second": [
+                      4,
+                      3,
+                      2,
+                      5
+                    ],
+                    "third": [
+                      2,
+                      4,
+                      3,
+                      5,
+                      6
+                    ],
+                    "points": 16,
+                    "text": "1-2345-23456",
+                    "cover": 0.9644,
+                    "cover_cond": 0.9644,
+                    "p_model": 0.4648
+                  },
+                  "odds": {
+                    "synth": 1.4,
+                    "min": 4.2,
+                    "max": 323.9,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎2着",
+                  "scenario_prob": 0.3037,
+                  "cover": 0.9604,
+                  "cover_abs": 0.2917,
+                  "formation": {
+                    "first": [
+                      4,
+                      2,
+                      5,
+                      3,
+                      6
+                    ],
+                    "second": [
+                      1
+                    ],
+                    "third": [
+                      2,
+                      3,
+                      4,
+                      5
+                    ],
+                    "points": 16,
+                    "text": "23456-1-2345",
+                    "cover": 0.9604,
+                    "cover_cond": 0.9604,
+                    "p_model": 0.2226
+                  },
+                  "odds": {
+                    "synth": 8.3,
+                    "min": 37.4,
+                    "max": 604.7,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎3着",
+                  "scenario_prob": 0.1621,
+                  "cover": 0.9328,
+                  "cover_abs": 0.1512,
+                  "formation": {
+                    "first": [
+                      4,
+                      2,
+                      5,
+                      3,
+                      6
+                    ],
+                    "second": [
+                      2,
+                      4,
+                      3,
+                      5
+                    ],
+                    "third": [
+                      1
+                    ],
+                    "points": 16,
+                    "text": "23456-2345-1",
+                    "cover": 0.9328,
+                    "cover_cond": 0.9328,
+                    "p_model": 0.0812
+                  },
+                  "odds": {
+                    "synth": 3.7,
+                    "min": 11.1,
+                    "max": 697.7,
+                    "covered": 16,
+                    "points": 16
+                  }
+                },
+                {
+                  "kind": "◎抜き",
+                  "scenario_prob": 0.2623,
+                  "cover": 0.5905,
+                  "cover_abs": 0.1549,
+                  "formation": {
+                    "first": [
+                      4,
+                      5
+                    ],
+                    "second": [
+                      2,
+                      3,
+                      6,
+                      4,
+                      5
+                    ],
+                    "third": [
+                      2,
+                      3,
+                      5,
+                      4
+                    ],
+                    "points": 18,
+                    "text": "45-23456-2345",
+                    "cover": 0.5905,
+                    "cover_cond": 0.9449,
+                    "p_model": 0.1234
+                  },
+                  "odds": {
+                    "synth": 14.1,
+                    "min": 95.4,
+                    "max": 824.5,
+                    "covered": 18,
+                    "points": 18
+                  }
+                }
+              ]
+            }
+          ],
+          "merged": {
+            "forms": [
+              {
+                "b_car": 4,
+                "prob": 0.8983,
+                "text": "124-1234-234",
+                "first": [
+                  1,
+                  4,
+                  2
+                ],
+                "second": [
+                  3,
+                  4,
+                  2,
+                  1
+                ],
+                "third": [
+                  2,
+                  3,
+                  4
+                ],
+                "points": 14
+              },
+              {
+                "b_car": 5,
+                "prob": 0.0905,
+                "text": "4-12-123",
+                "first": [
+                  4
+                ],
+                "second": [
+                  1,
+                  2
+                ],
+                "third": [
+                  2,
+                  3,
+                  1
+                ],
+                "points": 4
+              }
+            ],
+            "before": {
+              "points": 15,
+              "p_model": 0.6944,
+              "synth": 1.4,
+              "min": 4.2,
+              "max": 226.7
+            },
+            "floor": 10.0,
+            "cut": [
+              {
+                "combo": "1-3-4",
+                "odds": 4.2
+              },
+              {
+                "combo": "1-4-3",
+                "odds": 6.4
+              }
+            ],
+            "after": {
+              "points": 13,
+              "p_model": 0.5904,
+              "synth": 3.1,
+              "min": 15.3,
+              "max": 226.7
+            }
+          },
+          "merged_each": {
+            "points": 26,
+            "p_model": 0.7982
+          },
+          "covered": 0.9888,
+          "hit_rate": 0.625,
+          "note": "主導権の確率は展開AI（男子62.5%的中）。分岐内の着順は実測の役割別シェアへ合わせた条件付き分布。買い目は展開の読み・紐選びの材料であって推奨ではない（期待値ゾーンは検証済みで存在しない: 全点均等買いROI 58.0%・上限75%）。"
+        },
         "grade": "F2",
         "meet_name": "前検コメはウィンチケット杯",
         "race_name": "チャレンジ一般",
         "race_type": "混戦",
-        "top1_prob": 0.245,
-        "entropy": 0.9408,
+        "top1_prob": 0.3574,
+        "entropy": 0.8616,
         "source": "学習済みモデル(男子・LightGBM 47特徴)",
-        "prob_source": "紐補正",
+        "prob_source": "分岐混合",
         "upset_prob": null,
         "riders": [
+          {
+            "car": 1,
+            "name": "柴田 健",
+            "score": 71.85,
+            "leg": "追",
+            "class_rank": "A3",
+            "line_id": 0,
+            "pos_in_line": 1,
+            "narabi_leg": "追込",
+            "pref": "神奈川",
+            "age": 56,
+            "term": 71,
+            "pre_kaku": "一般",
+            "pre_pos": 2,
+            "crash_since": null,
+            "home": true,
+            "home_dist": true,
+            "win_rate": 0.037000000000000005,
+            "win_prob": 0.3574,
+            "synth_odds_1st": 1.37,
+            "fair_odds_1st": 2.8,
+            "win_ev": 0.49,
+            "career_win_rate": 0.0375,
+            "career_starts": 80,
+            "recent5_finish": 4.0,
+            "venue_win_rate": 0.0,
+            "venue_starts": 1,
+            "days_since": 1,
+            "s_cnt": 2,
+            "b_cnt": 0,
+            "nige": 0,
+            "makuri": 0,
+            "sashi": 3,
+            "style_races": 71,
+            "meet": [
+              [
+                "2026-09-18",
+                2,
+                2,
+                12.7
+              ]
+            ],
+            "line_stats": {
+              "pos": {
+                "番手": {
+                  "n": 40,
+                  "win": 0.075,
+                  "top2": 0.275,
+                  "top3": 0.375,
+                  "win_k": 3,
+                  "top3_k": 15
+                },
+                "3番手以降": {
+                  "n": 33,
+                  "win": 0.0,
+                  "top2": 0.1212,
+                  "top3": 0.4242,
+                  "win_k": 0,
+                  "top3_k": 14
+                },
+                "単騎": {
+                  "n": 7,
+                  "win": 0.0,
+                  "top2": 0.0,
+                  "top3": 0.0,
+                  "win_k": 0,
+                  "top3_k": 0
+                }
+              },
+              "kamashi": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "tsuppari": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "seri": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "cut_head": {
+                "n": 0,
+                "k": 0,
+                "rate": null
+              },
+              "cut_mate": {
+                "n": 40,
+                "k": 14,
+                "rate": 0.35
+              }
+            }
+          },
           {
             "car": 4,
             "name": "三浦 綾",
             "score": 68.85,
             "leg": "逃",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 0,
+            "narabi_leg": "先行",
             "pref": "宮城",
             "age": 35,
             "term": 105,
@@ -327464,10 +328463,10 @@
             "home": false,
             "home_dist": false,
             "win_rate": 0.07400000000000001,
-            "win_prob": 0.245,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 4.08,
-            "win_ev": null,
+            "win_prob": 0.2694,
+            "synth_odds_1st": 3.85,
+            "fair_odds_1st": 3.71,
+            "win_ev": 1.04,
             "career_win_rate": 0.0532,
             "career_starts": 94,
             "recent5_finish": 5.2,
@@ -327554,9 +328553,9 @@
             "score": 71.55,
             "leg": "追",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 3,
+            "narabi_leg": "追込",
             "pref": "茨城",
             "age": 46,
             "term": 94,
@@ -327566,10 +328565,10 @@
             "home": false,
             "home_dist": false,
             "win_rate": 0.0,
-            "win_prob": 0.2383,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 4.2,
-            "win_ev": null,
+            "win_prob": 0.1693,
+            "synth_odds_1st": 9.72,
+            "fair_odds_1st": 5.91,
+            "win_ev": 1.65,
             "career_win_rate": 0.0714,
             "career_starts": 56,
             "recent5_finish": 5.2,
@@ -327651,110 +328650,14 @@
             }
           },
           {
-            "car": 1,
-            "name": "柴田 健",
-            "score": 71.85,
-            "leg": "追",
-            "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
-            "pref": "神奈川",
-            "age": 56,
-            "term": 71,
-            "pre_kaku": "一般",
-            "pre_pos": 2,
-            "crash_since": null,
-            "home": true,
-            "home_dist": true,
-            "win_rate": 0.037000000000000005,
-            "win_prob": 0.2123,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 4.71,
-            "win_ev": null,
-            "career_win_rate": 0.0375,
-            "career_starts": 80,
-            "recent5_finish": 4.0,
-            "venue_win_rate": 0.0,
-            "venue_starts": 1,
-            "days_since": 1,
-            "s_cnt": 2,
-            "b_cnt": 0,
-            "nige": 0,
-            "makuri": 0,
-            "sashi": 3,
-            "style_races": 71,
-            "meet": [
-              [
-                "2026-09-18",
-                2,
-                2,
-                12.7
-              ]
-            ],
-            "line_stats": {
-              "pos": {
-                "番手": {
-                  "n": 40,
-                  "win": 0.075,
-                  "top2": 0.275,
-                  "top3": 0.375,
-                  "win_k": 3,
-                  "top3_k": 15
-                },
-                "3番手以降": {
-                  "n": 33,
-                  "win": 0.0,
-                  "top2": 0.1212,
-                  "top3": 0.4242,
-                  "win_k": 0,
-                  "top3_k": 14
-                },
-                "単騎": {
-                  "n": 7,
-                  "win": 0.0,
-                  "top2": 0.0,
-                  "top3": 0.0,
-                  "win_k": 0,
-                  "top3_k": 0
-                }
-              },
-              "kamashi": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "tsuppari": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "seri": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "cut_head": {
-                "n": 0,
-                "k": 0,
-                "rate": null
-              },
-              "cut_mate": {
-                "n": 40,
-                "k": 14,
-                "rate": 0.35
-              }
-            }
-          },
-          {
             "car": 3,
             "name": "齋藤 輝彦",
             "score": 70.09,
             "leg": "追",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 0,
+            "pos_in_line": 2,
+            "narabi_leg": "追込",
             "pref": "神奈川",
             "age": 43,
             "term": 93,
@@ -327764,10 +328667,10 @@
             "home": true,
             "home_dist": true,
             "win_rate": 0.0,
-            "win_prob": 0.1411,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 7.09,
-            "win_ev": null,
+            "win_prob": 0.1088,
+            "synth_odds_1st": 7.2,
+            "fair_odds_1st": 9.19,
+            "win_ev": 0.78,
             "career_win_rate": 0.04,
             "career_starts": 75,
             "recent5_finish": 4.6,
@@ -327862,9 +328765,9 @@
             "score": 67.85,
             "leg": "両",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 1,
+            "pos_in_line": 0,
+            "narabi_leg": "自在",
             "pref": "長野",
             "age": 58,
             "term": 61,
@@ -327874,10 +328777,10 @@
             "home": false,
             "home_dist": false,
             "win_rate": 0.037000000000000005,
-            "win_prob": 0.116,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 8.62,
-            "win_ev": null,
+            "win_prob": 0.0678,
+            "synth_odds_1st": 13.28,
+            "fair_odds_1st": 14.75,
+            "win_ev": 0.9,
             "career_win_rate": 0.1071,
             "career_starts": 84,
             "recent5_finish": 4.6,
@@ -327972,9 +328875,9 @@
             "score": 64.29,
             "leg": "追",
             "class_rank": "A3",
-            "line_id": null,
-            "pos_in_line": null,
-            "narabi_leg": null,
+            "line_id": 1,
+            "pos_in_line": 1,
+            "narabi_leg": "追込",
             "pref": "千葉",
             "age": 58,
             "term": 66,
@@ -327984,10 +328887,10 @@
             "home": false,
             "home_dist": true,
             "win_rate": 0.0,
-            "win_prob": 0.0472,
-            "synth_odds_1st": null,
-            "fair_odds_1st": 21.19,
-            "win_ev": null,
+            "win_prob": 0.0272,
+            "synth_odds_1st": 32.98,
+            "fair_odds_1st": 36.76,
+            "win_ev": 0.9,
             "career_win_rate": 0.011,
             "career_starts": 91,
             "recent5_finish": 6.2,
@@ -327999,7 +328902,7 @@
             "nige": 0,
             "makuri": 0,
             "sashi": 1,
-            "style_races": 87,
+            "style_races": 86,
             "meet": [
               [
                 "2026-09-17",
@@ -328071,59 +328974,108 @@
         ],
         "top_trifecta": [
           {
-            "combo": "4→2→1",
-            "prob": 0.027,
-            "odds": null,
-            "need_odds": 37.1
+            "combo": "1→4→2",
+            "prob": 0.092,
+            "odds": 28.8,
+            "need_odds": 10.9
           },
           {
-            "combo": "2→4→1",
-            "prob": 0.0267,
-            "odds": null,
-            "need_odds": 37.5
+            "combo": "1→3→2",
+            "prob": 0.0901,
+            "odds": 28.2,
+            "need_odds": 11.1
           },
           {
             "combo": "4→1→2",
-            "prob": 0.0257,
-            "odds": null,
-            "need_odds": 38.9
+            "prob": 0.0846,
+            "odds": 61.7,
+            "need_odds": 11.8
           },
           {
-            "combo": "2→1→4",
-            "prob": 0.0251,
-            "odds": null,
-            "need_odds": 39.8
+            "combo": "1→2→3",
+            "prob": 0.0656,
+            "odds": 17.2,
+            "need_odds": 15.2
           },
           {
-            "combo": "1→4→2",
-            "prob": 0.0243,
-            "odds": null,
-            "need_odds": 41.1
+            "combo": "1→4→3",
+            "prob": 0.0591,
+            "odds": 6.4,
+            "need_odds": 16.9
+          },
+          {
+            "combo": "4→1→3",
+            "prob": 0.0543,
+            "odds": 37.4,
+            "need_odds": 18.4
           },
           {
             "combo": "1→2→4",
-            "prob": 0.024,
-            "odds": null,
-            "need_odds": 41.6
+            "prob": 0.0508,
+            "odds": 15.3,
+            "need_odds": 19.7
           },
           {
-            "combo": "4→2→3",
-            "prob": 0.0202,
-            "odds": null,
-            "need_odds": 49.6
-          },
-          {
-            "combo": "2→4→3",
-            "prob": 0.0199,
-            "odds": null,
-            "need_odds": 50.2
+            "combo": "1→3→4",
+            "prob": 0.0449,
+            "odds": 4.2,
+            "need_odds": 22.3
           }
         ],
         "ev": {
-          "status": "no_odds",
+          "status": "ok",
           "threshold": 1.1,
-          "n_buy": 0,
-          "buys": [],
+          "n_buy": 19,
+          "buys": [
+            {
+              "combo": "4→1→2",
+              "prob": 0.0628,
+              "odds": 61.7,
+              "ev": 3.87
+            },
+            {
+              "combo": "4→2→3",
+              "prob": 0.0306,
+              "odds": 95.4,
+              "ev": 2.92
+            },
+            {
+              "combo": "2→4→3",
+              "prob": 0.0164,
+              "odds": 171.1,
+              "ev": 2.81
+            },
+            {
+              "combo": "4→3→2",
+              "prob": 0.0247,
+              "odds": 98.5,
+              "ev": 2.43
+            },
+            {
+              "combo": "1→4→2",
+              "prob": 0.0782,
+              "odds": 28.8,
+              "ev": 2.25
+            },
+            {
+              "combo": "1→3→2",
+              "prob": 0.0772,
+              "odds": 28.2,
+              "ev": 2.18
+            },
+            {
+              "combo": "3→2→4",
+              "prob": 0.0108,
+              "odds": 177.8,
+              "ev": 1.92
+            },
+            {
+              "combo": "2→3→4",
+              "prob": 0.0083,
+              "odds": 226.7,
+              "ev": 1.88
+            }
+          ],
           "note": "最新オッズ×モデル確率のEV参考値。エッジ未確立のため実弾投入は非推奨。"
         },
         "role": {
@@ -328133,18 +329085,140 @@
           "condition": null
         },
         "meet_day": 3,
-        "development": null,
+        "development": {
+          "source": "並び予想（記者予想の隊列, 発走前確定情報）",
+          "line": [
+            {
+              "car": 4,
+              "leg": "先行",
+              "is_fav": false,
+              "pos": 0
+            },
+            {
+              "car": 1,
+              "leg": "追込",
+              "is_fav": true,
+              "pos": 1
+            },
+            {
+              "car": 3,
+              "leg": "追込",
+              "is_fav": false,
+              "pos": 2
+            },
+            {
+              "car": 2,
+              "leg": "追込",
+              "is_fav": false,
+              "pos": 3
+            },
+            {
+              "car": 5,
+              "leg": "自在",
+              "is_fav": false,
+              "pos": 4
+            },
+            {
+              "car": 6,
+              "leg": "追込",
+              "is_fav": false,
+              "pos": 5
+            }
+          ],
+          "fav": 1,
+          "marker": 3,
+          "patterns": [
+            {
+              "label": "番手抜け出し型",
+              "icon": "🔗",
+              "prob": 0.3574,
+              "lead_car": 1,
+              "cars": [
+                1
+              ],
+              "has_fav": true
+            },
+            {
+              "label": "中団抜け出し型(捲り)",
+              "icon": "🌀",
+              "prob": 0.3459,
+              "lead_car": 2,
+              "cars": [
+                2,
+                3,
+                5
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "先行・主導権型",
+              "icon": "🚴",
+              "prob": 0.2694,
+              "lead_car": 4,
+              "cars": [
+                4
+              ],
+              "has_fav": false
+            },
+            {
+              "label": "後方一気型",
+              "icon": "⚡",
+              "prob": 0.0272,
+              "lead_car": 6,
+              "cars": [
+                6
+              ],
+              "has_fav": false
+            }
+          ],
+          "backstretch": {
+            "lead_car": 4,
+            "lead_p": 0.8983,
+            "second_car": 5,
+            "second_p": 0.0905,
+            "reporter_front": 4,
+            "diverges": false,
+            "hit_rate": 0.625,
+            "probs": {
+              "4": 0.8983,
+              "5": 0.0905,
+              "1": 0.0037,
+              "6": 0.0035,
+              "3": 0.0023,
+              "2": 0.0016
+            }
+          },
+          "pace": {
+            "n_front": 1,
+            "level": "スロー〜ミドル",
+            "note": "捲り・差しがやや優勢",
+            "kimarite_hint": {
+              "逃": 26,
+              "捲": 25,
+              "差": 50
+            },
+            "b_reliability": {
+              "rentai": 55,
+              "gaiji": 30,
+              "note": "主導権はやや不安定"
+            },
+            "basis": "ペース(スロー)×バンク400m 実測n=13248",
+            "bank": 400
+          },
+          "note": "◎1番は隊列2番手。前の4番の主導権をどう捉えるかがカギ。◎が飛ぶ場合は中団の自力型(捲り)が抜ける展開に注意。",
+          "caveat": "ガールズはライン概念が薄く、実際の主導権は並び予想通りにならないことも多い（予想先頭の実バック取得率≒20%）。展開パターンの確率はモデル1着確率を勝者の隊列位置で分解したもの。"
+        },
         "dev_patterns": {
           "top": [
             {
               "key": "⑥差し/マーク",
-              "prob": 0.4084,
+              "prob": 0.3851,
               "fav_wins": false,
               "n": 6932,
               "second": [
                 {
                   "mark": "◎",
-                  "car": "4三浦 綾",
+                  "car": "1柴田 健",
                   "p": 0.433
                 },
                 {
@@ -328154,12 +329228,12 @@
                 },
                 {
                   "mark": "▲",
-                  "car": "1柴田 健",
+                  "car": "2中川 昌久",
                   "p": 0.124
                 },
                 {
                   "mark": "○",
-                  "car": "2中川 昌久",
+                  "car": "4三浦 綾",
                   "p": 0.122
                 },
                 {
@@ -328176,12 +329250,12 @@
                 },
                 {
                   "mark": "◎",
-                  "car": "4三浦 綾",
+                  "car": "1柴田 健",
                   "p": 0.199
                 },
                 {
                   "mark": "▲",
-                  "car": "1柴田 健",
+                  "car": "2中川 昌久",
                   "p": 0.153
                 },
                 {
@@ -328191,14 +329265,14 @@
                 },
                 {
                   "mark": "○",
-                  "car": "2中川 昌久",
+                  "car": "4三浦 綾",
                   "p": 0.124
                 }
               ],
               "winner": [
                 {
                   "mark": "○",
-                  "car": "2中川 昌久",
+                  "car": "4三浦 綾",
                   "p": 0.403
                 },
                 {
@@ -328208,7 +329282,7 @@
                 },
                 {
                   "mark": "▲",
-                  "car": "1柴田 健",
+                  "car": "2中川 昌久",
                   "p": 0.212
                 },
                 {
@@ -328227,13 +329301,13 @@
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.2537,
+              "prob": 0.1593,
               "fav_wins": false,
               "n": 3335,
               "second": [
                 {
                   "mark": "◎",
-                  "car": "4三浦 綾",
+                  "car": "1柴田 健",
                   "p": 0.373
                 },
                 {
@@ -328248,12 +329322,12 @@
                 },
                 {
                   "mark": "▲",
-                  "car": "1柴田 健",
+                  "car": "2中川 昌久",
                   "p": 0.127
                 },
                 {
                   "mark": "○",
-                  "car": "2中川 昌久",
+                  "car": "4三浦 綾",
                   "p": 0.124
                 }
               ],
@@ -328265,17 +329339,17 @@
                 },
                 {
                   "mark": "◎",
-                  "car": "4三浦 綾",
+                  "car": "1柴田 健",
                   "p": 0.222
                 },
                 {
                   "mark": "▲",
-                  "car": "1柴田 健",
+                  "car": "2中川 昌久",
                   "p": 0.148
                 },
                 {
                   "mark": "○",
-                  "car": "2中川 昌久",
+                  "car": "4三浦 綾",
                   "p": 0.141
                 },
                 {
@@ -328287,12 +329361,12 @@
               "winner": [
                 {
                   "mark": "○",
-                  "car": "2中川 昌久",
+                  "car": "4三浦 綾",
                   "p": 0.362
                 },
                 {
                   "mark": "▲",
-                  "car": "1柴田 健",
+                  "car": "2中川 昌久",
                   "p": 0.269
                 },
                 {
@@ -328315,133 +329389,103 @@
               "fav_top3": 0.609
             },
             {
-              "key": "④別の逃げ残り",
-              "prob": 0.0929,
-              "fav_wins": false,
-              "n": 1720,
+              "key": "①◎逃げ切り",
+              "prob": 0.1349,
+              "fav_wins": true,
+              "n": 3749,
               "second": [
                 {
-                  "mark": "◎",
+                  "mark": "○",
                   "car": "4三浦 綾",
-                  "p": 0.339
+                  "p": 0.516
+                },
+                {
+                  "mark": "▲",
+                  "car": "2中川 昌久",
+                  "p": 0.189
                 },
                 {
                   "mark": "×",
                   "car": "人気薄(5,6)",
-                  "p": 0.264
-                },
-                {
-                  "mark": "▲",
-                  "car": "1柴田 健",
-                  "p": 0.143
+                  "p": 0.158
                 },
                 {
                   "mark": "△",
                   "car": "3齋藤 輝彦",
-                  "p": 0.137
-                },
-                {
-                  "mark": "○",
-                  "car": "2中川 昌久",
-                  "p": 0.11
+                  "p": 0.133
                 }
               ],
               "third": [
                 {
                   "mark": "×",
                   "car": "人気薄(5,6)",
-                  "p": 0.399
+                  "p": 0.432
                 },
                 {
-                  "mark": "◎",
-                  "car": "4三浦 綾",
-                  "p": 0.197
+                  "mark": "▲",
+                  "car": "2中川 昌久",
+                  "p": 0.221
                 },
                 {
                   "mark": "△",
                   "car": "3齋藤 輝彦",
-                  "p": 0.152
-                },
-                {
-                  "mark": "▲",
-                  "car": "1柴田 健",
-                  "p": 0.144
+                  "p": 0.202
                 },
                 {
                   "mark": "○",
-                  "car": "2中川 昌久",
-                  "p": 0.102
+                  "car": "4三浦 綾",
+                  "p": 0.144
                 }
               ],
               "winner": [
                 {
-                  "mark": "○",
-                  "car": "2中川 昌久",
-                  "p": 0.481
-                },
-                {
-                  "mark": "▲",
+                  "mark": "◎",
                   "car": "1柴田 健",
-                  "p": 0.246
-                },
-                {
-                  "mark": "△",
-                  "car": "3齋藤 輝彦",
-                  "p": 0.151
-                },
-                {
-                  "mark": "×",
-                  "car": "人気薄(5,6)",
-                  "p": 0.123
+                  "p": 1.0
                 }
-              ],
-              "b_win": 0.997,
-              "fav_pos": {
-                "2": 0.351,
-                "3": 0.204,
-                "out": 0.444
-              },
-              "fav_top3": 0.555
+              ]
             }
           ],
           "insights": [
-            "◎4三浦 綾が負ける形では勝ち頭は○2中川 昌久が40%。ただしその時も◎は3着以内に62%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
-            "最も割れるのは3着。上位3形の加重では ×人気薄(5,6) 37% / ◎4三浦 綾 21% / ▲1柴田 健 15%。穴を拾うならここで、人気薄(5,6)が37%を占める。"
+            "◎1柴田 健が勝つ形（上位1つ）では、2着は○4三浦 綾が52%で最有力。◎-○の1-2着が軸になる。",
+            "◎1柴田 健が負ける形では勝ち頭は○4三浦 綾が40%。ただしその時も◎は3着以内に62%残る＝◎を切る根拠にならない（◎フェードは過去検証でも不成立）。",
+            "最も割れるのは3着。上位3形の加重では ×人気薄(5,6) 38% / ▲2中川 昌久 17% / ◎1柴田 健 17%。穴を拾うならここで、人気薄(5,6)が38%を占める。",
+            "①◎逃げ切り（13%）は2着に人気薄が16%と他の形（11〜13%）より荒れる。ここだけは3着だけでなく2着も広げたい。"
           ],
           "all": [
             {
               "key": "①◎逃げ切り",
-              "prob": 0.0664,
+              "prob": 0.1349,
               "fav_wins": true
             },
             {
               "key": "②◎捲り",
-              "prob": 0.0901,
+              "prob": 0.093,
               "fav_wins": true
             },
             {
               "key": "③◎差し",
-              "prob": 0.0881,
+              "prob": 0.1286,
               "fav_wins": true
             },
             {
               "key": "④別の逃げ残り",
-              "prob": 0.0929,
+              "prob": 0.0982,
               "fav_wins": false
             },
             {
               "key": "⑤捲り台頭",
-              "prob": 0.2537,
+              "prob": 0.1593,
               "fav_wins": false
             },
             {
               "key": "⑥差し/マーク",
-              "prob": 0.4084,
+              "prob": 0.3851,
               "fav_wins": false
             }
           ],
           "n_races": 22901,
-          "pace": "ミドル",
+          "pace": "スロー",
           "note": "確率＝このレースの1着確率×履歴の分岐比（ペース区分で条件付け）。紐の内訳は全レースのプール値。◎判定に学習データを含むため楽観側で、分岐の目安として読む（回収率の根拠にはならない）。"
         },
         "bank_profile": {
@@ -328479,29 +329523,1024 @@
           },
           "note": "諸元は競輪場データ（みなし直線はWikipediaと照合）。有利脚質はバンク別の実測決まり手（全期間）に基づく。会場別の数値は標本が薄く参考値。カント・直線は決まり手の予測には使えないことが検証済み（同一周長内で無相関）。"
         },
-        "combos": [],
+        "combos": [
+          [
+            1,
+            2,
+            3,
+            17.2,
+            0.06558,
+            1.13
+          ],
+          [
+            1,
+            2,
+            4,
+            15.3,
+            0.05082,
+            0.78
+          ],
+          [
+            1,
+            2,
+            5,
+            156.3,
+            0.01139,
+            1.78
+          ],
+          [
+            1,
+            2,
+            6,
+            323.9,
+            0.0059,
+            1.91
+          ],
+          [
+            1,
+            3,
+            2,
+            28.2,
+            0.09011,
+            2.54
+          ],
+          [
+            1,
+            3,
+            4,
+            4.2,
+            0.04492,
+            0.19
+          ],
+          [
+            1,
+            3,
+            5,
+            114.8,
+            0.01008,
+            1.16
+          ],
+          [
+            1,
+            3,
+            6,
+            188.9,
+            0.00521,
+            0.98
+          ],
+          [
+            1,
+            4,
+            2,
+            28.8,
+            0.09201,
+            2.65
+          ],
+          [
+            1,
+            4,
+            3,
+            6.4,
+            0.05912,
+            0.38
+          ],
+          [
+            1,
+            4,
+            5,
+            90.7,
+            0.01041,
+            0.94
+          ],
+          [
+            1,
+            4,
+            6,
+            114.8,
+            0.00535,
+            0.61
+          ],
+          [
+            1,
+            5,
+            2,
+            58.5,
+            0.00625,
+            0.37
+          ],
+          [
+            1,
+            5,
+            3,
+            52.7,
+            0.00402,
+            0.21
+          ],
+          [
+            1,
+            5,
+            4,
+            37.1,
+            0.00326,
+            0.12
+          ],
+          [
+            1,
+            5,
+            6,
+            251.9,
+            0.00037,
+            0.09
+          ],
+          [
+            1,
+            6,
+            2,
+            174.4,
+            0.00302,
+            0.53
+          ],
+          [
+            1,
+            6,
+            3,
+            116.2,
+            0.00194,
+            0.23
+          ],
+          [
+            1,
+            6,
+            4,
+            79.5,
+            0.00157,
+            0.13
+          ],
+          [
+            1,
+            6,
+            5,
+            201.5,
+            0.00036,
+            0.07
+          ],
+          [
+            2,
+            1,
+            3,
+            97.5,
+            0.01792,
+            1.75
+          ],
+          [
+            2,
+            1,
+            4,
+            135.3,
+            0.01416,
+            1.92
+          ],
+          [
+            2,
+            1,
+            5,
+            188.9,
+            0.00322,
+            0.61
+          ],
+          [
+            2,
+            1,
+            6,
+            302.3,
+            0.00163,
+            0.49
+          ],
+          [
+            2,
+            3,
+            1,
+            64.7,
+            0.00691,
+            0.45
+          ],
+          [
+            2,
+            3,
+            4,
+            226.7,
+            0.00936,
+            2.12
+          ],
+          [
+            2,
+            3,
+            5,
+            335.9,
+            0.0021,
+            0.71
+          ],
+          [
+            2,
+            3,
+            6,
+            503.9,
+            0.00108,
+            0.55
+          ],
+          [
+            2,
+            4,
+            1,
+            71.9,
+            0.01199,
+            0.86
+          ],
+          [
+            2,
+            4,
+            3,
+            171.1,
+            0.02044,
+            3.5
+          ],
+          [
+            2,
+            4,
+            5,
+            335.9,
+            0.00364,
+            1.22
+          ],
+          [
+            2,
+            4,
+            6,
+            533.5,
+            0.00186,
+            0.99
+          ],
+          [
+            2,
+            5,
+            1,
+            153.7,
+            0.00085,
+            0.13
+          ],
+          [
+            2,
+            5,
+            3,
+            274.8,
+            0.0013,
+            0.36
+          ],
+          [
+            2,
+            5,
+            4,
+            245.1,
+            0.00107,
+            0.26
+          ],
+          [
+            2,
+            5,
+            6,
+            1007.8,
+            0.00012,
+            0.12
+          ],
+          [
+            2,
+            6,
+            1,
+            283.4,
+            0.0004,
+            0.11
+          ],
+          [
+            2,
+            6,
+            3,
+            394.3,
+            0.00062,
+            0.24
+          ],
+          [
+            2,
+            6,
+            4,
+            266.7,
+            0.00051,
+            0.14
+          ],
+          [
+            2,
+            6,
+            5,
+            453.5,
+            0.00012,
+            0.05
+          ],
+          [
+            3,
+            1,
+            2,
+            69.2,
+            0.01053,
+            0.73
+          ],
+          [
+            3,
+            1,
+            4,
+            90.7,
+            0.00537,
+            0.49
+          ],
+          [
+            3,
+            1,
+            5,
+            251.9,
+            0.00122,
+            0.31
+          ],
+          [
+            3,
+            1,
+            6,
+            274.8,
+            0.00062,
+            0.17
+          ],
+          [
+            3,
+            2,
+            1,
+            48.5,
+            0.00904,
+            0.44
+          ],
+          [
+            3,
+            2,
+            4,
+            177.8,
+            0.01223,
+            2.17
+          ],
+          [
+            3,
+            2,
+            5,
+            394.3,
+            0.00275,
+            1.09
+          ],
+          [
+            3,
+            2,
+            6,
+            697.7,
+            0.00142,
+            0.99
+          ],
+          [
+            3,
+            4,
+            1,
+            39.6,
+            0.00446,
+            0.18
+          ],
+          [
+            3,
+            4,
+            2,
+            76.2,
+            0.01172,
+            0.89
+          ],
+          [
+            3,
+            4,
+            5,
+            453.5,
+            0.00135,
+            0.61
+          ],
+          [
+            3,
+            4,
+            6,
+            477.3,
+            0.00069,
+            0.33
+          ],
+          [
+            3,
+            5,
+            1,
+            89.8,
+            0.00034,
+            0.03
+          ],
+          [
+            3,
+            5,
+            2,
+            119.3,
+            0.0008,
+            0.1
+          ],
+          [
+            3,
+            5,
+            4,
+            431.9,
+            0.00043,
+            0.18
+          ],
+          [
+            3,
+            5,
+            6,
+            697.7,
+            5e-05,
+            0.03
+          ],
+          [
+            3,
+            6,
+            1,
+            215.9,
+            0.00016,
+            0.04
+          ],
+          [
+            3,
+            6,
+            2,
+            503.9,
+            0.00038,
+            0.19
+          ],
+          [
+            3,
+            6,
+            4,
+            566.9,
+            0.00021,
+            0.12
+          ],
+          [
+            3,
+            6,
+            5,
+            824.5,
+            5e-05,
+            0.04
+          ],
+          [
+            4,
+            1,
+            2,
+            61.7,
+            0.08457,
+            5.22
+          ],
+          [
+            4,
+            1,
+            3,
+            37.4,
+            0.05434,
+            2.03
+          ],
+          [
+            4,
+            1,
+            5,
+            148.6,
+            0.01023,
+            1.52
+          ],
+          [
+            4,
+            1,
+            6,
+            259.1,
+            0.00506,
+            1.31
+          ],
+          [
+            4,
+            2,
+            1,
+            24.3,
+            0.023,
+            0.56
+          ],
+          [
+            4,
+            2,
+            3,
+            95.4,
+            0.03848,
+            3.67
+          ],
+          [
+            4,
+            2,
+            5,
+            302.3,
+            0.00696,
+            2.1
+          ],
+          [
+            4,
+            2,
+            6,
+            755.8,
+            0.00352,
+            2.66
+          ],
+          [
+            4,
+            3,
+            1,
+            11.1,
+            0.01145,
+            0.13
+          ],
+          [
+            4,
+            3,
+            2,
+            98.5,
+            0.02958,
+            2.91
+          ],
+          [
+            4,
+            3,
+            5,
+            232.5,
+            0.00346,
+            0.8
+          ],
+          [
+            4,
+            3,
+            6,
+            431.9,
+            0.00174,
+            0.75
+          ],
+          [
+            4,
+            5,
+            1,
+            67.1,
+            0.00177,
+            0.12
+          ],
+          [
+            4,
+            5,
+            2,
+            210.9,
+            0.00385,
+            0.81
+          ],
+          [
+            4,
+            5,
+            3,
+            335.9,
+            0.00248,
+            0.83
+          ],
+          [
+            4,
+            5,
+            6,
+            431.9,
+            0.00024,
+            0.1
+          ],
+          [
+            4,
+            6,
+            1,
+            99.6,
+            0.00084,
+            0.08
+          ],
+          [
+            4,
+            6,
+            2,
+            377.9,
+            0.00185,
+            0.7
+          ],
+          [
+            4,
+            6,
+            3,
+            755.8,
+            0.00119,
+            0.9
+          ],
+          [
+            4,
+            6,
+            5,
+            251.9,
+            0.00025,
+            0.06
+          ],
+          [
+            5,
+            1,
+            2,
+            274.8,
+            0.00765,
+            2.1
+          ],
+          [
+            5,
+            1,
+            3,
+            302.3,
+            0.00491,
+            1.49
+          ],
+          [
+            5,
+            1,
+            4,
+            259.1,
+            0.00405,
+            1.05
+          ],
+          [
+            5,
+            1,
+            6,
+            185.1,
+            0.00046,
+            0.09
+          ],
+          [
+            5,
+            2,
+            1,
+            156.3,
+            0.0034,
+            0.53
+          ],
+          [
+            5,
+            2,
+            3,
+            245.1,
+            0.00553,
+            1.36
+          ],
+          [
+            5,
+            2,
+            4,
+            251.9,
+            0.00445,
+            1.12
+          ],
+          [
+            5,
+            2,
+            6,
+            566.9,
+            0.00051,
+            0.29
+          ],
+          [
+            5,
+            3,
+            1,
+            146.2,
+            0.0018,
+            0.26
+          ],
+          [
+            5,
+            3,
+            2,
+            647.8,
+            0.00451,
+            2.92
+          ],
+          [
+            5,
+            3,
+            4,
+            159.1,
+            0.00234,
+            0.37
+          ],
+          [
+            5,
+            3,
+            6,
+            377.9,
+            0.00027,
+            0.1
+          ],
+          [
+            5,
+            4,
+            1,
+            125.9,
+            0.0034,
+            0.43
+          ],
+          [
+            5,
+            4,
+            2,
+            503.9,
+            0.00829,
+            4.18
+          ],
+          [
+            5,
+            4,
+            3,
+            312.7,
+            0.00533,
+            1.67
+          ],
+          [
+            5,
+            4,
+            6,
+            335.9,
+            0.0005,
+            0.17
+          ],
+          [
+            5,
+            6,
+            1,
+            292.5,
+            0.00105,
+            0.31
+          ],
+          [
+            5,
+            6,
+            2,
+            394.3,
+            0.00218,
+            0.86
+          ],
+          [
+            5,
+            6,
+            3,
+            824.5,
+            0.0014,
+            1.15
+          ],
+          [
+            5,
+            6,
+            4,
+            431.9,
+            0.00124,
+            0.54
+          ],
+          [
+            6,
+            1,
+            2,
+            477.3,
+            0.00189,
+            0.9
+          ],
+          [
+            6,
+            1,
+            3,
+            533.5,
+            0.00122,
+            0.65
+          ],
+          [
+            6,
+            1,
+            4,
+            604.7,
+            0.00108,
+            0.66
+          ],
+          [
+            6,
+            1,
+            5,
+            477.3,
+            0.00027,
+            0.13
+          ],
+          [
+            6,
+            2,
+            1,
+            431.9,
+            0.0009,
+            0.39
+          ],
+          [
+            6,
+            2,
+            3,
+            647.8,
+            0.00129,
+            0.84
+          ],
+          [
+            6,
+            2,
+            4,
+            1007.8,
+            0.00111,
+            1.12
+          ],
+          [
+            6,
+            2,
+            5,
+            755.8,
+            0.00027,
+            0.2
+          ],
+          [
+            6,
+            3,
+            1,
+            604.7,
+            0.00049,
+            0.29
+          ],
+          [
+            6,
+            3,
+            2,
+            824.5,
+            0.00107,
+            0.88
+          ],
+          [
+            6,
+            3,
+            4,
+            1007.8,
+            0.00059,
+            0.6
+          ],
+          [
+            6,
+            3,
+            5,
+            647.8,
+            0.00014,
+            0.09
+          ],
+          [
+            6,
+            4,
+            1,
+            604.7,
+            0.00096,
+            0.58
+          ],
+          [
+            6,
+            4,
+            2,
+            824.5,
+            0.00202,
+            1.67
+          ],
+          [
+            6,
+            4,
+            3,
+            755.8,
+            0.0013,
+            0.98
+          ],
+          [
+            6,
+            4,
+            5,
+            566.9,
+            0.00028,
+            0.16
+          ],
+          [
+            6,
+            5,
+            1,
+            697.7,
+            0.00044,
+            0.3
+          ],
+          [
+            6,
+            5,
+            2,
+            604.7,
+            0.00075,
+            0.45
+          ],
+          [
+            6,
+            5,
+            3,
+            1133.8,
+            0.00048,
+            0.55
+          ],
+          [
+            6,
+            5,
+            4,
+            907.0,
+            0.00048,
+            0.43
+          ]
+        ],
         "arare": {
           "first": [
+            1,
             4,
-            2,
-            1
+            2
           ],
           "second": [
-            4,
             2,
+            4,
             1,
             3
           ],
           "third": [
-            1,
             2,
-            4,
             3,
+            4,
+            1,
             5
           ],
           "points": 27
         },
-        "exacta": null,
+        "exacta": {
+          "policy": "◎軸・EV優先",
+          "anchor": 1,
+          "points": 3,
+          "buys": [
+            {
+              "combo": "1-2",
+              "first": 1,
+              "second": 2,
+              "odds": 14.5,
+              "prob": 0.13368,
+              "ev": 1.94
+            },
+            {
+              "combo": "1-4",
+              "first": 1,
+              "second": 4,
+              "odds": 6.1,
+              "prob": 0.16689,
+              "ev": 1.02
+            },
+            {
+              "combo": "1-3",
+              "first": 1,
+              "second": 3,
+              "odds": 4.3,
+              "prob": 0.15032,
+              "ev": 0.65
+            }
+          ],
+          "synth_odds": 2.1,
+          "hit_prob": 0.4509,
+          "sum_ev": 3.6,
+          "note": "◎を1着に固定し相手はEV(市場過小評価)優先＋確率で補完。回収率<100%（黒字ではない）。"
+        },
         "reference": null,
         "h2h": {
           "cars": [
@@ -328625,10 +330664,9 @@
             }
           }
         },
-        "has_odds": false,
-        "odds_at": null,
-        "updated_at": "2026-09-19 00:07",
-        "combos_pruned": true
+        "has_odds": true,
+        "odds_at": "20:43",
+        "updated_at": "2026-09-19 20:43"
       },
       {
         "date": "2026-09-19",
