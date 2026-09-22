@@ -67,28 +67,71 @@ Windows起動時、スタートアップフォルダの`KeirinGirlsLive.bat`（3
 
 ## 3. 手順
 
+**両プロジェクトを移す場合の推奨順序**：先に`競馬予想`のPhase 1を済ませる（Python/Git/GitHub CLI/Claude Codeの
+導入とGitHub認証が済む）→ その後にKEIRINのPhase 1を行うと、下記の「共通ブートストラップ」が全部スキップされて
+KEIRIN側は「clone→DB復元→専用venv作成」だけで終わる。単独でKEIRINだけ先に行っても支障はない
+（`02_setup_new_pc.ps1`は両方とも「インストール済み／認証済みなら何もしない」判定を持つ）。
+
+### Claude Codeに任せる場合（推奨）
+
+競馬予想と同じ新PCで、先にそちらのブートストラップ（Windows初期設定→Git・Claude Codeの導入→`/login`）を
+済ませていれば、KEIRIN側はもう人間の手を介さずに済む。
+
+1. **人間が行う（競馬予想を未セットアップの場合のみ・代行不可・5〜10分）**：
+   ```powershell
+   winget install --id Git.Git -e --silent --accept-package-agreements --accept-source-agreements
+   irm https://claude.ai/install.ps1 | iex
+   ```
+   `claude`を起動し`/login`（ブラウザOAuth）。※競馬予想を先に設定済みならこの手順は不要。
+2. **Claude Codeに依頼する（例）**：「`https://github.com/yoshida-dada/keirin_girls`をcloneして、
+   `migration/MIGRATION.md`のPhase 1に従ってセットアップして。詰まったら聞いて」
+   → `gh auth login`のブラウザコード入力（未認証の場合のみ人間に一度依頼）→ clone → 専用venv作成・
+   依存インストール → DB6ファイル・`.env`・Startupランチャーの復元 → `04_verify.ps1`の結果報告、まで
+   自律的に進む。
+3. **それでも人間が必要な箇所**：GitHub認証のブラウザ操作（未認証の場合のみ）、
+   `live_scheduler.py`のStartup自動起動が実際に動くかのログオン確認（既知の懸念、§2-C参照）、
+   Phase 2（切替日、新旧PC両方を見る必要がある）。
+
 ### Phase 0（旧PCで）
 - [x] `git status`がクリーン・push漏れ無しを確認（`01`が自動チェック）
 - [x] 履歴圧縮を実施済み（§4。ローカルミラーバックアップは保持中）
 - [ ] リハーサル: `.\migration\01_export_old_pc.ps1 -Dest D:\rehearsal -SkipDb -DryRun`
+- [ ] 外付けSSD（**BitLocker暗号化推奨**。bundleに`.env`等の秘匿情報が入る）を用意。bundle本体は
+      DBが主体で約1.9GB（`-SkipDb`ならKB単位）
 
-### Phase 1（新PC、競馬予想と同時移行なら`02_setup_new_pc.ps1`の一部は自動スキップされる）
-1. 旧PCで bundle作成：
+### Phase 1：新PCセットアップ（旧PCは通常稼働のまま。手動で行う場合の詳細手順）
+1. 新PC初期設定：競馬予想と共通（同じMicrosoftアカウント、リージョン=日本、電源接続）。
+   **すでに競馬予想のPhase 1を終えているなら、この手順は完了済み。**
+2. 旧PCでbundle作成：
    ```powershell
    cd "C:\Users\yoshi\PycharmProjects\pythonProject\KEIRIN"
    .\migration\01_export_old_pc.ps1 -Dest E:\keirin_bundle
    ```
-2. 新PCで（`競馬予想`を先に設定済みなら winget/gh 手順は自動スキップされる）：
+   （警告なしで完了すること。`repo_git_url`が空という警告が出たら、pushを先に済ませてから再実行）
+3. 新PCで（PowerShell、管理者不要。UACは出る）：`02_setup_new_pc.ps1`は`keirin_girls`リポジトリの
+   `migration\`配下にあり、bundleには含まれない（コード＝GitHubの原則どおり）。競馬予想を先にセットアップ
+   済みなら`git`・`gh`は既に使えるので、そのまま次のコマンドで足りる：
    ```powershell
    git clone https://github.com/yoshida-dada/keirin_girls.git "$env:TEMP\keirin-bootstrap"
    Set-ExecutionPolicy -Scope Process Bypass
    & "$env:TEMP\keirin-bootstrap\migration\02_setup_new_pc.ps1" -Bundle E:\keirin_bundle
    ```
-3. `.\migration\04_verify.ps1` で確認：Python/依存/DB6ファイル/`.env`/Startup配置/git状態/pytest。
+   競馬予想を未セットアップの場合は、先に上の「Claude Codeに任せる場合」手順1のブートストラップと
+   `gh auth login`→`gh auth setup-git`を行ってから上記を実行する。以降の流れ：
+   winget導入（未導入分のみ）→ gh認証（未認証の場合のみ）→ `git clone`でリポジトリ復元 →
+   DB6ファイル・`.env`・`push_subs.json`・`notified.json`・Startupランチャー復元 →
+   専用venv（`KEIRIN\.venv`）作成・依存インストール → `04_verify.ps1`。
+4. 手動作業（自動化不可）：
+   - ログオンし直すか、Startupフォルダの`KeirinGirlsLive.bat`を手動実行して`live_scheduler.py`が
+     起動することを確認（既知の懸念、§2-C参照。起動しない場合はコンソールのエラーを確認する）
+   - GitHub Pagesダッシュボードがこのリポジトリの`.github/workflows/pages.yml`で自動デプロイされる
+     ことを確認（`git push`後、数分待って`https://yoshida-dada.github.io/keirin_girls/`相当を開く）
+5. リハーサル確認：`.\migration\04_verify.ps1`が0 FAIL（WARNは新PCでは0件になるはず。旧PCで見えた
+   2件のWARNは「.venvが無い」「live_scheduler.pyが動いていない」で、新PCなら両方解消される想定）。
 
-### Phase 2（切替日）
+### Phase 2（切替日。競馬予想の切替日と合わせるのが望ましい）
 1. 旧PC：スタートアップフォルダから`KeirinGirlsLive.bat`を削除（または退避）し、実行中の`live_scheduler.py`を終了
-2. 旧PC：最終bundle作成（DB最新化）
+2. 旧PC：最終bundle作成（DB最新化）：`.\migration\01_export_old_pc.ps1 -Dest E:\keirin_bundle`
 3. 新PC：`02_setup_new_pc.ps1 -Bundle E:\keirin_bundle -SkipInstall -SkipPython`（DB上書き復元＋`git pull`）
 4. 新PC：`04_verify.ps1`全PASS → ログオンし直すか手動で`scripts\start_live_scheduler.bat`を実行して起動確認
 5. 確認：GitHub Pagesダッシュボードが新PCからのpushで更新される／スマホPush通知が届く
