@@ -1,14 +1,14 @@
 # 02_setup_new_pc.ps1 -- run on the NEW PC (normal user PowerShell, not elevated; UAC prompts from winget
 # are expected). Restores a bundle made by 01_export_old_pc.ps1 and builds the whole runtime. ASCII-only.
-# Safe to re-run. If 競馬予想 was already set up on this PC, winget/gh steps are skipped automatically
-# (already-installed / already-authenticated checks).
+# Safe to re-run. If the banei-keiba PC setup already ran on this PC, winget/gh steps are skipped
+# automatically (already-installed / already-authenticated checks).
 #
 #   Set-ExecutionPolicy -Scope Process Bypass
 #   .\02_setup_new_pc.ps1 -Bundle E:\keirin_bundle
 #
 # Best results: same Windows user name (C:\Users\yoshi) and the same project path as the old PC
 # (scripts\start_live_scheduler.bat falls back to a hard-coded path if the new .venv is missing --
-# see MIGRATION.md "既知の制約").
+# see MIGRATION.md).
 param(
     [Parameter(Mandatory = $true)][string]$Bundle,
     [switch]$SkipInstall,
@@ -31,7 +31,7 @@ if (-not $mf.repo_git_url) { throw "manifest.json has no repo_git_url" }
 if ($mf.repo_dirty)    { Warn "keirin_girls had uncommitted changes on the old PC -- they are NOT in this clone" }
 if ($mf.repo_unpushed) { Warn "keirin_girls had commits not pushed to origin on the old PC -- they are NOT in this clone" }
 
-Step "1. Applications (winget) -- shared with the 競馬予想 kit, skipped if already installed"
+Step "1. Applications (winget) -- shared with the banei-keiba kit, skipped if already installed"
 if (-not $SkipInstall) {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { throw "winget not found. Update 'App Installer' from the Microsoft Store." }
     foreach ($id in "Git.Git", "GitHub.cli", "Python.Python.3.10") {
@@ -44,7 +44,7 @@ if (-not $SkipInstall) {
     Refresh-Path
 }
 
-Step "2. GitHub auth (skipped if already logged in, e.g. from setting up 競馬予想 first)"
+Step "2. GitHub auth (skipped if already logged in, e.g. from setting up banei-keiba first)"
 Refresh-Path
 if (Get-Command gh -ErrorAction SilentlyContinue) {
     gh auth status 2>&1 | Out-Null
@@ -102,6 +102,6 @@ else {
 if (-not $SkipVerify) { Step "5. Verify"; & (Join-Path $Root "migration\04_verify.ps1") -Root $Root }
 
 Write-Host "`n=== Manual steps that cannot be automated (details: MIGRATION.md) ===" -ForegroundColor Green
-Write-Host " 1. ログオン（またはStartupフォルダのショートカット実行）で KeirinGirlsLive.bat が起動することを確認"
-Write-Host " 2. GitHub Pages(ダッシュボード)がこのリポジトリのActionsで自動デプロイされることを確認"
-Write-Host " 3. 切替日: 旧PCのStartupから KeirinGirlsLive.bat を削除（無効化）してから新PCで有効にする"
+Write-Host " 1. Log on (or run the Startup shortcut manually) and confirm KeirinGirlsLive.bat launches live_scheduler.py."
+Write-Host " 2. Confirm the GitHub Pages dashboard auto-deploys via this repo's Actions workflow."
+Write-Host " 3. Cutover day: remove KeirinGirlsLive.bat from the OLD PC's Startup folder before enabling it on the new PC."
