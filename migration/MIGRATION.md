@@ -19,11 +19,13 @@
 
 - [x] 未コミットだった分析・検証スクリプト14本をcommit・push済み
 - [x] `scripts/start_live_scheduler.bat`を`.venv`優先・旧絶対パスへのフォールバック方式に修正済み（旧PCの挙動は不変）
-- [ ] **`.git`履歴の圧縮**（`git filter-repo`で`dashboard/data.json`・`dashboard/data_men.json`の履歴を除去）
-      → 対応中。`live_scheduler.py`が発走前に数分間隔でこの2ファイルをコミットし続けるため、
-      2.1万コミット中2.1万件・1.8万件がこの2ファイルの変更のみで、`.git`が1.7GB超に肥大化していた
-      （実際のコード変更コミットは50〜200件程度）。圧縮後は現在の内容を1コミットで復元し、force pushする。
-      **実行前にミラーバックアップを取得済み**（ローカル、`git clone --mirror`）。
+- [x] **`.git`履歴の圧縮 完了(2026-09-22)**：`git filter-repo`で`dashboard/data.json`・`dashboard/data_men.json`
+      の履歴を除去し、現在の内容を1コミットで復元してforce push済み。`live_scheduler.py`が発走前に数分間隔で
+      この2ファイルをコミットし続けていたため、2.1万コミット中2.1万件・1.8万件がこの2ファイルの変更のみで
+      占められ、`.git`が**2.6GB→6.1MB**に肥大化していた（実質的なコード変更コミットは182件のみ残存）。
+      実行前にミラーバックアップを取得済み（ローカル、`git clone --mirror`、`04_verify.ps1`で.gitサイズを
+      継続監視）。GitHub上の元の履歴は force push により参照できなくなっている（単独ユーザーのprivate
+      repoのため影響なし）。
 - [x] pytestベースライン計測（旧PC・素のPython 3.10、`--ignore=api`）: **147 passed, 1 pre-existing failed**
       （`tests/test_gamboo_odds.py::test_race_meta_missing_is_none`。移行と無関係の既存のテスト/コードの
       ズレで、今回の作業で発生したものではない。新PCでも同じ1件が失敗するのが正しい状態）
@@ -66,9 +68,8 @@ Windows起動時、スタートアップフォルダの`KeirinGirlsLive.bat`（3
 ## 3. 手順
 
 ### Phase 0（旧PCで）
-- [ ] `git status`がクリーン・pushmissing無しを確認（`01`が自動チェック）
-- [ ] 履歴圧縮の実施可否を最終確認（§4参照。実行後は force push のため元の履歴はGitHub側からは失われる。
-      ローカルミラーバックアップは保持しておく）
+- [x] `git status`がクリーン・push漏れ無しを確認（`01`が自動チェック）
+- [x] 履歴圧縮を実施済み（§4。ローカルミラーバックアップは保持中）
 - [ ] リハーサル: `.\migration\01_export_old_pc.ps1 -Dest D:\rehearsal -SkipDb -DryRun`
 
 ### Phase 1（新PC、競馬予想と同時移行なら`02_setup_new_pc.ps1`の一部は自動スキップされる）
@@ -92,7 +93,7 @@ Windows起動時、スタートアップフォルダの`KeirinGirlsLive.bat`（3
 4. 新PC：`04_verify.ps1`全PASS → ログオンし直すか手動で`scripts\start_live_scheduler.bat`を実行して起動確認
 5. 確認：GitHub Pagesダッシュボードが新PCからのpushで更新される／スマホPush通知が届く
 
-## 4. `.git`履歴圧縮の手順（実行者向けメモ）
+## 4. `.git`履歴圧縮の手順（実行者向けメモ・2026-09-22実施済み。今後同様の肥大化が起きた場合の再手順として残す）
 
 ```powershell
 # 1. ミラーバックアップ（実施済み・保持）
@@ -131,8 +132,11 @@ git push origin --force --tags
 | `db_tool.py` | 競馬予想と共通（SQLite online backup＋integrity_check＋件数manifest照合） |
 | `requirements.lock.txt` | 旧PCの素のPython環境から freeze した56パッケージ |
 
-テスト状況：旧PC上で`db_tool.py backup/check`（3.4MBのprobe DBで動作確認済み）、pytestベースライン取得済み、
-`01`/`02`/`04`は構文解析のみ確認。**新PCでの本実行は未テスト**。
+テスト状況：旧PC上で`db_tool.py backup/check`（3.4MBのprobe DBで動作確認済み）、pytestベースライン取得済み
+（`--ignore=api`で147 passed, 1 pre-existing failed）、`01`/`04`は構文解析＋実行確認（`04_verify.ps1 -SkipTests`
+は0 FAIL・2 WARN=想定どおり）。`02`は構文解析のみ（**一度、日本語コメントがBOM無しUTF-8のためWindows
+PowerShell 5.1で構文エラーになるバグを作り込み、pushしてから発見・修正した**。ASCII化して再push済み）。
+**新PCでの`02`本実行は未テスト**。履歴圧縮（§4）は本番実行・force push・GitHub側反映まで確認済み。
 
 ## 6. 今後の改善（未着手）
 - `live_scheduler.py`のStartup自動起動が機能していない疑い（ログが1ヶ月停止）の原因調査
