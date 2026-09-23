@@ -85,9 +85,10 @@ KEIRIN側は「clone→DB復元→専用venv作成」だけで終わる。単独
    `claude`を起動し`/login`（ブラウザOAuth）。※競馬予想を先に設定済みならこの手順は不要。
 2. **Claude Codeに依頼する（例）**：「`https://github.com/yoshida-dada/keirin_girls`をcloneして、
    `migration/MIGRATION.md`のPhase 1に従ってセットアップして。詰まったら聞いて」
-   → `gh auth login`のブラウザコード入力（未認証の場合のみ人間に一度依頼）→ clone → 専用venv作成・
-   依存インストール → DB6ファイル・`.env`・Startupランチャーの復元 → `04_verify.ps1`の結果報告、まで
-   自律的に進む。
+   → `gh auth login`のブラウザコード入力（未認証の場合のみ人間に一度依頼）→ clone → `02_setup_new_pc.ps1`を
+   **まず`-Bundle`無しで**実行（専用venv作成・依存インストールまで進む。`-Bundle`は必須パラメータではない）
+   → `04_verify.ps1`の結果報告。旧PCのbundleが用意でき次第、同じコマンドに`-Bundle <path> -SkipInstall`を
+   付けて再実行するよう伝えれば、DB6ファイル・`.env`・Startupランチャーも追加で復元される。
 3. **それでも人間が必要な箇所**：GitHub認証のブラウザ操作（未認証の場合のみ）、
    `live_scheduler.py`のStartup自動起動が実際に動くかのログオン確認（既知の懸念、§2-C参照）、
    Phase 2（切替日、新旧PC両方を見る必要がある）。
@@ -114,13 +115,22 @@ KEIRIN側は「clone→DB復元→専用venv作成」だけで終わる。単独
    ```powershell
    git clone https://github.com/yoshida-dada/keirin_girls.git "$env:TEMP\keirin-bootstrap"
    Set-ExecutionPolicy -Scope Process Bypass
-   & "$env:TEMP\keirin-bootstrap\migration\02_setup_new_pc.ps1" -Bundle E:\keirin_bundle
    ```
    競馬予想を未セットアップの場合は、先に上の「Claude Codeに任せる場合」手順1のブートストラップと
-   `gh auth login`→`gh auth setup-git`を行ってから上記を実行する。以降の流れ：
-   winget導入（未導入分のみ）→ gh認証（未認証の場合のみ）→ `git clone`でリポジトリ復元 →
-   DB6ファイル・`.env`・`push_subs.json`・`notified.json`・Startupランチャー復元 →
-   専用venv（`KEIRIN\.venv`）作成・依存インストール → `04_verify.ps1`。
+   `gh auth login`→`gh auth setup-git`を行ってから上記を実行する。
+
+   **`-Bundle`は省略可**。旧PCのbundle（外付けドライブ等）がまだ手元に無い段階でも、まずコードだけの
+   ブートストラップを進められる：
+   ```powershell
+   & "$env:TEMP\keirin-bootstrap\migration\02_setup_new_pc.ps1"
+   ```
+   この場合の流れ：winget導入（未導入分のみ）→ gh認証（未認証の場合のみ）→ `git clone`でリポジトリ復元 →
+   専用venv（`KEIRIN\.venv`）作成・依存インストール → `04_verify.ps1`（DB6ファイル・`.env`・Startup
+   ランチャーはWARNになる）。bundleが用意でき次第、同じコマンドに`-Bundle <path> -SkipInstall`を付けて
+   再実行すれば（冪等なので）その部分だけ追加で復元される：
+   ```powershell
+   & "$env:TEMP\keirin-bootstrap\migration\02_setup_new_pc.ps1" -Bundle E:\keirin_bundle -SkipInstall
+   ```
 4. 手動作業（自動化不可）：
    - ログオンし直すか、Startupフォルダの`KeirinGirlsLive.bat`を手動実行して`live_scheduler.py`が
      起動することを確認（既知の懸念、§2-C参照。起動しない場合はコンソールのエラーを確認する）

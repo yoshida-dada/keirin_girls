@@ -6,11 +6,18 @@
 #   Set-ExecutionPolicy -Scope Process Bypass
 #   .\02_setup_new_pc.ps1 -Bundle E:\keirin_bundle
 #
+# -Bundle is OPTIONAL. Without it, this still does the code-only bootstrap -- winget, GitHub auth,
+# 'git clone' of the repo, dedicated venv + pip install -- using the RepoUrl default below. The 6 SQLite
+# DBs, .env/push_subs.json/notified.json, and the Startup launcher stub need the bundle; re-run with
+# -Bundle <path> once you have it (safe, idempotent).
+#
 # Best results: same Windows user name (C:\Users\yoshi) and the same project path as the old PC
 # (scripts\start_live_scheduler.bat falls back to a hard-coded path if the new .venv is missing --
 # see MIGRATION.md).
 param(
-    [Parameter(Mandatory = $true)][string]$Bundle,
+    [string]$Bundle = "",
+    [string]$RepoUrl = "https://github.com/yoshida-dada/keirin_girls.git",
+    [string]$RepoRoot = "",   # default: <profile>\PycharmProjects\pythonProject\KEIRIN
     [switch]$SkipInstall,
     [switch]$SkipPython,
     [switch]$SkipVerify
@@ -23,13 +30,25 @@ function Warn($m) { Write-Host ("WARN: {0}" -f $m) -ForegroundColor Yellow }
 function Refresh-Path { $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User") }
 
 Step "0. Preflight + manifest"
-$mf = Get-Content (Join-Path $Bundle "manifest.json") -Raw -Encoding UTF8 | ConvertFrom-Json
-$Root = Join-Path $UserHome $mf.repo_rel
-Write-Host ("bundle from : {0}\{1} ({2})" -f $mf.source_host, $mf.source_user, $mf.created)
+$HaveBundle = [bool]$Bundle
+$mf = $null
+if ($HaveBundle) {
+    $mfPath = Join-Path $Bundle "manifest.json"
+    if (-not (Test-Path $mfPath)) { throw "manifest.json not found under -Bundle $Bundle" }
+    $mf = Get-Content $mfPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not $RepoRoot) { $RepoRoot = Join-Path $UserHome $mf.repo_rel }
+    if ($mf.repo_git_url) { $RepoUrl = $mf.repo_git_url }
+    Write-Host ("bundle from : {0}\{1} ({2})" -f $mf.source_host, $mf.source_user, $mf.created)
+    if ($mf.repo_dirty)    { Warn "keirin_girls had uncommitted changes on the old PC -- they are NOT in this clone" }
+    if ($mf.repo_unpushed) { Warn "keirin_girls had commits not pushed to origin on the old PC -- they are NOT in this clone" }
+} else {
+    Write-Host "No -Bundle given: doing the code-only bootstrap (winget/GitHub auth/git clone/venv)."
+    Write-Host "The 6 SQLite DBs, .env/push_subs.json/notified.json, and the Startup launcher stub will NOT be restored here."
+    Write-Host "Re-run with -Bundle <path> once you have it to finish."
+}
+if (-not $RepoRoot) { $RepoRoot = Join-Path $UserHome "PycharmProjects\pythonProject\KEIRIN" }
+$Root = $RepoRoot
 Write-Host ("project root: {0}" -f $Root)
-if (-not $mf.repo_git_url) { throw "manifest.json has no repo_git_url" }
-if ($mf.repo_dirty)    { Warn "keirin_girls had uncommitted changes on the old PC -- they are NOT in this clone" }
-if ($mf.repo_unpushed) { Warn "keirin_girls had commits not pushed to origin on the old PC -- they are NOT in this clone" }
 
 Step "1. Applications (winget) -- shared with the banei-keiba kit, skipped if already installed"
 if (-not $SkipInstall) {
@@ -52,7 +71,7 @@ if (Get-Command gh -ErrorAction SilentlyContinue) {
     gh auth setup-git 2>&1 | Out-Null
 } else { Warn "gh not found -- 'git clone' will prompt for credentials interactively" }
 
-Step "3. Restore files (repo via 'git clone', DB/secrets/Startup stub from the bundle)"
+Step "3. Restore files (repo via 'git clone'; DB/secrets/Startup stub need -Bundle)"
 if (Test-Path (Join-Path $Root ".git")) {
     Write-Host "repo already present -- pulling latest instead of cloning"
     Push-Location $Root; try { git pull --ff-only } finally { Pop-Location }
@@ -61,28 +80,32 @@ if (Test-Path (Join-Path $Root ".git")) {
     throw "$Root exists but is not a git repo. Move it aside or delete it, then re-run."
 } else {
     New-Item -ItemType Directory -Force -Path (Split-Path $Root) | Out-Null
-    git clone $mf.repo_git_url $Root
-    if ($LASTEXITCODE -ne 0) { throw "git clone failed ($($mf.repo_git_url)). Check 'gh auth status' above." }
+    git clone $RepoUrl $Root
+    if ($LASTEXITCODE -ne 0) { throw "git clone failed ($RepoUrl). Check 'gh auth status' above." }
 }
 Write-Host "repo cloned/updated"
-$dbSrc = Join-Path $Bundle "db"
-if (Test-Path $dbSrc) {
-    $dataDir = Join-Path $Root "data"; New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
-    Get-ChildItem $dbSrc -Filter *.sqlite | ForEach-Object {
-        Copy-Item $_.FullName (Join-Path $dataDir $_.Name) -Force
-        Write-Host ("  restored {0}" -f $_.Name)
+if ($HaveBundle) {
+    $dbSrc = Join-Path $Bundle "db"
+    if (Test-Path $dbSrc) {
+        $dataDir = Join-Path $Root "data"; New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
+        Get-ChildItem $dbSrc -Filter *.sqlite | ForEach-Object {
+            Copy-Item $_.FullName (Join-Path $dataDir $_.Name) -Force
+            Write-Host ("  restored {0}" -f $_.Name)
+        }
+    } else { Warn "no db\ in the bundle (rehearsal bundle?)" }
+    $sd = Join-Path $Bundle "secrets"
+    if (Test-Path (Join-Path $sd ".env")) { Copy-Item (Join-Path $sd ".env") $Root -Force } else { Warn "secret missing in bundle: .env" }
+    foreach ($f in "push_subs.json", "notified.json") {
+        $p = Join-Path $sd $f
+        if (Test-Path $p) { Copy-Item $p (Join-Path $Root "data\$f") -Force }
     }
-} else { Warn "no db\ in the bundle (rehearsal bundle?)" }
-$sd = Join-Path $Bundle "secrets"
-if (Test-Path (Join-Path $sd ".env")) { Copy-Item (Join-Path $sd ".env") $Root -Force } else { Warn "secret missing in bundle: .env" }
-foreach ($f in "push_subs.json", "notified.json") {
-    $p = Join-Path $sd $f
-    if (Test-Path $p) { Copy-Item $p (Join-Path $Root "data\$f") -Force }
+    $homeBat = Join-Path $Bundle "home\KeirinGirlsLive.bat"
+    $startupDir = Join-Path $UserHome "AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+    if (Test-Path $homeBat) { Copy-Item $homeBat $startupDir -Force; Write-Host "Startup launcher installed (KeirinGirlsLive.bat)" }
+    else { Warn "no Startup launcher stub in the bundle -- create $startupDir\KeirinGirlsLive.bat manually (see MIGRATION.md)" }
+} else {
+    Warn "no -Bundle: 6 SQLite DBs / .env / push_subs.json / notified.json / Startup launcher NOT restored yet"
 }
-$homeBat = Join-Path $Bundle "home\KeirinGirlsLive.bat"
-$startupDir = Join-Path $UserHome "AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
-if (Test-Path $homeBat) { Copy-Item $homeBat $startupDir -Force; Write-Host "Startup launcher installed (KeirinGirlsLive.bat)" }
-else { Warn "no Startup launcher stub in the bundle -- create $startupDir\KeirinGirlsLive.bat manually (see MIGRATION.md)" }
 
 Step "4. Python: dedicated venv (KEIRIN\.venv), matching the old PC's base-Python packages"
 if ($SkipPython) { Write-Host "skipped" }
@@ -100,6 +123,13 @@ else {
 }
 
 if (-not $SkipVerify) { Step "5. Verify"; & (Join-Path $Root "migration\04_verify.ps1") -Root $Root }
+
+if (-not $HaveBundle) {
+    Write-Host "`n=== No -Bundle was given: code-only bootstrap done ===" -ForegroundColor Yellow
+    Write-Host "Copy the bundle from the old PC (01_export_old_pc.ps1 -Dest <path>), then run:"
+    Write-Host ("  {0} -Bundle <path> -SkipInstall" -f $PSCommandPath)
+    Write-Host "to restore the 6 SQLite DBs, .env/push state, and the Startup launcher."
+}
 
 Write-Host "`n=== Manual steps that cannot be automated (details: MIGRATION.md) ===" -ForegroundColor Green
 Write-Host " 1. Log on (or run the Startup shortcut manually) and confirm KeirinGirlsLive.bat launches live_scheduler.py."
