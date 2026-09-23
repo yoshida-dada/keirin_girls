@@ -189,7 +189,21 @@ git push origin --force --tags
 （`--ignore=api`で147 passed, 1 pre-existing failed）、`01`/`04`は構文解析＋実行確認（`04_verify.ps1 -SkipTests`
 は0 FAIL・2 WARN=想定どおり）。`02`は構文解析のみ（**一度、日本語コメントがBOM無しUTF-8のためWindows
 PowerShell 5.1で構文エラーになるバグを作り込み、pushしてから発見・修正した**。ASCII化して再push済み）。
-**新PCでの`02`本実行は未テスト**。履歴圧縮（§4）は本番実行・force push・GitHub側反映まで確認済み。
+履歴圧縮（§4）は本番実行・force push・GitHub側反映まで確認済み。
+
+### 修正履歴
+
+- **2026-09-23（旧PC側で修正・push済み）**：競馬予想の`02_setup_new_pc.ps1`を新PC（A7_MAX / ユーザーdada）で
+  実際に試したところ、`-Bundle`が必須パラメータのためbundle（外付けドライブ）が無い段階では**コードのclone
+  すら実行できない**ことが判明。KEIRIN側の`02_setup_new_pc.ps1`も同一設計だったため、先回りで同様に修正。
+  `-Bundle`を省略可に変更し、GitHub URL（`https://github.com/yoshida-dada/keirin_girls.git`）を既定値として
+  直接持つようにした。以後は：
+  1. bundleなしで`02_setup_new_pc.ps1`を実行 → winget/gh認証/`git clone`/専用venv構築まで進む
+  2. bundleが用意でき次第、`-Bundle <path> -SkipInstall`を付けて同じコマンドを再実行 → DB6ファイル/`.env`/
+     Startupランチャーを追加復元
+  という2段階で進められる（§3 Phase 1の手順は更新済み）。**新PC側で使っているコピーがこの修正より前の
+  ものなら、`git pull`するか改めてGitHubからcloneし直すこと**（MIGRATION.mdの差し替えだけでは
+  `02_setup_new_pc.ps1`本体の修正は反映されない）。**新PCでの`02`本実行はまだ未テスト**（構文解析のみ確認）。
 
 ## 6. 今後の改善（未着手）
 - `live_scheduler.py`のStartup自動起動が機能していない疑い（ログが1ヶ月停止）の原因調査
